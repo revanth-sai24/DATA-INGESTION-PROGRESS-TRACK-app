@@ -1,16 +1,10 @@
 "use client";
 import React from 'react';
 import {
-  Box, List, ListItem, ListItemText, ListItemIcon, Typography, Chip,
-  Divider, TextField, IconButton, Tooltip, Button
-} from '@mui/material';
-import {
-  ListAlt as ListAltIcon, TrendingUp as TrendingUpIcon, Archive as ArchiveIcon,
+  ListAlt as ListAltIcon, Archive as ArchiveIcon,
   Add as AddIcon, Download as DownloadIcon, Upload as UploadIcon,
-  Refresh as RefreshIcon, Brightness4 as DarkModeIcon, Brightness7 as LightModeIcon,
-  Assignment as AssignmentIcon, Dashboard as DashboardIcon, Folder as FolderIcon,
-  BarChart as BarChartIcon, Assessment as AssessmentIcon,
-  CalendarToday as CalendarTodayIcon, GetApp as GetAppIcon, Settings as SettingsIcon
+  Brightness4 as DarkModeIcon, Brightness7 as LightModeIcon,
+  Assignment as AssignmentIcon, Dashboard as DashboardIcon, Folder as FolderIcon
 } from '@mui/icons-material';
 
 export default function Sidebar({
@@ -29,304 +23,144 @@ export default function Sidebar({
   onAddTask
 }) {
   return (
-    <Box
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        bgcolor: '#f8f9fa',
-        borderRight: 1,
-        borderColor: '#e9ecef',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'fixed',
-        height: '100vh',
-        zIndex: 1200,
-        boxShadow: '2px 0 12px rgba(31,41,55,0.08)'
-      }}
+    <aside
+      className="fixed h-screen z-50 flex flex-col border-r border-slate-200 bg-white shadow-sm"
+      style={{ width: drawerWidth }}
     >
-      {/* Logo/Brand */}
-      <Box sx={{ p: 3, borderBottom: 1, borderColor: '#e9ecef', bgcolor: '#ffffff',
-        backgroundImage: 'linear-gradient(180deg, #ffffff 0%, #f9fafb 100%)' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <AssignmentIcon sx={{ fontSize: 32, color: '#2563eb', mr: 1.5 }} />
-          <Typography variant="h6" fontWeight="bold" color="#2563eb">
-            TaskMaster
-          </Typography>
-        </Box>
-        <Typography variant="caption" color="#6c757d">
-          Professional Task Management
-        </Typography>
-      </Box>
+      {/* Brand */}
+      <div className="px-4 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+        <div className="flex items-center gap-2 mb-1">
+          <AssignmentIcon style={{ fontSize: 28, color: '#2563eb' }} />
+          <span className="text-lg font-semibold text-brand">TaskMaster</span>
+        </div>
+        <span className="text-xs text-slate-500">Professional Task Management</span>
+      </div>
 
-      {/* Navigation Menu */}
-      <List sx={{ flex: 1, py: 2, bgcolor: '#f8f9fa' }}>
-        <ListItem
-          component="button"
-          selected={activePage === 'dashboard'}
+      {/* Nav */}
+      <nav className="flex-1 py-3 bg-slate-50/60">
+        <button
           onClick={() => setActivePage('dashboard')}
-          sx={{
-            mx: 1,
-            mb: 0.5,
-            borderRadius: 2,
-            bgcolor: activePage === 'dashboard' ? '#2563eb' : 'transparent',
-            color: activePage === 'dashboard' ? 'white' : '#374151',
-            transition: 'all .2s ease',
-            '&:hover': { bgcolor: activePage === 'dashboard' ? '#1d4ed8' : '#eef2ff' },
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          className={`mx-3 mb-1 flex items-center gap-3 rounded-md px-3 py-2 transition ${
+            activePage === 'dashboard' ? 'bg-brand text-white' : 'text-slate-700 hover:bg-indigo-50'
+          }`}
         >
-          <ListItemIcon sx={{ color: activePage === 'dashboard' ? 'white' : '#6b7280', minWidth: 40 }}>
-            <DashboardIcon />
-          </ListItemIcon>
-          <ListItemText primary="Dashboard" />
-        </ListItem>
+          <DashboardIcon className="opacity-80" />
+          <span className="text-sm font-medium">Dashboard</span>
+        </button>
 
        
 
-        <ListItem
-          component="button"
-          selected={activePage === 'tasks'}
+        <button
           onClick={() => setActivePage('tasks')}
-          sx={{
-            mx: 1,
-            mb: 0.5,
-            borderRadius: 2,
-            bgcolor: activePage === 'tasks' ? '#2563eb' : 'transparent',
-            color: activePage === 'tasks' ? 'white' : '#374151',
-            transition: 'all .2s ease',
-            '&:hover': { bgcolor: activePage === 'tasks' ? '#1d4ed8' : '#eef2ff' },
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          className={`mx-3 mb-1 flex items-center gap-3 rounded-md px-3 py-2 transition ${
+            activePage === 'tasks' ? 'bg-brand text-white' : 'text-slate-700 hover:bg-indigo-50'
+          }`}
         >
-          <ListItemIcon sx={{ color: activePage === 'tasks' ? 'white' : '#6b7280', minWidth: 40 }}>
-            <ListAltIcon />
-          </ListItemIcon>
-          <ListItemText primary="Tasks" />
-          <Chip size="small" label={tasks.length} sx={{ 
-            bgcolor: activePage === 'tasks' ? 'rgba(255,255,255,0.25)' : '#eef2ff',
-            color: activePage === 'tasks' ? 'white' : '#1f2937',
-            fontWeight: 700,
-            borderRadius: 8
-          }} />
-        </ListItem>
-
-        <ListItem
-          component="button"
-          selected={activePage === 'projects'}
+          <ListAltIcon className="opacity-80" />
+          <span className="text-sm font-medium">Tasks</span>
+          <span className={`ml-auto text-xs rounded-md px-2 py-0.5 ${
+            activePage === 'tasks' ? 'bg-white/25 text-white' : 'bg-indigo-50 text-slate-700'
+          }`}>{tasks.length}</span>
+        </button>
+        <button
           onClick={() => setActivePage('projects')}
-          sx={{
-            mx: 1,
-            mb: 0.5,
-            borderRadius: 2,
-            bgcolor: activePage === 'projects' ? '#2563eb' : 'transparent',
-            color: activePage === 'projects' ? 'white' : '#374151',
-            transition: 'all .2s ease',
-            '&:hover': { bgcolor: activePage === 'projects' ? '#1d4ed8' : '#eef2ff' },
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          className={`mx-3 mb-1 flex items-center gap-3 rounded-md px-3 py-2 transition ${
+            activePage === 'projects' ? 'bg-brand text-white' : 'text-slate-700 hover:bg-indigo-50'
+          }`}
         >
-          <ListItemIcon sx={{ color: activePage === 'projects' ? 'white' : '#6b7280', minWidth: 40 }}>
-            <FolderIcon />
-          </ListItemIcon>
-          <ListItemText primary="Projects" />
-          <Chip size="small" label={projects.length} sx={{ 
-            bgcolor: activePage === 'projects' ? 'rgba(255,255,255,0.25)' : '#eef2ff',
-            color: activePage === 'projects' ? 'white' : '#1f2937',
-            fontWeight: 700,
-            borderRadius: 8
-          }} />
-        </ListItem>
-
-        <ListItem
-          component="button"
-          selected={activePage === 'archived'}
+          <FolderIcon className="opacity-80" />
+          <span className="text-sm font-medium">Projects</span>
+          <span className={`ml-auto text-xs rounded-md px-2 py-0.5 ${
+            activePage === 'projects' ? 'bg-white/25 text-white' : 'bg-indigo-50 text-slate-700'
+          }`}>{projects.length}</span>
+        </button>
+        <button
           onClick={() => setActivePage('archived')}
-          sx={{
-            mx: 1,
-            mb: 0.5,
-            borderRadius: 2,
-            bgcolor: activePage === 'archived' ? '#2563eb' : 'transparent',
-            color: activePage === 'archived' ? 'white' : '#374151',
-            transition: 'all .2s ease',
-            '&:hover': { bgcolor: activePage === 'archived' ? '#1d4ed8' : '#eef2ff' },
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          className={`mx-3 mb-1 flex items-center gap-3 rounded-md px-3 py-2 transition ${
+            activePage === 'archived' ? 'bg-brand text-white' : 'text-slate-700 hover:bg-indigo-50'
+          }`}
         >
-          <ListItemIcon sx={{ color: activePage === 'archived' ? 'white' : '#6b7280', minWidth: 40 }}>
-            <ArchiveIcon />
-          </ListItemIcon>
-          <ListItemText primary="Archived" />
-          <Chip size="small" label={archivedTasks.length} sx={{ 
-            bgcolor: activePage === 'archived' ? 'rgba(255,255,255,0.25)' : '#eef2ff',
-            color: activePage === 'archived' ? 'white' : '#1f2937',
-            fontWeight: 700,
-            borderRadius: 8
-          }} />
-        </ListItem>
+          <ArchiveIcon className="opacity-80" />
+          <span className="text-sm font-medium">Archived</span>
+          <span className={`ml-auto text-xs rounded-md px-2 py-0.5 ${
+            activePage === 'archived' ? 'bg-white/25 text-white' : 'bg-indigo-50 text-slate-700'
+          }`}>{archivedTasks.length}</span>
+        </button>
 
-        <Divider sx={{ my: 2, mx: 2, bgcolor: '#e5e7eb' }} />
+        <div className="my-3 mx-4 h-px bg-slate-200" />
 
 
 
         {/* Quick Projects Access */}
-        <ListItem sx={{ px: 2 }}>
-          <Typography variant="caption" fontWeight="bold" color="#6b7280" sx={{ letterSpacing: 0.3 }}>
-            QUICK PROJECTS
-          </Typography>
-        </ListItem>
+        <div className="px-4">
+          <span className="text-[11px] font-semibold tracking-wide text-slate-500">QUICK PROJECTS</span>
+        </div>
 
         {projects.slice(0, 5).map((project) => (
-          <ListItem
+          <button
             key={project.name || project}
-            component="button"
-            onClick={() => {
-              setActivePage('tasks');
-              setFilter({ ...filter, project: project.name || project });
-            }}
-            sx={{
-              mx: 1,
-              mb: 0.5,
-              borderRadius: 2,
-              pl: 3,
-              bgcolor: 'transparent',
-              color: '#374151',
-              '&:hover': { bgcolor: '#e5e7eb' },
-              border: 'none',
-              cursor: 'pointer'
-            }}
+            onClick={() => { setActivePage('tasks'); setFilter({ ...filter, project: project.name || project }); }}
+            className="mx-3 mb-1 flex items-center justify-between rounded-md px-3 py-2 text-slate-700 hover:bg-indigo-50"
           >
-            <ListItemText
-              primary={project.name || project}
-              primaryTypographyProps={{ fontSize: '0.875rem', color: '#374151' }}
-            />
-            <Chip
-              size="small"
-              label={tasks.filter(t => t.project === (project.name || project)).length}
-              sx={{ height: 22, fontSize: '0.72rem', bgcolor: '#eef2ff', color: '#1f2937', fontWeight: 600, borderRadius: 8 }}
-            />
-          </ListItem>
+            <span className="text-sm">{project.name || project}</span>
+            <span className="text-[11px] rounded-md bg-indigo-50 px-2 py-0.5 text-slate-700">
+              {tasks.filter(t => t.project === (project.name || project)).length}
+            </span>
+          </button>
         ))}
 
         {projects.length > 5 && (
-          <ListItem component="button" sx={{ mx: 1, pl: 3, color: '#2563eb' }}>
-            <Typography variant="caption" color="#2563eb">
-              +{projects.length - 5} more
-            </Typography>
-          </ListItem>
+          <button
+            onClick={() => setActivePage('projects')}
+            className="mx-3 mb-2 text-xs font-medium text-brand hover:text-indigo-700"
+          >
+            +{projects.length - 5} more
+          </button>
         )}
-      </List>
+      </nav>
 
       {/* Bottom Actions */}
-      <Box sx={{ p: 2, borderTop: 1, borderColor: '#e5e7eb', bgcolor: '#ffffff' }}>
-        <Button
-          fullWidth
-          variant="contained"
-          startIcon={<AddIcon />}
+      <div className="px-3 py-3 border-t border-slate-200 bg-white">
+        <button
           onClick={onAddTask}
-          sx={{ 
-            mb: 2, 
-            py: 1.2,
-            bgcolor: '#2563eb',
-            '&:hover': { bgcolor: '#1d4ed8' },
-            borderRadius: 2,
-            fontWeight: 'bold'
-          }}
+          className="w-full mb-3 inline-flex items-center justify-center gap-2 rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white shadow-soft hover:bg-brand-dark"
         >
-          Add New Task
-        </Button>
+          <AddIcon fontSize="small" /> Add New Task
+        </button>
 
-        <Typography variant="caption" color="#6b7280" gutterBottom display="block" sx={{ mb: 1, fontWeight: 'bold' }}>
-          Quick Actions
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-          <Tooltip title="Export CSV">
-            <IconButton 
-              size="small" 
-              onClick={exportToCSV} 
-              sx={{ 
-                flex: 1, 
-                bgcolor: '#f3f4f6', 
-                '&:hover': { bgcolor: '#e5e7eb' },
-                color: '#374151'
-              }}
-            >
-              <DownloadIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Import CSV">
-            <IconButton 
-              size="small" 
-              component="label" 
-              sx={{ 
-                flex: 1,
-                bgcolor: '#f3f4f6', 
-                '&:hover': { bgcolor: '#e5e7eb' },
-                color: '#374151'
-              }}
-            >
-              <UploadIcon fontSize="small" />
-              <input type="file" hidden accept=".csv" onChange={importFromCSV} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Reset & Load Sample Data">
-            <IconButton
-              size="small"
-              onClick={() => {
-                if (window.confirm('Clear all data and load sample tasks? This will replace your current data.')) {
-                  localStorage.clear();
-                  window.location.reload();
-                }
-              }}
-              sx={{ 
-                flex: 1,
-                bgcolor: '#f3f4f6', 
-                '&:hover': { bgcolor: '#e5e7eb' },
-                color: '#374151'
-              }}
-            >
-              <RefreshIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-        <Tooltip title={darkMode ? "Light Mode" : "Dark Mode"}>
-          <Button
-            fullWidth
-            variant="outlined"
-            size="small"
-            onClick={() => setDarkMode(!darkMode)}
-            startIcon={darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+        <div className="text-[11px] font-semibold text-slate-500 mb-2">Quick Actions</div>
+        <div className="flex gap-2 mb-2">
+          <button onClick={exportToCSV} className="flex-1 rounded-md bg-slate-100 px-3 py-2 text-slate-700 hover:bg-slate-200">
+            <DownloadIcon fontSize="small" />
+          </button>
+          <label className="flex-1 cursor-pointer rounded-md bg-slate-100 px-3 py-2 text-slate-700 hover:bg-slate-200">
+            <UploadIcon fontSize="small" />
+            <input type="file" hidden accept=".csv" onChange={importFromCSV} />
+          </label>
+          <button
+            onClick={() => { if (window.confirm('Clear all data?')) { localStorage.clear(); window.location.reload(); } }}
+            className="flex-1 rounded-md bg-slate-100 px-3 py-2 text-slate-700 hover:bg-slate-200"
           >
-            {darkMode ? 'Light' : 'Dark'} Mode
-          </Button>
-        </Tooltip>
+            {/* Optional reset icon could be added */}
+            Reset
+          </button>
+        </div>
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+        >
+          {darkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />} {darkMode ? 'Light' : 'Dark'} Mode
+        </button>
         
         {/* Auto-save indicator */}
-        <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="caption" color="success.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                bgcolor: 'success.main',
-                animation: 'pulse 2s infinite',
-                '@keyframes pulse': {
-                  '0%, 100%': { opacity: 1 },
-                  '50%': { opacity: 0.5 },
-                },
-              }}
-            />
+        <div className="mt-3 pt-3 border-t border-slate-200">
+          <div className="flex items-center gap-2 text-[11px] text-emerald-600">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
             Auto-save enabled
-          </Typography>
-          <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-            Your data is saved automatically
-          </Typography>
-        </Box>
-      </Box>
-    </Box>
+          </div>
+          <div className="text-[11px] text-slate-500 mt-1">Your data is saved automatically</div>
+        </div>
+      </div>
+    </aside>
   );
 }

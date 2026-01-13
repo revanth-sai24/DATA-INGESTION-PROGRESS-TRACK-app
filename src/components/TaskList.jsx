@@ -1,11 +1,6 @@
 "use client";
 import React from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel,
-  Grid, Card, CardContent, CardActions, Paper, Checkbox, Chip, IconButton,
-  ButtonGroup, Badge, Box, Typography, FormControl, Select, MenuItem, LinearProgress
-} from '@mui/material';
-import {
   Edit as EditIcon, Comment as CommentIcon, Archive as ArchiveIcon,
   Delete as DeleteIcon, PlayArrow as PlayArrowIcon, Stop as StopIcon,
   CalendarToday as CalendarIcon, AccessTime as TimeIcon
@@ -31,270 +26,165 @@ export default function TaskList({
   getStatusColor
 }) {
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        border: 1,
-        borderColor: 'divider',
-        overflow: 'hidden',
-        bgcolor: 'background.paper'
-      }}
-    >
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       {viewMode === 'list' ? (
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 text-slate-600">
+                <th className="p-3 text-left">
+                  <input
+                    type="checkbox"
                     checked={selectedTasks.length === searchedTasks.length}
                     onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedTasks(searchedTasks.map(t => t.id));
-                      } else {
-                        setSelectedTasks([]);
-                      }
+                      if (e.target.checked) setSelectedTasks(searchedTasks.map(t => t.id));
+                      else setSelectedTasks([]);
                     }}
                   />
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={sortConfig.key === 'title'}
-                    direction={sortConfig.direction}
-                    onClick={() => {
-                      setSortConfig({
-                        key: 'title',
-                        direction: sortConfig.key === 'title' && sortConfig.direction === 'asc' ? 'desc' : 'asc'
-                      });
-                    }}
-                  >
-                    Title
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>Project</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Time</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+                </th>
+                <th className="p-3 cursor-pointer select-none" onClick={() => setSortConfig({ key: 'title', direction: sortConfig.key === 'title' && sortConfig.direction === 'asc' ? 'desc' : 'asc' })}>Title</th>
+                <th className="p-3">Project</th>
+                <th className="p-3">Priority</th>
+                <th className="p-3">Status</th>
+                <th className="p-3">Time</th>
+                <th className="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {searchedTasks.map(task => (
-                <TableRow key={task.id} hover>
-                  <TableCell padding="checkbox">
-                    <Checkbox
+                <tr key={task.id} className="border-t border-slate-200 hover:bg-slate-50">
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
                       checked={selectedTasks.includes(task.id)}
                       onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedTasks([...selectedTasks, task.id]);
-                        } else {
-                          setSelectedTasks(selectedTasks.filter(id => id !== task.id));
-                        }
+                        if (e.target.checked) setSelectedTasks([...selectedTasks, task.id]);
+                        else setSelectedTasks(selectedTasks.filter(id => id !== task.id));
                       }}
                     />
-                  </TableCell>
-                  <TableCell>{task.title}</TableCell>
-                  <TableCell>
-                    <Chip label={task.project || 'None'} size="small" />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={task.priority}
-                      size="small"
-                      sx={{ bgcolor: getPriorityColor(task.priority), color: 'white' }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                      <Select
-                        value={task.status}
-                        onChange={(e) => updateTaskStatus(task.id, e.target.value)}
-                      >
-                        <MenuItem value="Todo">Todo</MenuItem>
-                        <MenuItem value="In Progress">In Progress</MenuItem>
-                        <MenuItem value="Done">Done</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="caption">
-                        {formatTime(task.timeTracking?.elapsed || 0)}
-                      </Typography>
-                      <IconButton
-                        size="small"
-                        onClick={() => toggleTimeTracking(task.id)}
-                        color={task.timeTracking?.isRunning ? 'error' : 'success'}
-                      >
-                        {task.timeTracking?.isRunning ? <StopIcon /> : <PlayArrowIcon />}
-                      </IconButton>
-                    </Box>
-                  </TableCell>
-                  <TableCell align="right">
-                    <ButtonGroup size="small">
-                      <IconButton onClick={() => editTask(task)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => {
-                          setSelectedTaskForComments(task);
-                          setCommentDrawerOpen(true);
-                        }}
-                      >
-                        <Badge badgeContent={task.comments?.length || 0} color="primary">
-                          <CommentIcon />
-                        </Badge>
-                      </IconButton>
-                      <IconButton onClick={() => archiveTask(task.id)}>
-                        <ArchiveIcon />
-                      </IconButton>
-                      <IconButton onClick={() => deleteTask(task.id)} color="error">
-                        <DeleteIcon />
-                      </IconButton>
-                    </ButtonGroup>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      ) : (
-        <Grid container spacing={3} sx={{ p: 3 }}>
-          {searchedTasks.map(task => (
-            <Grid key={task.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  borderLeft: 6,
-                  borderColor: getStatusColor(task.status),
-                  position: 'relative',
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)'
-                    : 'linear-gradient(180deg, #ffffff 0%, #f9fafb 100%)',
-                  boxShadow: 'none'
-                }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                    <Checkbox
-                      checked={selectedTasks.includes(task.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedTasks([...selectedTasks, task.id]);
-                        } else {
-                          setSelectedTasks(selectedTasks.filter(id => id !== task.id));
-                        }
-                      }}
-                    />
-                  </Box>
-
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
-                    {task.title}
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-                    <Chip
-                      label={task.priority}
-                      size="small"
-                      sx={{ bgcolor: getPriorityColor(task.priority), color: 'white', fontWeight: 600 }}
-                    />
-                    {task.project && (
-                      <Chip label={task.project} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
-                    )}
-                  </Box>
-
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>
-                    {task.description || "No description"}
-                  </Typography>
-
-                  {task.tags?.length > 0 && (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1 }}>
-                      {task.tags.map(tag => (
-                        <Chip key={tag} label={tag} size="small" variant="soft" sx={{ bgcolor: '#eef2ff', color: '#1f2937' }} />
-                      ))}
-                    </Box>
-                  )}
-
-                  {task.dueDate && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-                      <CalendarIcon fontSize="small" />
-                      <Typography variant="caption">
-                        Due: {format(new Date(task.dueDate), 'MMM dd, yyyy')}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1 }}>
-                    <TimeIcon fontSize="small" />
-                    <Typography variant="caption">
-                      {formatTime(task.timeTracking?.elapsed || 0)}
-                    </Typography>
-                    <IconButton
-                      size="small"
-                      onClick={() => toggleTimeTracking(task.id)}
-                      color={task.timeTracking?.isRunning ? 'error' : 'success'}
-                    >
-                      {task.timeTracking?.isRunning ? <StopIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
-                    </IconButton>
-                  </Box>
-
-                  {task.subtasks && task.subtasks.length > 0 && (
-                    <Box sx={{ mt: 1 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Subtasks: {task.subtasks.filter(st => st.completed).length}/{task.subtasks.length}
-                      </Typography>
-                      <LinearProgress
-                        variant="determinate"
-                        value={(task.subtasks.filter(st => st.completed).length / task.subtasks.length) * 100}
-                        sx={{ mt: 0.5 }}
-                      />
-                    </Box>
-                  )}
-                </CardContent>
-
-                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <Select
+                  </td>
+                  <td className="p-3">{task.title}</td>
+                  <td className="p-3">
+                    <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs text-slate-700">
+                      {task.project || 'None'}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <span className="inline-flex items-center rounded-md px-2 py-1 text-xs text-white" style={{ backgroundColor: getPriorityColor(task.priority) }}>
+                      {task.priority}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <select
+                      className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs"
                       value={task.status}
                       onChange={(e) => updateTaskStatus(task.id, e.target.value)}
                     >
-                      <MenuItem value="Todo">Todo</MenuItem>
-                      <MenuItem value="In Progress">In Progress</MenuItem>
-                      <MenuItem value="Done">Done</MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  <Box sx={{ display: 'flex', gap: 0.5 }}>
-                    <IconButton onClick={() => editTask(task)} size="small" color="primary">
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => {
-                        setSelectedTaskForComments(task);
-                        setCommentDrawerOpen(true);
-                      }}
-                      size="small"
+                      <option value="Todo">Todo</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-600">{formatTime(task.timeTracking?.elapsed || 0)}</span>
+                      <button
+                        className={`inline-flex items-center justify-center rounded-md px-2 py-1 text-xs ${task.timeTracking?.isRunning ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}
+                        onClick={() => toggleTimeTracking(task.id)}
+                      >
+                        {task.timeTracking?.isRunning ? <StopIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+                      </button>
+                    </div>
+                  </td>
+                  <td className="p-3 text-right">
+                    <div className="inline-flex items-center gap-1">
+                      <button onClick={() => editTask(task)} className="rounded-md px-2 py-1 hover:bg-slate-100"><EditIcon fontSize="small" /></button>
+                      <button onClick={() => { setSelectedTaskForComments(task); setCommentDrawerOpen(true); }} className="rounded-md px-2 py-1 hover:bg-slate-100">
+                        <CommentIcon fontSize="small" />
+                        <span className="ml-1 text-[10px] text-slate-600">{task.comments?.length || 0}</span>
+                      </button>
+                      <button onClick={() => archiveTask(task.id)} className="rounded-md px-2 py-1 hover:bg-slate-100"><ArchiveIcon fontSize="small" /></button>
+                      <button onClick={() => deleteTask(task.id)} className="rounded-md px-2 py-1 hover:bg-red-50 text-red-600"><DeleteIcon fontSize="small" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-3">
+          {searchedTasks.map(task => (
+            <div key={task.id} className="relative rounded-lg border border-slate-200 bg-gradient-to-b from-white to-slate-50 shadow-sm">
+              <div className="absolute top-2 right-2">
+                <input
+                  type="checkbox"
+                  checked={selectedTasks.includes(task.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelectedTasks([...selectedTasks, task.id]);
+                    else setSelectedTasks(selectedTasks.filter(id => id !== task.id));
+                  }}
+                />
+              </div>
+              <div className="border-l-4" style={{ borderColor: getStatusColor(task.status) }}>
+                <div className="p-4">
+                  <h3 className="text-sm font-semibold mb-2">{task.title}</h3>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <span className="inline-flex items-center rounded-md px-2 py-1 text-[11px] text-white" style={{ backgroundColor: getPriorityColor(task.priority) }}>
+                      {task.priority}
+                    </span>
+                    {task.project && (
+                      <span className="inline-flex items-center rounded-md border border-slate-300 px-2 py-1 text-[11px] text-slate-700">{task.project}</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-600 mb-2 min-h-10">{task.description || 'No description'}</p>
+                  {task.tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {task.tags.map(tag => (
+                        <span key={tag} className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-[11px] text-slate-700">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  {task.dueDate && (
+                    <div className="flex items-center gap-1 mb-2 text-[11px] text-slate-600">
+                      <CalendarIcon fontSize="small" /> Due: {format(new Date(task.dueDate), 'MMM dd, yyyy')}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-2 text-[11px] text-slate-600">
+                    <TimeIcon fontSize="small" /> {formatTime(task.timeTracking?.elapsed || 0)}
+                    <button
+                      className={`inline-flex items-center justify-center rounded-md px-2 py-1 ${task.timeTracking?.isRunning ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}
+                      onClick={() => toggleTimeTracking(task.id)}
                     >
-                      <Badge badgeContent={task.comments?.length || 0} color="primary">
-                        <CommentIcon />
-                      </Badge>
-                    </IconButton>
-                    <IconButton onClick={() => archiveTask(task.id)} size="small">
-                      <ArchiveIcon />
-                    </IconButton>
-                    <IconButton onClick={() => deleteTask(task.id)} size="small" color="error">
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </CardActions>
-              </Card>
-            </Grid>
+                      {task.timeTracking?.isRunning ? <StopIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between px-4 pb-4">
+                  <select
+                    className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs"
+                    value={task.status}
+                    onChange={(e) => updateTaskStatus(task.id, e.target.value)}
+                  >
+                    <option value="Todo">Todo</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Done">Done</option>
+                  </select>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => editTask(task)} className="rounded-md px-2 py-1 hover:bg-slate-100"><EditIcon fontSize="small" /></button>
+                    <button onClick={() => { setSelectedTaskForComments(task); setCommentDrawerOpen(true); }} className="rounded-md px-2 py-1 hover:bg-slate-100">
+                      <CommentIcon fontSize="small" />
+                      <span className="ml-1 text-[10px] text-slate-600">{task.comments?.length || 0}</span>
+                    </button>
+                    <button onClick={() => archiveTask(task.id)} className="rounded-md px-2 py-1 hover:bg-slate-100"><ArchiveIcon fontSize="small" /></button>
+                    <button onClick={() => deleteTask(task.id)} className="rounded-md px-2 py-1 hover:bg-red-50 text-red-600"><DeleteIcon fontSize="small" /></button>
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
-        </Grid>
+        </div>
       )}
-    </Paper>
+    </div>
   );
 }
