@@ -21,7 +21,22 @@ export async function POST(request) {
             timeElapsed: task.timeTracking ? task.timeTracking.elapsed || 0 : 0
         }));
 
-        const csv = Papa.unparse(csvData);
+        // Ensure CSV file keeps its header even when there are no rows
+        const headers = [
+            'id',
+            'title',
+            'description',
+            'status',
+            'project',
+            'priority',
+            'dueDate',
+            'createdAt',
+            'estimatedTime',
+            'tags',
+            'timeElapsed'
+        ].join(',');
+
+        const csv = csvData.length > 0 ? Papa.unparse(csvData) : `${headers}\n`;
         const filePath = path.join(process.cwd(), 'public', 'sample-tasks.csv');
 
         fs.writeFileSync(filePath, csv, 'utf8');

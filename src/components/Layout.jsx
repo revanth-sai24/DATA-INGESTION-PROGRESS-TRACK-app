@@ -53,20 +53,21 @@ const getTheme = (darkMode) => createTheme({
   palette: {
     mode: darkMode ? 'dark' : 'light',
     primary: {
-      main: darkMode ? "#90caf9" : "#1976d2",
+      main: darkMode ? "#7aa2f7" : "#2563eb",
     },
     secondary: {
-      main: darkMode ? "#f48fb1" : "#dc004e",
+      main: darkMode ? "#f48fb1" : "#8b5cf6",
     },
     background: {
-      default: darkMode ? "#0a0e27" : "#f8f9fa",
-      paper: darkMode ? "#1a1f3a" : "#ffffff",
+      default: darkMode ? "#0b1020" : "#f4f7fb",
+      paper: darkMode ? "#141a2e" : "#ffffff",
     },
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
     h4: { fontWeight: 700, letterSpacing: '-0.5px' },
     h6: { fontWeight: 600 },
+    body1: { lineHeight: 1.6 },
   },
   shape: { borderRadius: 12 },
   components: {
@@ -74,12 +75,13 @@ const getTheme = (darkMode) => createTheme({
       styleOverrides: {
         root: {
           borderRadius: 16,
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          border: '1px solid rgba(0,0,0,0.06)',
+          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            transform: 'translateY(-8px)',
+            transform: 'translateY(-6px)',
             boxShadow: darkMode
-              ? '0 20px 40px rgba(0,0,0,0.5)'
-              : '0 20px 40px rgba(0,0,0,0.12)',
+              ? '0 16px 32px rgba(0,0,0,0.45)'
+              : '0 16px 32px rgba(31, 41, 55, 0.12)',
           },
         },
       },
@@ -90,14 +92,22 @@ const getTheme = (darkMode) => createTheme({
           borderRadius: 10,
           textTransform: 'none',
           fontWeight: 600,
-          padding: '10px 24px',
+          padding: '10px 20px',
         },
         contained: {
           boxShadow: 'none',
           '&:hover': {
-            boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 10px 18px rgba(0,0,0,0.15)',
           },
         },
+        outlined: {
+          borderColor: darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)',
+          '&:hover': {
+            borderColor: darkMode ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.2)',
+            background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(37,99,235,0.06)'
+          }
+        }
       },
     },
     MuiTextField: {
@@ -105,6 +115,10 @@ const getTheme = (darkMode) => createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             borderRadius: 10,
+            background: darkMode ? 'rgba(255,255,255,0.04)' : '#fff',
+            '&:hover fieldset': {
+              borderColor: darkMode ? 'rgba(255,255,255,0.25)' : 'rgba(37,99,235,0.35)'
+            }
           },
         },
       },
@@ -113,9 +127,28 @@ const getTheme = (darkMode) => createTheme({
       styleOverrides: {
         root: {
           borderRadius: 16,
+          border: '1px solid rgba(0,0,0,0.06)'
         },
       },
     },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          fontWeight: 600
+        }
+      }
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+          '&:hover': {
+            background: darkMode ? 'rgba(255,255,255,0.05)' : '#eef2ff'
+          }
+        }
+      }
+    }
   },
 });
 

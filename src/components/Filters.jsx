@@ -13,12 +13,15 @@ export default function Filters({ filter, setFilter, projects, clearFilters }) {
         borderRadius: 3,
         border: 1,
         borderColor: 'divider',
-        bgcolor: 'background.paper'
+        bgcolor: 'background.paper',
+        backgroundImage: (theme) => theme.palette.mode === 'dark'
+          ? 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)'
+          : 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)'
       }}
     >
-      <Grid container spacing={2} alignItems="center">
+      <Grid container spacing={2.5} alignItems="center">
         <Grid size={{ xs: 12, sm: 3 }}>
-          <FormControl fullWidth size="small">
+          <FormControl fullWidth size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Filter by Status</InputLabel>
             <Select
               value={filter.status}
@@ -34,7 +37,7 @@ export default function Filters({ filter, setFilter, projects, clearFilters }) {
         </Grid>
 
         <Grid size={{ xs: 12, sm: 3 }}>
-          <FormControl fullWidth size="small">
+          <FormControl fullWidth size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Filter by Priority</InputLabel>
             <Select
               value={filter.priority}
@@ -50,7 +53,7 @@ export default function Filters({ filter, setFilter, projects, clearFilters }) {
         </Grid>
 
         <Grid size={{ xs: 12, sm: 3 }}>
-          <FormControl fullWidth size="small">
+          <FormControl fullWidth size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Filter by Project</InputLabel>
             <Select
               value={filter.project}
@@ -70,7 +73,8 @@ export default function Filters({ filter, setFilter, projects, clearFilters }) {
         <Grid size={{ xs: 12, sm: 3 }}>
           <Button
             fullWidth
-            variant="outlined"
+            variant="contained"
+            color="primary"
             startIcon={<FilterListIcon />}
             onClick={clearFilters}
           >

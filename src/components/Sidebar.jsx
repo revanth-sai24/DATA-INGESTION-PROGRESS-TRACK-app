@@ -41,11 +41,12 @@ export default function Sidebar({
         position: 'fixed',
         height: '100vh',
         zIndex: 1200,
-        boxShadow: '2px 0 4px rgba(0,0,0,0.1)'
+        boxShadow: '2px 0 12px rgba(31,41,55,0.08)'
       }}
     >
       {/* Logo/Brand */}
-      <Box sx={{ p: 3, borderBottom: 1, borderColor: '#e9ecef', bgcolor: '#ffffff' }}>
+      <Box sx={{ p: 3, borderBottom: 1, borderColor: '#e9ecef', bgcolor: '#ffffff',
+        backgroundImage: 'linear-gradient(180deg, #ffffff 0%, #f9fafb 100%)' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <AssignmentIcon sx={{ fontSize: 32, color: '#2563eb', mr: 1.5 }} />
           <Typography variant="h6" fontWeight="bold" color="#2563eb">
@@ -69,7 +70,8 @@ export default function Sidebar({
             borderRadius: 2,
             bgcolor: activePage === 'dashboard' ? '#2563eb' : 'transparent',
             color: activePage === 'dashboard' ? 'white' : '#374151',
-            '&:hover': { bgcolor: activePage === 'dashboard' ? '#1d4ed8' : '#e5e7eb' },
+            transition: 'all .2s ease',
+            '&:hover': { bgcolor: activePage === 'dashboard' ? '#1d4ed8' : '#eef2ff' },
             border: 'none',
             cursor: 'pointer'
           }}
@@ -92,7 +94,8 @@ export default function Sidebar({
             borderRadius: 2,
             bgcolor: activePage === 'tasks' ? '#2563eb' : 'transparent',
             color: activePage === 'tasks' ? 'white' : '#374151',
-            '&:hover': { bgcolor: activePage === 'tasks' ? '#1d4ed8' : '#e5e7eb' },
+            transition: 'all .2s ease',
+            '&:hover': { bgcolor: activePage === 'tasks' ? '#1d4ed8' : '#eef2ff' },
             border: 'none',
             cursor: 'pointer'
           }}
@@ -102,9 +105,10 @@ export default function Sidebar({
           </ListItemIcon>
           <ListItemText primary="Tasks" />
           <Chip size="small" label={tasks.length} sx={{ 
-            bgcolor: activePage === 'tasks' ? 'rgba(255,255,255,0.2)' : '#e5e7eb',
-            color: activePage === 'tasks' ? 'white' : '#374151',
-            fontWeight: 'bold'
+            bgcolor: activePage === 'tasks' ? 'rgba(255,255,255,0.25)' : '#eef2ff',
+            color: activePage === 'tasks' ? 'white' : '#1f2937',
+            fontWeight: 700,
+            borderRadius: 8
           }} />
         </ListItem>
 
@@ -118,7 +122,8 @@ export default function Sidebar({
             borderRadius: 2,
             bgcolor: activePage === 'projects' ? '#2563eb' : 'transparent',
             color: activePage === 'projects' ? 'white' : '#374151',
-            '&:hover': { bgcolor: activePage === 'projects' ? '#1d4ed8' : '#e5e7eb' },
+            transition: 'all .2s ease',
+            '&:hover': { bgcolor: activePage === 'projects' ? '#1d4ed8' : '#eef2ff' },
             border: 'none',
             cursor: 'pointer'
           }}
@@ -128,9 +133,10 @@ export default function Sidebar({
           </ListItemIcon>
           <ListItemText primary="Projects" />
           <Chip size="small" label={projects.length} sx={{ 
-            bgcolor: activePage === 'projects' ? 'rgba(255,255,255,0.2)' : '#e5e7eb',
-            color: activePage === 'projects' ? 'white' : '#374151',
-            fontWeight: 'bold'
+            bgcolor: activePage === 'projects' ? 'rgba(255,255,255,0.25)' : '#eef2ff',
+            color: activePage === 'projects' ? 'white' : '#1f2937',
+            fontWeight: 700,
+            borderRadius: 8
           }} />
         </ListItem>
 
@@ -144,7 +150,8 @@ export default function Sidebar({
             borderRadius: 2,
             bgcolor: activePage === 'archived' ? '#2563eb' : 'transparent',
             color: activePage === 'archived' ? 'white' : '#374151',
-            '&:hover': { bgcolor: activePage === 'archived' ? '#1d4ed8' : '#e5e7eb' },
+            transition: 'all .2s ease',
+            '&:hover': { bgcolor: activePage === 'archived' ? '#1d4ed8' : '#eef2ff' },
             border: 'none',
             cursor: 'pointer'
           }}
@@ -154,9 +161,10 @@ export default function Sidebar({
           </ListItemIcon>
           <ListItemText primary="Archived" />
           <Chip size="small" label={archivedTasks.length} sx={{ 
-            bgcolor: activePage === 'archived' ? 'rgba(255,255,255,0.2)' : '#e5e7eb',
-            color: activePage === 'archived' ? 'white' : '#374151',
-            fontWeight: 'bold'
+            bgcolor: activePage === 'archived' ? 'rgba(255,255,255,0.25)' : '#eef2ff',
+            color: activePage === 'archived' ? 'white' : '#1f2937',
+            fontWeight: 700,
+            borderRadius: 8
           }} />
         </ListItem>
 
@@ -166,7 +174,7 @@ export default function Sidebar({
 
         {/* Quick Projects Access */}
         <ListItem sx={{ px: 2 }}>
-          <Typography variant="caption" fontWeight="bold" color="#6b7280">
+          <Typography variant="caption" fontWeight="bold" color="#6b7280" sx={{ letterSpacing: 0.3 }}>
             QUICK PROJECTS
           </Typography>
         </ListItem>
@@ -198,7 +206,7 @@ export default function Sidebar({
             <Chip
               size="small"
               label={tasks.filter(t => t.project === (project.name || project)).length}
-              sx={{ height: 20, fontSize: '0.7rem', bgcolor: '#e5e7eb', color: '#374151' }}
+              sx={{ height: 22, fontSize: '0.72rem', bgcolor: '#eef2ff', color: '#1f2937', fontWeight: 600, borderRadius: 8 }}
             />
           </ListItem>
         ))}

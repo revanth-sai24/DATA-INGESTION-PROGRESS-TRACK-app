@@ -12,7 +12,9 @@ export async function POST(request) {
             createdAt: new Date().toISOString()
         }));
 
-        const csv = Papa.unparse(csvData);
+        // Preserve header row even when projects list is empty
+        const headers = ['name', 'createdAt'].join(',');
+        const csv = csvData.length > 0 ? Papa.unparse(csvData) : `${headers}\n`;
         const filePath = path.join(process.cwd(), 'public', 'sample-projects.csv');
 
         fs.writeFileSync(filePath, csv, 'utf8');
