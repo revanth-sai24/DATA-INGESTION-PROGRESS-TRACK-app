@@ -1,26 +1,26 @@
 "use client";
 import { useState, useEffect } from "react";
 import {
-  Typography, 
-  Container, 
-  Box, 
-  AppBar, 
-  Toolbar, 
-  Paper, 
-  TextField, 
-  Button, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  MenuItem, 
-  Select, 
-  FormControl, 
+  Typography,
+  Container,
+  Box,
+  AppBar,
+  Toolbar,
+  Paper,
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  MenuItem,
+  Select,
+  FormControl,
   InputLabel,
-  Grid, 
-  Card, 
-  CardContent, 
-  CardActions, 
-  Chip, 
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  Chip,
   IconButton,
   Divider,
   FormHelperText,
@@ -83,10 +83,10 @@ const theme = createTheme({
 
 export default function Home() {
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState({ 
-    title: "", 
-    description: "", 
-    status: "Todo", 
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
+    status: "Todo",
     project: "",
     priority: "Medium",
     dueDate: null,
@@ -110,7 +110,7 @@ export default function Home() {
   useEffect(() => {
     const savedTasks = localStorage.getItem("tasks");
     const savedProjects = localStorage.getItem("projects");
-    
+
     if (savedTasks) setTasks(JSON.parse(savedTasks));
     if (savedProjects) setProjects(JSON.parse(savedProjects));
   }, []);
@@ -127,10 +127,10 @@ export default function Home() {
   const addTask = (e) => {
     e.preventDefault();
     if (!newTask.title.trim()) return;
-    
+
     if (editMode && editTaskId) {
       // Update existing task
-      setTasks(tasks.map(task => 
+      setTasks(tasks.map(task =>
         task.id === editTaskId ? { ...task, ...newTask } : task
       ));
       setSnackbar({ open: true, message: "Task updated successfully!", severity: "success" });
@@ -141,16 +141,16 @@ export default function Home() {
         id: Date.now(),
         createdAt: new Date().toISOString(),
       };
-      
+
       setTasks([...tasks, task]);
       setSnackbar({ open: true, message: "Task added successfully!", severity: "success" });
     }
-    
+
     // Reset form
-    setNewTask({ 
-      title: "", 
-      description: "", 
-      status: "Todo", 
+    setNewTask({
+      title: "",
+      description: "",
+      status: "Todo",
       project: newTask.project,
       priority: "Medium",
       dueDate: null,
@@ -164,7 +164,7 @@ export default function Home() {
   const addProject = (e) => {
     e.preventDefault();
     if (!newProject.trim() || projects.includes(newProject)) return;
-    
+
     setProjects([...projects, newProject]);
     setNewProject("");
     setSnackbar({ open: true, message: "Project added successfully!", severity: "success" });
@@ -173,20 +173,20 @@ export default function Home() {
   const deleteProject = (project) => {
     // Remove the project
     setProjects(projects.filter(p => p !== project));
-    
+
     // Remove all tasks associated with this project or keep them with no project
     setTasks(tasks.filter(task => task.project !== project));
-    
+
     // Reset filter if we were filtering by this project
     if (filter.project === project) {
-      setFilter({...filter, project: "all"});
+      setFilter({ ...filter, project: "all" });
     }
-    
+
     setSnackbar({ open: true, message: "Project and all associated tasks deleted!", severity: "info" });
   };
 
   const updateTaskStatus = (id, newStatus) => {
-    setTasks(tasks.map(task => 
+    setTasks(tasks.map(task =>
       task.id === id ? { ...task, status: newStatus } : task
     ));
   };
@@ -200,7 +200,7 @@ export default function Home() {
     setNewTask({ ...task });
     setEditMode(true);
     setEditTaskId(task.id);
-    
+
     // Scroll to the form
     window.scrollTo({
       top: 0,
@@ -213,7 +213,7 @@ export default function Home() {
       setNewTag("");
       return;
     }
-    
+
     setNewTask({
       ...newTask,
       tags: [...newTask.tags, newTag]
@@ -236,7 +236,7 @@ export default function Home() {
       2: "In Progress",
       3: "Done"
     };
-    setFilter({...filter, status: statusMap[newValue]});
+    setFilter({ ...filter, status: statusMap[newValue] });
   };
 
   const handleProjectMenuOpen = (event, project) => {
@@ -269,7 +269,7 @@ export default function Home() {
   });
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case "Todo": return theme.palette.status.todo;
       case "In Progress": return theme.palette.status.inProgress;
       case "Done": return theme.palette.status.done;
@@ -278,7 +278,7 @@ export default function Home() {
   };
 
   const getPriorityColor = (priority) => {
-    switch(priority) {
+    switch (priority) {
       case "High": return theme.palette.priority.high;
       case "Medium": return theme.palette.priority.medium;
       case "Low": return theme.palette.priority.low;
@@ -289,7 +289,7 @@ export default function Home() {
   const getProjectProgress = (projectName) => {
     const projectTasks = tasks.filter(task => task.project === projectName);
     if (projectTasks.length === 0) return 0;
-    
+
     const completedTasks = projectTasks.filter(task => task.status === "Done").length;
     return (completedTasks / projectTasks.length) * 100;
   };
@@ -306,7 +306,7 @@ export default function Home() {
               </Typography>
             </Toolbar>
           </AppBar>
-          
+
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flexGrow: 1, display: "flex" }}>
             <Grid container spacing={3}>
               {/* Sidebar */}
@@ -315,7 +315,7 @@ export default function Home() {
                   <Typography variant="h6" gutterBottom>
                     Projects
                   </Typography>
-                  
+
                   <Box component="form" onSubmit={addProject} sx={{ display: "flex", mb: 2 }}>
                     <TextField
                       size="small"
@@ -334,50 +334,50 @@ export default function Home() {
                       Add
                     </Button>
                   </Box>
-                  
+
                   <List sx={{ bgcolor: "background.paper" }}>
                     <ListItem
                       button
                       selected={filter.project === "all"}
-                      onClick={() => setFilter({...filter, project: "all"})}
+                      onClick={() => setFilter({ ...filter, project: "all" })}
                     >
-                      <ListItemText 
-                        primary="All Projects" 
+                      <ListItemText
+                        primary="All Projects"
                         secondary={`${tasks.length} tasks`}
                       />
                     </ListItem>
                     {projects.map(project => {
                       const projectTasks = tasks.filter(task => task.project === project);
                       const progress = getProjectProgress(project);
-                      
+
                       return (
                         <ListItem
                           key={project}
                           button
                           selected={filter.project === project}
-                          onClick={() => setFilter({...filter, project: project})}
+                          onClick={() => setFilter({ ...filter, project: project })}
                           secondaryAction={
-                            <IconButton 
-                              edge="end" 
-                              aria-label="project-menu" 
+                            <IconButton
+                              edge="end"
+                              aria-label="project-menu"
                               onClick={(e) => handleProjectMenuOpen(e, project)}
                             >
                               <MoreVertIcon />
                             </IconButton>
                           }
                         >
-                          <ListItemText 
-                            primary={project} 
+                          <ListItemText
+                            primary={project}
                             secondary={
                               <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'column', width: '100%' }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                   <Typography variant="caption">{projectTasks.length} tasks</Typography>
                                   <Typography variant="caption">{Math.round(progress)}%</Typography>
                                 </Box>
-                                <LinearProgress 
-                                  variant="determinate" 
-                                  value={progress} 
-                                  sx={{ width: '100%', mt: 0.5 }} 
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={progress}
+                                  sx={{ width: '100%', mt: 0.5 }}
                                 />
                               </Box>
                             }
@@ -386,13 +386,13 @@ export default function Home() {
                       );
                     })}
                   </List>
-                  
+
                   <Divider sx={{ my: 2 }} />
-                  
+
                   <Typography variant="h6" gutterBottom>
                     Filter by Status
                   </Typography>
-                  
+
                   <Tabs
                     value={statusTabValue}
                     onChange={handleStatusTabChange}
@@ -401,66 +401,66 @@ export default function Home() {
                     sx={{ borderBottom: 1, borderColor: 'divider' }}
                   >
                     <Tab label="All" />
-                    <Tab 
+                    <Tab
                       label={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Badge 
-                            badgeContent={tasks.filter(t => t.status === "Todo").length} 
+                          <Badge
+                            badgeContent={tasks.filter(t => t.status === "Todo").length}
                             color="error"
                             sx={{ mr: 1 }}
                           >
                             <span>To Do</span>
                           </Badge>
                         </Box>
-                      } 
+                      }
                     />
-                    <Tab 
+                    <Tab
                       label={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Badge 
-                            badgeContent={tasks.filter(t => t.status === "In Progress").length} 
+                          <Badge
+                            badgeContent={tasks.filter(t => t.status === "In Progress").length}
                             color="primary"
                             sx={{ mr: 1 }}
                           >
                             <span>In Progress</span>
                           </Badge>
                         </Box>
-                      } 
+                      }
                     />
-                    <Tab 
+                    <Tab
                       label={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Badge 
-                            badgeContent={tasks.filter(t => t.status === "Done").length} 
+                          <Badge
+                            badgeContent={tasks.filter(t => t.status === "Done").length}
                             color="success"
                             sx={{ mr: 1 }}
                           >
                             <span>Done</span>
                           </Badge>
                         </Box>
-                      } 
+                      }
                     />
                   </Tabs>
-                  
+
                   <Divider sx={{ my: 2 }} />
-                  
+
                   <Typography variant="h6" gutterBottom>
                     Filter by Priority
                   </Typography>
-                  
+
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Chip 
-                      label="All" 
-                      onClick={() => setFilter({...filter, priority: "all"})}
+                    <Chip
+                      label="All"
+                      onClick={() => setFilter({ ...filter, priority: "all" })}
                       color={filter.priority === "all" ? "primary" : "default"}
                       sx={{ flex: 1, mr: 0.5 }}
                     />
-                    <Chip 
-                      label="High" 
-                      onClick={() => setFilter({...filter, priority: "High"})}
+                    <Chip
+                      label="High"
+                      onClick={() => setFilter({ ...filter, priority: "High" })}
                       color={filter.priority === "High" ? "primary" : "default"}
-                      sx={{ 
-                        flex: 1, 
+                      sx={{
+                        flex: 1,
                         mr: 0.5,
                         bgcolor: filter.priority === "High" ? null : "rgba(255, 86, 48, 0.1)",
                         borderColor: theme.palette.priority.high
@@ -468,22 +468,22 @@ export default function Home() {
                     />
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Chip 
-                      label="Medium" 
-                      onClick={() => setFilter({...filter, priority: "Medium"})}
+                    <Chip
+                      label="Medium"
+                      onClick={() => setFilter({ ...filter, priority: "Medium" })}
                       color={filter.priority === "Medium" ? "primary" : "default"}
-                      sx={{ 
-                        flex: 1, 
+                      sx={{
+                        flex: 1,
                         mr: 0.5,
                         bgcolor: filter.priority === "Medium" ? null : "rgba(255, 171, 0, 0.1)",
                         borderColor: theme.palette.priority.medium
                       }}
                     />
-                    <Chip 
-                      label="Low" 
-                      onClick={() => setFilter({...filter, priority: "Low"})}
+                    <Chip
+                      label="Low"
+                      onClick={() => setFilter({ ...filter, priority: "Low" })}
                       color={filter.priority === "Low" ? "primary" : "default"}
-                      sx={{ 
+                      sx={{
                         flex: 1,
                         bgcolor: filter.priority === "Low" ? null : "rgba(101, 84, 192, 0.1)",
                         borderColor: theme.palette.priority.low
@@ -492,7 +492,7 @@ export default function Home() {
                   </Box>
                 </Paper>
               </Grid>
-              
+
               {/* Main Content */}
               <Grid item xs={12} md={9}>
                 <Grid container spacing={3}>
@@ -502,37 +502,37 @@ export default function Home() {
                       <Typography variant="h6" gutterBottom>
                         {editMode ? "Edit Task" : "Add New Task"}
                       </Typography>
-                      
+
                       <Box component="form" onSubmit={addTask}>
                         <Grid container spacing={2}>
                           <Grid item xs={12}>
                             <TextField
                               label="Task Title"
                               value={newTask.title}
-                              onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                              onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                               fullWidth
                               required
                             />
                           </Grid>
-                          
+
                           <Grid item xs={12}>
                             <TextField
                               label="Task Description"
                               value={newTask.description}
-                              onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                              onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                               multiline
                               rows={3}
                               fullWidth
                             />
                           </Grid>
-                          
+
                           <Grid item xs={12} sm={6} md={3}>
                             <FormControl fullWidth>
                               <InputLabel>Status</InputLabel>
                               <Select
                                 value={newTask.status}
                                 label="Status"
-                                onChange={(e) => setNewTask({...newTask, status: e.target.value})}
+                                onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
                               >
                                 <MenuItem value="Todo">To Do</MenuItem>
                                 <MenuItem value="In Progress">In Progress</MenuItem>
@@ -540,14 +540,14 @@ export default function Home() {
                               </Select>
                             </FormControl>
                           </Grid>
-                          
+
                           <Grid item xs={12} sm={6} md={3}>
                             <FormControl fullWidth required error={!newTask.project}>
                               <InputLabel>Project</InputLabel>
                               <Select
                                 value={newTask.project}
                                 label="Project"
-                                onChange={(e) => setNewTask({...newTask, project: e.target.value})}
+                                onChange={(e) => setNewTask({ ...newTask, project: e.target.value })}
                                 displayEmpty
                               >
                                 {projects.length === 0 ? (
@@ -567,14 +567,14 @@ export default function Home() {
                               )}
                             </FormControl>
                           </Grid>
-                          
+
                           <Grid item xs={12} sm={6} md={3}>
                             <FormControl fullWidth>
                               <InputLabel>Priority</InputLabel>
                               <Select
                                 value={newTask.priority}
                                 label="Priority"
-                                onChange={(e) => setNewTask({...newTask, priority: e.target.value})}
+                                onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
                               >
                                 <MenuItem value="High">
                                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -597,27 +597,27 @@ export default function Home() {
                               </Select>
                             </FormControl>
                           </Grid>
-                          
+
                           <Grid item xs={12} sm={6} md={3}>
                             <DatePicker
                               label="Due Date"
                               value={newTask.dueDate}
-                              onChange={(date) => setNewTask({...newTask, dueDate: date})}
+                              onChange={(date) => setNewTask({ ...newTask, dueDate: date })}
                               renderInput={(params) => <TextField {...params} fullWidth />}
                             />
                           </Grid>
-                          
+
                           <Grid item xs={12} sm={6}>
                             <TextField
                               label="Estimated Time (hours)"
                               value={newTask.estimatedTime}
-                              onChange={(e) => setNewTask({...newTask, estimatedTime: e.target.value})}
+                              onChange={(e) => setNewTask({ ...newTask, estimatedTime: e.target.value })}
                               type="number"
                               inputProps={{ min: 0, step: 0.5 }}
                               fullWidth
                             />
                           </Grid>
-                          
+
                           <Grid item xs={12} sm={6}>
                             <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
                               <TextField
@@ -635,7 +635,7 @@ export default function Home() {
                                 Add
                               </Button>
                             </Box>
-                            
+
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
                               {newTask.tags.map(tag => (
                                 <Chip
@@ -647,7 +647,7 @@ export default function Home() {
                               ))}
                             </Box>
                           </Grid>
-                          
+
                           <Grid item xs={12}>
                             <Button
                               type="submit"
@@ -658,17 +658,17 @@ export default function Home() {
                             >
                               {editMode ? "Update Task" : "Add Task"}
                             </Button>
-                            
+
                             {editMode && (
                               <Button
                                 variant="outlined"
                                 onClick={() => {
                                   setEditMode(false);
                                   setEditTaskId(null);
-                                  setNewTask({ 
-                                    title: "", 
-                                    description: "", 
-                                    status: "Todo", 
+                                  setNewTask({
+                                    title: "",
+                                    description: "",
+                                    status: "Todo",
                                     project: "",
                                     priority: "Medium",
                                     dueDate: null,
@@ -687,40 +687,40 @@ export default function Home() {
                       </Box>
                     </Paper>
                   </Grid>
-                  
+
                   {/* Task List */}
                   <Grid item xs={12}>
                     <Paper elevation={3} sx={{ p: 3 }}>
                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                         <Typography variant="h6">
-                          Tasks 
+                          Tasks
                           {filter.project !== "all" && (
                             <Chip label={filter.project} size="small" sx={{ ml: 1 }} />
                           )}
                           {filter.status !== "all" && (
-                            <Chip 
-                              label={filter.status} 
-                              size="small" 
-                              sx={{ ml: 1, bgcolor: getStatusColor(filter.status), color: "white" }} 
+                            <Chip
+                              label={filter.status}
+                              size="small"
+                              sx={{ ml: 1, bgcolor: getStatusColor(filter.status), color: "white" }}
                             />
                           )}
                           {filter.priority !== "all" && (
-                            <Chip 
-                              label={filter.priority} 
-                              size="small" 
-                              sx={{ ml: 1, bgcolor: getPriorityColor(filter.priority), color: "white" }} 
+                            <Chip
+                              label={filter.priority}
+                              size="small"
+                              sx={{ ml: 1, bgcolor: getPriorityColor(filter.priority), color: "white" }}
                             />
                           )}
                         </Typography>
-                        
-                        <IconButton 
+
+                        <IconButton
                           onClick={() => setFilter({ status: "all", project: "all", priority: "all" })}
                           title="Clear filters"
                         >
                           <RefreshIcon />
                         </IconButton>
                       </Box>
-                      
+
                       {filteredTasks.length === 0 ? (
                         <Paper sx={{ p: 3, textAlign: "center", bgcolor: "#f5f5f5" }}>
                           <Typography color="textSecondary">
@@ -731,9 +731,9 @@ export default function Home() {
                         <Grid container spacing={2}>
                           {filteredTasks.map(task => (
                             <Grid item key={task.id} xs={12} sm={6} md={4}>
-                              <Card sx={{ 
-                                height: "100%", 
-                                display: "flex", 
+                              <Card sx={{
+                                height: "100%",
+                                display: "flex",
                                 flexDirection: "column",
                                 borderLeft: 5,
                                 borderColor: getStatusColor(task.status)
@@ -747,18 +747,18 @@ export default function Home() {
                                       <Tooltip title={`Priority: ${task.priority}`}>
                                         <FlagIcon sx={{ color: getPriorityColor(task.priority), fontSize: 18, mr: 0.5 }} />
                                       </Tooltip>
-                                      <Chip 
-                                        label={task.project} 
-                                        size="small" 
+                                      <Chip
+                                        label={task.project}
+                                        size="small"
                                         variant="outlined"
                                       />
                                     </Box>
                                   </Box>
-                                  
-                                  <Typography 
-                                    variant="body2" 
+
+                                  <Typography
+                                    variant="body2"
                                     color="text.secondary"
-                                    sx={{ 
+                                    sx={{
                                       mb: 2,
                                       overflow: "hidden",
                                       textOverflow: "ellipsis",
@@ -769,7 +769,7 @@ export default function Home() {
                                   >
                                     {task.description || "No description provided"}
                                   </Typography>
-                                  
+
                                   {task.tags && task.tags.length > 0 && (
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
                                       {task.tags.map(tag => (
@@ -783,10 +783,10 @@ export default function Home() {
                                       ))}
                                     </Box>
                                   )}
-                                  
-                                  <Box sx={{ 
-                                    display: "flex", 
-                                    flexDirection: "column", 
+
+                                  <Box sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
                                     gap: 0.5,
                                     mb: 1,
                                     fontSize: '0.75rem',
@@ -798,25 +798,25 @@ export default function Home() {
                                         Created: {new Date(task.createdAt).toLocaleDateString()}
                                       </Typography>
                                     </Box>
-                                    
+
                                     {task.dueDate && (
                                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <CalendarIcon sx={{ 
-                                          fontSize: 16, 
+                                        <CalendarIcon sx={{
+                                          fontSize: 16,
                                           mr: 0.5,
-                                          color: new Date(task.dueDate) < new Date() && task.status !== "Done" ? 
+                                          color: new Date(task.dueDate) < new Date() && task.status !== "Done" ?
                                             'error.main' : 'inherit'
                                         }} />
-                                        <Typography 
+                                        <Typography
                                           variant="caption"
-                                          color={new Date(task.dueDate) < new Date() && task.status !== "Done" ? 
+                                          color={new Date(task.dueDate) < new Date() && task.status !== "Done" ?
                                             'error' : 'inherit'}
                                         >
                                           Due: {new Date(task.dueDate).toLocaleDateString()}
                                         </Typography>
                                       </Box>
                                     )}
-                                    
+
                                     {task.estimatedTime && (
                                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                         <TimeIcon sx={{ fontSize: 16, mr: 0.5 }} />
@@ -826,14 +826,14 @@ export default function Home() {
                                       </Box>
                                     )}
                                   </Box>
-                                  
-                                  <Chip 
-                                    label={task.status} 
-                                    size="small" 
+
+                                  <Chip
+                                    label={task.status}
+                                    size="small"
                                     sx={{ bgcolor: getStatusColor(task.status), color: "white" }}
                                   />
                                 </CardContent>
-                                
+
                                 <CardActions>
                                   <FormControl size="small" sx={{ minWidth: 120, mr: 1 }}>
                                     <Select
@@ -847,7 +847,7 @@ export default function Home() {
                                       <MenuItem value="Done">Done</MenuItem>
                                     </Select>
                                   </FormControl>
-                                  
+
                                   <Button
                                     startIcon={<EditIcon />}
                                     size="small"
@@ -856,9 +856,9 @@ export default function Home() {
                                   >
                                     Edit
                                   </Button>
-                                  
-                                  <IconButton 
-                                    onClick={() => deleteTask(task.id)} 
+
+                                  <IconButton
+                                    onClick={() => deleteTask(task.id)}
                                     color="secondary"
                                     size="small"
                                   >
@@ -876,7 +876,7 @@ export default function Home() {
               </Grid>
             </Grid>
           </Container>
-          
+
           {/* Project Menu */}
           <Menu
             anchorEl={projectMenuAnchor}
@@ -890,7 +890,7 @@ export default function Home() {
               Delete Project
             </MenuItem>
           </Menu>
-          
+
           {/* Confirm Delete Dialog */}
           <Dialog
             open={confirmDialogOpen}
@@ -899,7 +899,7 @@ export default function Home() {
             <DialogTitle>Delete Project</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                Are you sure you want to delete "{selectedProject}"? This will remove all tasks associated with this project as well.
+                Are you sure you want to delete &quot;{selectedProject}&quot;? This will remove all tasks associated with this project as well.
               </DialogContentText>
             </DialogContent>
             <DialogActions>
@@ -909,17 +909,17 @@ export default function Home() {
               </Button>
             </DialogActions>
           </Dialog>
-          
+
           {/* Snackbar for notifications */}
-          <Snackbar 
-            open={snackbar.open} 
-            autoHideDuration={4000} 
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={4000}
             onClose={handleSnackbarClose}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           >
-            <Alert 
-              onClose={handleSnackbarClose} 
-              severity={snackbar.severity} 
+            <Alert
+              onClose={handleSnackbarClose}
+              severity={snackbar.severity}
               sx={{ width: '100%' }}
             >
               {snackbar.message}

@@ -1,27 +1,24 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
+import StoreProvider from './providers';
+import Layout from '@/components/Layout';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Database Schema Migration",
-  description: "Tool to help with database schema migration",
+  title: "TaskMaster - Professional Task Management",
+  description: "Manage your tasks efficiently with our professional task management system",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Providers>{children}</Providers>
+      <body className={inter.className}>
+        <StoreProvider>
+          <Layout>
+            {children}
+          </Layout>
+        </StoreProvider>
       </body>
     </html>
   );

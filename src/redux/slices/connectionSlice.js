@@ -15,9 +15,13 @@ const initialState = {
     },
     pipeline: {
         type: null,
-        ready: false,
         schema: null,
         tables: [],
+        ready: false,
+        status: null,
+        results: null,
+        completed_at: null,
+        summary: null
     },
     availableSchemas: [],
     availableTables: [],
