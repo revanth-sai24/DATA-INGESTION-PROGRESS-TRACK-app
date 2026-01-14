@@ -2,10 +2,11 @@
 import React from 'react';
 import {
   SwipeableDrawer, Box, Typography, TextField, Button, FormControl, InputLabel, 
-  Select, MenuItem, Chip, Grid, IconButton
+  Select, MenuItem, Chip, Grid, IconButton, List, ListItem, ListItemText, 
+  ListItemSecondaryAction, Checkbox, Divider
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
-import { Add as AddIcon, Edit as EditIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
 
 export default function AddTaskDrawer({
   open,
@@ -16,6 +17,48 @@ export default function AddTaskDrawer({
   handleSubmit,
   projects
 }) {
+  const [newCheckpoint, setNewCheckpoint] = React.useState('');
+
+  const addCheckpoint = () => {
+    if (newCheckpoint.trim()) {
+      const checkpoints = formData.checkpoints || [];
+      setFormData({
+        ...formData,
+        checkpoints: [...checkpoints, {
+          id: Date.now(),
+          text: newCheckpoint.trim(),
+          completed: false,
+          createdAt: new Date().toISOString()
+        }]
+      });
+      setNewCheckpoint('');
+    }
+  };
+
+  const removeCheckpoint = (checkpointId) => {
+    const checkpoints = formData.checkpoints || [];
+    setFormData({
+      ...formData,
+      checkpoints: checkpoints.filter(cp => cp.id !== checkpointId)
+    });
+  };
+
+  const toggleCheckpoint = (checkpointId) => {
+    const checkpoints = formData.checkpoints || [];
+    setFormData({
+      ...formData,
+      checkpoints: checkpoints.map(cp => 
+        cp.id === checkpointId ? { ...cp, completed: !cp.completed } : cp
+      )
+    });
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addCheckpoint();
+    }
+  };
   return (
     <SwipeableDrawer
       anchor="right"
@@ -179,6 +222,83 @@ export default function AddTaskDrawer({
                 value={formData.estimatedTime || ''}
                 onChange={(e) => setFormData({ ...formData, estimatedTime: e.target.value })}
               />
+            </Grid>
+
+            {/* Checkpoints Section */}
+            <Grid size={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                ✅ Task Checkpoints
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Add checkpoints to track progress and validate task completion
+              </Typography>
+              
+              {/* Add New Checkpoint */}
+              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Add a checkpoint (e.g., Setup database connection)"
+                  value={newCheckpoint}
+                  onChange={(e) => setNewCheckpoint(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                />
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={addCheckpoint}
+                  disabled={!newCheckpoint.trim()}
+                  sx={{ minWidth: 'auto', px: 2 }}
+                >
+                  <AddIcon fontSize="small" />
+                </Button>
+              </Box>
+
+              {/* Checkpoint List */}
+              {formData.checkpoints && formData.checkpoints.length > 0 && (
+                <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                  <List dense>
+                    {formData.checkpoints.map((checkpoint, index) => (
+                      <ListItem key={checkpoint.id} divider={index < formData.checkpoints.length - 1}>
+                        <Checkbox
+                          checked={checkpoint.completed}
+                          onChange={() => toggleCheckpoint(checkpoint.id)}
+                          sx={{ mr: 1 }}
+                          color={checkpoint.completed ? 'success' : 'default'}
+                        />
+                        <ListItemText
+                          primary={checkpoint.text}
+                          sx={{
+                            '& .MuiListItemText-primary': {
+                              textDecoration: checkpoint.completed ? 'line-through' : 'none',
+                              color: checkpoint.completed ? 'text.secondary' : 'text.primary'
+                            }
+                          }}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge="end"
+                            size="small"
+                            onClick={() => removeCheckpoint(checkpoint.id)}
+                            sx={{ color: 'error.main' }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                  
+                  {/* Checkpoint Progress */}
+                  <Box sx={{ p: 2, bgcolor: 'grey.50', borderTop: '1px solid', borderColor: 'divider' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Progress: {formData.checkpoints.filter(cp => cp.completed).length} / {formData.checkpoints.length} completed
+                      ({Math.round((formData.checkpoints.filter(cp => cp.completed).length / formData.checkpoints.length) * 100)}%)
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </Grid>
 
             {/* Submit Button */}

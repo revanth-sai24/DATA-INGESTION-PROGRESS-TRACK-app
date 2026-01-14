@@ -20,7 +20,8 @@ export async function POST(request) {
             tags: Array.isArray(task.tags) ? task.tags.join(';') : '',
             timeElapsed: task.timeTracking ? task.timeTracking.elapsed || 0 : 0,
             workingFor: task.workingFor || '',
-            workingWith: task.workingWith || ''
+            workingWith: task.workingWith || '',
+            checkpoints: task.checkpoints ? JSON.stringify(task.checkpoints) : '[]'
         }));
 
         // Ensure CSV file keeps its header even when there are no rows
@@ -37,7 +38,8 @@ export async function POST(request) {
             'tags',
             'timeElapsed',
             'workingFor',
-            'workingWith'
+            'workingWith',
+            'checkpoints'
         ].join(',');
 
         const csv = csvData.length > 0 ? Papa.unparse(csvData) : `${headers}\n`;

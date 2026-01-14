@@ -16,10 +16,43 @@ export default function TaskForm({ editingTask, onClose, projects }) {
     tags: editingTask?.tags || [],
     workingFor: editingTask?.workingFor || '',
     workingWith: editingTask?.workingWith || '',
+    checkpoints: editingTask?.checkpoints || [],
     ...editingTask
   });
 
   const [newTag, setNewTag] = useState('');
+  const [newCheckpoint, setNewCheckpoint] = useState('');
+
+  const addCheckpoint = () => {
+    if (newCheckpoint.trim()) {
+      setFormData({
+        ...formData,
+        checkpoints: [...formData.checkpoints, {
+          id: Date.now(),
+          text: newCheckpoint.trim(),
+          completed: false,
+          createdAt: new Date().toISOString()
+        }]
+      });
+      setNewCheckpoint('');
+    }
+  };
+
+  const removeCheckpoint = (checkpointId) => {
+    setFormData({
+      ...formData,
+      checkpoints: formData.checkpoints.filter(cp => cp.id !== checkpointId)
+    });
+  };
+
+  const toggleCheckpoint = (checkpointId) => {
+    setFormData({
+      ...formData,
+      checkpoints: formData.checkpoints.map(cp => 
+        cp.id === checkpointId ? { ...cp, completed: !cp.completed } : cp
+      )
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -85,7 +118,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
             <input
               type="text"
               required
-              value={formData.title}
+              value={formData.title || ''}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter task title..."
@@ -98,7 +131,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               Description
             </label>
             <textarea
-              value={formData.description}
+              value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -172,7 +205,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               </label>
               <input
                 type="date"
-                value={formData.dueDate}
+                value={formData.dueDate || ''}
                 onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -228,7 +261,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               </label>
               <input
                 type="text"
-                value={formData.workingFor}
+                value={formData.workingFor || ''}
                 onChange={(e) => setFormData({ ...formData, workingFor: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Who is this task for?"
@@ -241,12 +274,86 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               </label>
               <input
                 type="text"
-                value={formData.workingWith}
+                value={formData.workingWith || ''}
                 onChange={(e) => setFormData({ ...formData, workingWith: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Who are you working with?"
               />
             </div>
+          </div>
+
+          {/* Checkpoints Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              ✅ Task Checkpoints
+            </label>
+            <p className="text-sm text-gray-500 mb-4">
+              Add checkpoints to track progress and validate task completion
+            </p>
+            
+            {/* Add New Checkpoint */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newCheckpoint}
+                onChange={(e) => setNewCheckpoint(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCheckpoint())}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Add a checkpoint (e.g., Setup database connection)"
+              />
+              <button
+                type="button"
+                onClick={addCheckpoint}
+                disabled={!newCheckpoint.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                <PlusIcon fontSize="small" />
+              </button>
+            </div>
+
+            {/* Checkpoint List */}
+            {formData.checkpoints && formData.checkpoints.length > 0 && (
+              <div className="border border-gray-200 rounded-lg">
+                <div className="max-h-48 overflow-y-auto">
+                  {formData.checkpoints.map((checkpoint, index) => (
+                    <div
+                      key={checkpoint.id}
+                      className={`flex items-center gap-3 p-3 ${index < formData.checkpoints.length - 1 ? 'border-b border-gray-100' : ''} hover:bg-gray-50`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checkpoint.completed}
+                        onChange={() => toggleCheckpoint(checkpoint.id)}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <span className={`flex-1 text-sm ${checkpoint.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                        {checkpoint.text}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeCheckpoint(checkpoint.id)}
+                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                        title="Remove checkpoint"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Checkpoint Progress */}
+                <div className="p-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-600">
+                  Progress: {formData.checkpoints.filter(cp => cp.completed).length} / {formData.checkpoints.length} completed
+                  ({Math.round((formData.checkpoints.filter(cp => cp.completed).length / formData.checkpoints.length) * 100)}%)
+                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(formData.checkpoints.filter(cp => cp.completed).length / formData.checkpoints.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Form Actions */}

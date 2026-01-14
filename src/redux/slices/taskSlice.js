@@ -81,7 +81,10 @@ export const exportToCSV = createAsyncThunk(
             createdAt: format(new Date(task.createdAt), 'yyyy-MM-dd'),
             estimatedTime: task.estimatedTime,
             tags: task.tags.join(';'),
-            timeElapsed: task.timeTracking.elapsed
+            timeElapsed: task.timeTracking.elapsed,
+            workingFor: task.workingFor || '',
+            workingWith: task.workingWith || '',
+            checkpoints: task.checkpoints ? JSON.stringify(task.checkpoints) : ''
         }));
 
         const csv = Papa.unparse(csvData);
@@ -132,7 +135,16 @@ export const importFromCSV = createAsyncThunk(
                                 isRunning: false,
                                 startTime: null
                             },
-                            comments: []
+                            comments: [],
+                            workingFor: row.workingFor || '',
+                            workingWith: row.workingWith || '',
+                            checkpoints: row.checkpoints ? (() => {
+                                try {
+                                    return JSON.parse(row.checkpoints);
+                                } catch (e) {
+                                    return [];
+                                }
+                            })() : []
                         }));
                     resolve(importedTasks);
                 },
@@ -203,7 +215,8 @@ const taskSlice = createSlice({
                 comments: [],
                 tags: action.payload.tags || [],
                 description: action.payload.description || '',
-                estimatedTime: action.payload.estimatedTime || ''
+                estimatedTime: action.payload.estimatedTime || '',
+                checkpoints: action.payload.checkpoints || []
             };
             state.tasks.push(newTask);
 
@@ -410,7 +423,14 @@ const taskSlice = createSlice({
                         isRunning: false,
                         startTime: null
                     },
-                    comments: task.comments || []
+                    comments: task.comments || [],
+                    checkpoints: task.checkpoints ? (() => {
+                        try {
+                            return typeof task.checkpoints === 'string' ? JSON.parse(task.checkpoints) : task.checkpoints;
+                        } catch (e) {
+                            return [];
+                        }
+                    })() : []
                 }));
                 state.history.push([...state.tasks]);
                 state.historyIndex = state.history.length - 1;

@@ -12,7 +12,9 @@ import {
   Schedule as CalendarIcon,
   Flag as PriorityIcon,
   ViewModule as CardViewIcon,
-  ViewList as TableViewIcon
+  ViewList as TableViewIcon,
+  CheckBox as CheckBoxIcon,
+  CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon
 } from '@mui/icons-material';
 
 export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
@@ -81,6 +83,20 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
   const handleDelete = (taskId) => {
     if (confirm('Are you sure you want to delete this task?')) {
       dispatch(deleteTask(taskId));
+    }
+  };
+
+  const toggleCheckpoint = (taskId, checkpointId) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task && task.checkpoints) {
+      const updatedCheckpoints = task.checkpoints.map(cp => 
+        cp.id === checkpointId ? { ...cp, completed: !cp.completed } : cp
+      );
+      dispatch(updateTask({ 
+        ...task, 
+        checkpoints: updatedCheckpoints,
+        updatedAt: new Date().toISOString() 
+      }));
     }
   };
 
@@ -261,6 +277,65 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                       ))}
                     </div>
                   )}
+
+                  {/* Checkpoints */}
+                  {task.checkpoints && task.checkpoints.length > 0 && (
+                    <div className={`mt-4 p-3 rounded-lg border ${
+                      darkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-medium">✅ Checkpoints</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          darkMode ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'
+                        }`}>
+                          {task.checkpoints.filter(cp => cp.completed).length}/{task.checkpoints.length}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {task.checkpoints.slice(0, 3).map((checkpoint) => (
+                          <div key={checkpoint.id} className="flex items-center gap-2">
+                            <button
+                              onClick={() => toggleCheckpoint(task.id, checkpoint.id)}
+                              className={`flex-shrink-0 transition-colors ${
+                                checkpoint.completed
+                                  ? darkMode ? 'text-green-400' : 'text-green-600'
+                                  : darkMode ? 'text-gray-500' : 'text-gray-400'
+                              }`}
+                            >
+                              {checkpoint.completed ? (
+                                <CheckBoxIcon fontSize="small" />
+                              ) : (
+                                <CheckBoxOutlineBlankIcon fontSize="small" />
+                              )}
+                            </button>
+                            <span className={`text-sm ${
+                              checkpoint.completed 
+                                ? `line-through ${darkMode ? 'text-gray-400' : 'text-gray-500'}` 
+                                : darkMode ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              {checkpoint.text}
+                            </span>
+                          </div>
+                        ))}
+                        {task.checkpoints.length > 3 && (
+                          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} ml-6`}>
+                            +{task.checkpoints.length - 3} more checkpoints
+                          </div>
+                        )}
+                      </div>
+                      {/* Progress Bar */}
+                      <div className={`mt-2 h-1.5 rounded-full overflow-hidden ${
+                        darkMode ? 'bg-gray-600' : 'bg-gray-200'
+                      }`}>
+                        <div 
+                          className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300"
+                          style={{ 
+                            width: `${(task.checkpoints.filter(cp => cp.completed).length / task.checkpoints.length) * 100}%` 
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -351,6 +426,9 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                   <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Due Date
                   </th>
+                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                    Checkpoints
+                  </th>
                   <th className={`text-right px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Actions
                   </th>
@@ -407,6 +485,51 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                     </td>
                     <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
                       {task.dueDate ? formatDate(task.dueDate) : '-'}
+                    </td>
+                    <td className="px-6 py-4">
+                      {task.checkpoints && task.checkpoints.length > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-col space-y-1">
+                            {task.checkpoints.slice(0, 2).map((checkpoint) => (
+                              <div key={checkpoint.id} className="flex items-center gap-1">
+                                <button
+                                  onClick={() => toggleCheckpoint(task.id, checkpoint.id)}
+                                  className={`flex-shrink-0 transition-colors ${
+                                    checkpoint.completed
+                                      ? darkMode ? 'text-green-400' : 'text-green-600'
+                                      : darkMode ? 'text-gray-500' : 'text-gray-400'
+                                  }`}
+                                >
+                                  {checkpoint.completed ? (
+                                    <CheckBoxIcon sx={{ fontSize: 16 }} />
+                                  ) : (
+                                    <CheckBoxOutlineBlankIcon sx={{ fontSize: 16 }} />
+                                  )}
+                                </button>
+                                <span className={`text-xs truncate max-w-24 ${
+                                  checkpoint.completed 
+                                    ? `line-through ${darkMode ? 'text-gray-500' : 'text-gray-400'}` 
+                                    : darkMode ? 'text-gray-300' : 'text-gray-700'
+                                }`}>
+                                  {checkpoint.text}
+                                </span>
+                              </div>
+                            ))}
+                            {task.checkpoints.length > 2 && (
+                              <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} ml-5`}>
+                                +{task.checkpoints.length - 2} more
+                              </div>
+                            )}
+                          </div>
+                          <div className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                            darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {task.checkpoints.filter(cp => cp.completed).length}/{task.checkpoints.length}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1">
