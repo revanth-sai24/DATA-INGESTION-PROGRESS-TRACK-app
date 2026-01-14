@@ -14,5 +14,5 @@ task-1768383715214,Implement Session based chat for Data explorer,Implement Sess
 task-1768383947670,Governance-NFUM,Prepare the Separate Instance for NFUM include only recommended modules only and change the app theme to Yellow and deploy it,completed,ZenseAI.Data,high,,2026-01-14T09:45:47.670Z,,,0,,,[]
 task-1768383991277,Prepare the VAPT code for testing,Prepare the code for VAPT testing and deploy it on separate Instance,completed,ZenseAI.Data,medium,,2026-01-14T09:46:31.277Z,,,0,,,[]
 task-1768386669658,Create Separate Deployment for NFUM,Do the deployment of NFUM Road show,completed,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T10:31:09.658Z,,,0,,,[]
-task-1768387003554,User Activity Governance,Develop the Governance with User Activity for all modules,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T10:36:43.554Z,,,0,,Sriram,[]
+task-1768387003554,User Activity Governance,Develop the Governance with User Activity for all modules,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T10:36:43.554Z,,,0,,Sriram,"[{""id"":1768402892731,""text"":""Validate all modules"",""completed"":false,""createdAt"":""2026-01-14T15:01:32.731Z""}]"
 task-1768387170141,Explore AutoGen Framework,Explore about AutoGen Framework and implement that in any modules,on-hold,Learnings,medium,,2026-01-14T10:39:30.141Z,,,0,Nimesh,,[]

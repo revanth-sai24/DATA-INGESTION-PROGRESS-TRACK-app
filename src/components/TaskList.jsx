@@ -400,54 +400,60 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
         </div>
       ) : (
         /* Table View */
-        <div className="premium-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className={`${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} border-b`}>
+        <div className="premium-card">
+          <div 
+            className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] border rounded-lg"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: darkMode ? '#374151 #111827' : '#D1D5DB #F9FAFB'
+            }}
+          >
+            <table className="w-full table-fixed min-w-[1200px] border-collapse">
+              <thead className={`${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} border-b sticky top-0 z-20`}>
                 <tr>
-                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-64 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Task
                   </th>
-                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Project
                   </th>
-                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-24 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Priority
                   </th>
-                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-28 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Status
                   </th>
-                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Working For
                   </th>
-                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Working With
                   </th>
-                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-24 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Due Date
                   </th>
-                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-48 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Checkpoints
                   </th>
-                  <th className={`text-right px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
+                  <th className={`text-right px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32`}>
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className={`${darkMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'} divide-y`}>
                 {filteredTasks.map((task) => (
-                  <tr key={task.id} className={`${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
-                    <td className="px-6 py-4">
+                  <tr key={task.id} className={`${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <td className={`px-4 py-4 w-64 border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       <div className="flex flex-col">
-                        <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{task.title}</div>
+                        <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'} truncate`}>{task.title}</div>
                         {task.description && (
-                          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} truncate max-w-xs`}>
+                          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} truncate`}>
                             {task.description}
                           </div>
                         )}
                         {task.tags && task.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {task.tags.slice(0, 3).map((tag, index) => (
+                          <div className="flex flex-wrap gap-1 mt-1 max-w-full">
+                            {task.tags.slice(0, 2).map((tag, index) => (
                               <span
                                 key={index}
                                 className={`px-1.5 py-0.5 rounded text-xs ${
@@ -457,41 +463,41 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                                 {tag}
                               </span>
                             ))}
-                            {task.tags.length > 3 && (
-                              <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>+{task.tags.length - 3}</span>
+                            {task.tags.length > 2 && (
+                              <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>+{task.tags.length - 2}</span>
                             )}
                           </div>
                         )}
                       </div>
                     </td>
-                    <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                    <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-32 truncate border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.project || '-'}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)}`}>
+                    <td className={`px-4 py-4 w-24 border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)} whitespace-nowrap`}>
                         {task.priority || 'medium'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)}`}>
+                    <td className={`px-4 py-4 w-28 border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)} whitespace-nowrap`}>
                         {task.status || 'todo'}
                       </span>
                     </td>
-                    <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                    <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-32 truncate border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.workingFor || '-'}
                     </td>
-                    <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                    <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-32 truncate border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.workingWith || '-'}
                     </td>
-                    <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                    <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-24 whitespace-nowrap border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.dueDate ? formatDate(task.dueDate) : '-'}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className={`px-4 py-4 w-48 border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.checkpoints && task.checkpoints.length > 0 ? (
-                        <div className="flex items-center gap-2">
-                          <div className="flex flex-col space-y-1">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <div className="flex flex-col space-y-1 min-w-0 flex-1">
                             {task.checkpoints.slice(0, 2).map((checkpoint) => (
-                              <div key={checkpoint.id} className="flex items-center gap-1">
+                              <div key={checkpoint.id} className="flex items-center gap-1 min-w-0">
                                 <button
                                   onClick={() => toggleCheckpoint(task.id, checkpoint.id)}
                                   className={`flex-shrink-0 transition-colors ${
@@ -506,11 +512,11 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                                     <CheckBoxOutlineBlankIcon sx={{ fontSize: 16 }} />
                                   )}
                                 </button>
-                                <span className={`text-xs truncate max-w-24 ${
+                                <span className={`text-xs truncate ${
                                   checkpoint.completed 
                                     ? `line-through ${darkMode ? 'text-gray-500' : 'text-gray-400'}` 
                                     : darkMode ? 'text-gray-300' : 'text-gray-700'
-                                }`}>
+                                }`} title={checkpoint.text}>
                                   {checkpoint.text}
                                 </span>
                               </div>
@@ -521,7 +527,7 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                               </div>
                             )}
                           </div>
-                          <div className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                          <div className={`flex-shrink-0 ml-2 px-2 py-1 rounded text-xs font-medium ${
                             darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
                           }`}>
                             {task.checkpoints.filter(cp => cp.completed).length}/{task.checkpoints.length}
@@ -531,7 +537,7 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                         <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-4 text-right w-32">
                       <div className="flex justify-end gap-1">
                         {task.status !== 'archived' && (
                           <>
