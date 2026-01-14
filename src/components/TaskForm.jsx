@@ -14,6 +14,8 @@ export default function TaskForm({ editingTask, onClose, projects }) {
     status: editingTask?.status || 'todo',
     dueDate: editingTask?.dueDate || '',
     tags: editingTask?.tags || [],
+    workingFor: editingTask?.workingFor || '',
+    workingWith: editingTask?.workingWith || '',
     ...editingTask
   });
 
@@ -215,6 +217,35 @@ export default function TaskForm({ editingTask, onClose, projects }) {
                   </button>
                 </span>
               ))}
+            </div>
+          </div>
+
+          {/* Working For and Working With */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Working For
+              </label>
+              <input
+                type="text"
+                value={formData.workingFor}
+                onChange={(e) => setFormData({ ...formData, workingFor: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Who is this task for?"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Working With
+              </label>
+              <input
+                type="text"
+                value={formData.workingWith}
+                onChange={(e) => setFormData({ ...formData, workingWith: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Who are you working with?"
+              />
             </div>
           </div>
 

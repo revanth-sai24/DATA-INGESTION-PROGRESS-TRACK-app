@@ -11,19 +11,23 @@ const autoSaveTasksToCSV = async (tasksSnapshot) => {
             return;
         }
 
+        // Ensure we have a proper serialized copy of the data
+        const serializedTasks = JSON.parse(JSON.stringify(tasksSnapshot));
+
         // Call API to save tasks to public/sample-tasks.csv
         const response = await fetch('/api/save-tasks', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ tasks: tasksSnapshot }),
+            body: JSON.stringify({ tasks: serializedTasks }),
         });
 
         if (response.ok) {
-            console.log('✅ Auto-saved', tasksSnapshot.length, 'tasks to sample-tasks.csv');
+            console.log('✅ Auto-saved', serializedTasks.length, 'tasks to sample-tasks.csv');
         } else {
-            console.error('❌ Failed to save tasks to CSV');
+            const errorText = await response.text();
+            console.error('❌ Failed to save tasks to CSV:', errorText);
         }
 
     } catch (error) {
@@ -38,19 +42,23 @@ const autoSaveProjectsToCSV = async (projectsSnapshot) => {
             return;
         }
 
+        // Ensure we have a proper serialized copy of the data
+        const serializedProjects = JSON.parse(JSON.stringify(projectsSnapshot));
+
         // Call API to save projects to public/sample-projects.csv
         const response = await fetch('/api/save-projects', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ projects: projectsSnapshot }),
+            body: JSON.stringify({ projects: serializedProjects }),
         });
 
         if (response.ok) {
-            console.log('✅ Auto-saved', projectsSnapshot.length, 'projects to sample-projects.csv');
+            console.log('✅ Auto-saved', serializedProjects.length, 'projects to sample-projects.csv');
         } else {
-            console.error('❌ Failed to save projects to CSV');
+            const errorText = await response.text();
+            console.error('❌ Failed to save projects to CSV:', errorText);
         }
 
     } catch (error) {
@@ -202,8 +210,8 @@ const taskSlice = createSlice({
             state.history.push([...state.tasks]);
             state.historyIndex = state.history.length - 1;
 
-            // Auto-save tasks to CSV with snapshot
-            const tasksSnapshot = [...state.tasks];
+            // Auto-save tasks to CSV with properly serialized snapshot
+            const tasksSnapshot = JSON.parse(JSON.stringify(state.tasks));
             setTimeout(() => autoSaveTasksToCSV(tasksSnapshot), 0);
         },
         updateTask: (state, action) => {
@@ -220,9 +228,9 @@ const taskSlice = createSlice({
                 state.history.push([...state.tasks]);
                 state.historyIndex = state.history.length - 1;
 
-                // Auto-save both tasks and projects with snapshots
-                const tasksSnapshot = [...state.tasks];
-                const projectsSnapshot = [...state.projects];
+                // Auto-save both tasks and projects with properly serialized snapshots
+                const tasksSnapshot = JSON.parse(JSON.stringify(state.tasks));
+                const projectsSnapshot = JSON.parse(JSON.stringify(state.projects));
                 setTimeout(() => {
                     autoSaveTasksToCSV(tasksSnapshot);
                     autoSaveProjectsToCSV(projectsSnapshot);
@@ -235,8 +243,8 @@ const taskSlice = createSlice({
             state.history.push([...state.tasks]);
             state.historyIndex = state.history.length - 1;
 
-            // Auto-save tasks only
-            const tasksSnapshot = [...state.tasks];
+            // Auto-save tasks only with properly serialized snapshot
+            const tasksSnapshot = JSON.parse(JSON.stringify(state.tasks));
             setTimeout(() => {
                 autoSaveTasksToCSV(tasksSnapshot);
             }, 0);
@@ -265,8 +273,8 @@ const taskSlice = createSlice({
 
             if (!existingProject) {
                 state.projects.push(newProject);
-                // Auto-save projects to CSV with snapshot
-                const projectsSnapshot = [...state.projects];
+                // Auto-save projects to CSV with properly serialized snapshot
+                const projectsSnapshot = JSON.parse(JSON.stringify(state.projects));
                 setTimeout(() => autoSaveProjectsToCSV(projectsSnapshot), 0);
             }
         },
@@ -278,8 +286,8 @@ const taskSlice = createSlice({
 
             if (projectIndex !== -1) {
                 state.projects[projectIndex] = updatedProject;
-                // Auto-save projects to CSV with snapshot
-                const projectsSnapshot = [...state.projects];
+                // Auto-save projects to CSV with properly serialized snapshot
+                const projectsSnapshot = JSON.parse(JSON.stringify(state.projects));
                 setTimeout(() => autoSaveProjectsToCSV(projectsSnapshot), 0);
             }
         },
@@ -290,8 +298,8 @@ const taskSlice = createSlice({
                 return projectName !== projectToDelete;
             });
 
-            // Auto-save projects only
-            const projectsSnapshot = [...state.projects];
+            // Auto-save projects only with properly serialized snapshot
+            const projectsSnapshot = JSON.parse(JSON.stringify(state.projects));
             setTimeout(() => {
                 autoSaveProjectsToCSV(projectsSnapshot);
             }, 0);

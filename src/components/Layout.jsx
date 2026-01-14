@@ -60,14 +60,14 @@ export default function Layout({ children }) {
         
         <div className="flex items-center gap-4">
           {/* Search Bar */}
-          <div className="relative">
+          {/* <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fontSize="small" />
             <input 
               type="text" 
               placeholder="Search tasks, projects..."
               className="bg-gray-100 pl-10 pr-4 py-2 rounded-lg text-gray-800 placeholder-gray-500 border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
             />
-          </div>
+          </div> */}
           
           {/* Action Buttons */}
           {/* <button className="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition-colors">
@@ -123,7 +123,12 @@ export default function Layout({ children }) {
           </>
         )}
 
-        {activePage === 'projects' && <ProjectList />}
+        {activePage === 'projects' && (
+          <ProjectList 
+            setActivePage={setActivePage}
+            setFilter={(newFilter) => dispatch({ type: 'tasks/setFilter', payload: newFilter })}
+          />
+        )}
         
         {activePage === 'archived' && <ArchivedTasks />}
       </main>

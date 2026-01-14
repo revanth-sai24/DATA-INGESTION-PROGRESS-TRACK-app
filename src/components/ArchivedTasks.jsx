@@ -186,6 +186,18 @@ export default function ArchivedTasks() {
                         <span>Due {formatDate(task.dueDate)}</span>
                       </div>
                     )}
+
+                    {task.workingFor && (
+                      <div className="flex items-center gap-1">
+                        <span>👤 For: {task.workingFor}</span>
+                      </div>
+                    )}
+
+                    {task.workingWith && (
+                      <div className="flex items-center gap-1">
+                        <span>🤝 With: {task.workingWith}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Tags */}
