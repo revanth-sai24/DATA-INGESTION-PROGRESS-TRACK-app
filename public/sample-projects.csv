@@ -1,1 +1,2 @@
-name,createdAt
+id,name,description,color,status,createdAt,updatedAt
+1768375252017,ZenseAI.Data,"ZenseAI.Data Platform development ",#3B82F6,active,2026-01-14T07:20:52.017Z,2026-01-14T07:20:52.017Z

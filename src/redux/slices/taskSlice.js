@@ -199,14 +199,6 @@ const taskSlice = createSlice({
             };
             state.tasks.push(newTask);
 
-            // Add project to projects array if it doesn't exist and is not empty
-            if (newTask.project && newTask.project.trim() && !state.projects.includes(newTask.project)) {
-                state.projects.push(newTask.project);
-                // Auto-save projects to CSV with snapshot
-                const projectsSnapshot = [...state.projects];
-                setTimeout(() => autoSaveProjectsToCSV(projectsSnapshot), 0);
-            }
-
             state.history.push([...state.tasks]);
             state.historyIndex = state.history.length - 1;
 
@@ -224,21 +216,6 @@ const taskSlice = createSlice({
                     dueDate: action.payload.dueDate ? new Date(action.payload.dueDate).toISOString() : action.payload.dueDate
                 };
                 state.tasks[index] = updatedTask;
-
-                // Handle project changes
-                if (updatedTask.project && updatedTask.project.trim() && !state.projects.includes(updatedTask.project)) {
-                    state.projects.push(updatedTask.project);
-                }
-
-                // Remove old project if no other tasks use it
-                if (oldTask.project && oldTask.project !== updatedTask.project) {
-                    const projectStillInUse = state.tasks.some(task =>
-                        task.id !== updatedTask.id && task.project === oldTask.project
-                    );
-                    if (!projectStillInUse) {
-                        state.projects = state.projects.filter(p => p !== oldTask.project);
-                    }
-                }
 
                 state.history.push([...state.tasks]);
                 state.historyIndex = state.history.length - 1;
@@ -280,15 +257,38 @@ const taskSlice = createSlice({
             }
         },
         addProject: (state, action) => {
-            if (!state.projects.includes(action.payload)) {
-                state.projects.push(action.payload);
+            const newProject = action.payload;
+            const projectName = typeof newProject === 'string' ? newProject : newProject.name;
+            const existingProject = state.projects.find(p =>
+                (typeof p === 'string' ? p : p.name) === projectName
+            );
+
+            if (!existingProject) {
+                state.projects.push(newProject);
+                // Auto-save projects to CSV with snapshot
+                const projectsSnapshot = [...state.projects];
+                setTimeout(() => autoSaveProjectsToCSV(projectsSnapshot), 0);
+            }
+        },
+        updateProject: (state, action) => {
+            const updatedProject = action.payload;
+            const projectIndex = state.projects.findIndex(p =>
+                (typeof p === 'string' ? p : p.id) === (typeof updatedProject === 'string' ? updatedProject : updatedProject.id)
+            );
+
+            if (projectIndex !== -1) {
+                state.projects[projectIndex] = updatedProject;
                 // Auto-save projects to CSV with snapshot
                 const projectsSnapshot = [...state.projects];
                 setTimeout(() => autoSaveProjectsToCSV(projectsSnapshot), 0);
             }
         },
         deleteProject: (state, action) => {
-            state.projects = state.projects.filter(project => project !== action.payload);
+            const projectToDelete = action.payload;
+            state.projects = state.projects.filter(project => {
+                const projectName = typeof project === 'string' ? project : project.name;
+                return projectName !== projectToDelete;
+            });
 
             // Auto-save projects only
             const projectsSnapshot = [...state.projects];
@@ -416,8 +416,22 @@ const taskSlice = createSlice({
             })
             .addCase(loadProjectsFromCSV.fulfilled, (state, action) => {
                 state.loading = false;
-                // Extract project names from CSV objects (they have {name, createdAt})
-                state.projects = action.payload.map(p => typeof p === 'string' ? p : p.name);
+                // Keep full project objects with all properties
+                state.projects = action.payload.map(p => {
+                    if (typeof p === 'string') {
+                        // Convert legacy string projects to objects
+                        return {
+                            id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                            name: p,
+                            description: '',
+                            color: '#3B82F6',
+                            status: 'active',
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        };
+                    }
+                    return p; // Keep full object
+                });
             })
             .addCase(loadProjectsFromCSV.rejected, (state, action) => {
                 state.loading = false;
@@ -433,6 +447,7 @@ export const {
     archiveTask,
     restoreTask,
     addProject,
+    updateProject,
     deleteProject,
     setSearchQuery,
     setFilter,

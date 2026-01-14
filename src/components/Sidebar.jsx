@@ -8,7 +8,7 @@ import {
 } from '@mui/icons-material';
 
 export default function Sidebar({
-  drawerWidth = 280,
+  drawerWidth = 320,
   activePage,
   setActivePage,
   tasks,
@@ -24,142 +24,187 @@ export default function Sidebar({
 }) {
   return (
     <aside
-      className="fixed h-screen z-50 flex flex-col border-r border-slate-200 bg-white shadow-sm"
+      className="fixed h-screen z-40 flex flex-col bg-white border-r border-gray-200 shadow-lg overflow-y-auto"
       style={{ width: drawerWidth }}
     >
-      {/* Brand */}
-      <div className="px-4 py-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
-        <div className="flex items-center gap-2 mb-1">
-          <AssignmentIcon style={{ fontSize: 28, color: '#2563eb' }} />
-          <span className="text-lg font-semibold text-brand">TaskMaster</span>
+      {/* Brand Section */}
+      {/* <div className="px-6 py-6 border-b border-gray-200 bg-gray-50">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-md">
+            <AssignmentIcon style={{ fontSize: 24, color: 'white' }} />
+          </div>
+          <div>
+            <div className="text-xl font-bold text-gray-800">TaskMaster</div>
+            <div className="text-xs text-gray-500">Enterprise Edition</div>
+          </div>
         </div>
-        <span className="text-xs text-slate-500">Professional Task Management</span>
-      </div>
+        <div className="text-xs text-gray-500 px-2">Professional Task Management Platform</div>
+      </div> */}
 
-      {/* Nav */}
-      <nav className="flex-1 py-3 bg-slate-50/60">
+      {/* Navigation */}
+      <nav className="flex-1 py-6 px-4 space-y-2 mt-5">
+        <div className="text-xs font-semibold text-gray-400 mb-4 px-2 tracking-wider">MAIN NAVIGATION</div>
+        
         <button
           onClick={() => setActivePage('dashboard')}
-          className={`mx-3 mb-1 flex items-center gap-3 rounded-md px-3 py-2 transition ${
-            activePage === 'dashboard' ? 'bg-brand text-white' : 'text-slate-700 hover:bg-indigo-50'
+          className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
+            activePage === 'dashboard' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
-          <DashboardIcon className="opacity-80" />
-          <span className="text-sm font-medium">Dashboard</span>
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            activePage === 'dashboard' ? 'bg-white/20' : 'bg-gray-200'
+          }`}>
+            <DashboardIcon className="text-sm" />
+          </div>
+          <span className="font-medium">Dashboard</span>
         </button>
-
-       
 
         <button
           onClick={() => setActivePage('tasks')}
-          className={`mx-3 mb-1 flex items-center gap-3 rounded-md px-3 py-2 transition ${
-            activePage === 'tasks' ? 'bg-brand text-white' : 'text-slate-700 hover:bg-indigo-50'
+          className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
+            activePage === 'tasks' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
-          <ListAltIcon className="opacity-80" />
-          <span className="text-sm font-medium">Tasks</span>
-          <span className={`ml-auto text-xs rounded-md px-2 py-0.5 ${
-            activePage === 'tasks' ? 'bg-white/25 text-white' : 'bg-indigo-50 text-slate-700'
-          }`}>{tasks.length}</span>
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            activePage === 'tasks' ? 'bg-white/20' : 'bg-gray-200'
+          }`}>
+            <ListAltIcon className="text-sm" />
+          </div>
+          <span className="font-medium flex-1 text-left">All Tasks</span>
+          <span className={`text-xs px-2 py-1 rounded-md font-semibold ${
+            activePage === 'tasks' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
+          }`}>
+            {tasks.length}
+          </span>
         </button>
+
         <button
           onClick={() => setActivePage('projects')}
-          className={`mx-3 mb-1 flex items-center gap-3 rounded-md px-3 py-2 transition ${
-            activePage === 'projects' ? 'bg-brand text-white' : 'text-slate-700 hover:bg-indigo-50'
+          className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
+            activePage === 'projects' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
-          <FolderIcon className="opacity-80" />
-          <span className="text-sm font-medium">Projects</span>
-          <span className={`ml-auto text-xs rounded-md px-2 py-0.5 ${
-            activePage === 'projects' ? 'bg-white/25 text-white' : 'bg-indigo-50 text-slate-700'
-          }`}>{projects.length}</span>
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            activePage === 'projects' ? 'bg-white/20' : 'bg-gray-200'
+          }`}>
+            <FolderIcon className="text-sm" />
+          </div>
+          <span className="font-medium flex-1 text-left">Projects</span>
+          <span className={`text-xs px-2 py-1 rounded-md font-semibold ${
+            activePage === 'projects' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'
+          }`}>
+            {projects.length}
+          </span>
         </button>
+
         <button
           onClick={() => setActivePage('archived')}
-          className={`mx-3 mb-1 flex items-center gap-3 rounded-md px-3 py-2 transition ${
-            activePage === 'archived' ? 'bg-brand text-white' : 'text-slate-700 hover:bg-indigo-50'
+          className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
+            activePage === 'archived' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
-          <ArchiveIcon className="opacity-80" />
-          <span className="text-sm font-medium">Archived</span>
-          <span className={`ml-auto text-xs rounded-md px-2 py-0.5 ${
-            activePage === 'archived' ? 'bg-white/25 text-white' : 'bg-indigo-50 text-slate-700'
-          }`}>{archivedTasks.length}</span>
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            activePage === 'archived' ? 'bg-white/20' : 'bg-gray-200'
+          }`}>
+            <ArchiveIcon className="text-sm" />
+          </div>
+          <span className="font-medium flex-1 text-left">Archived</span>
+          <span className={`text-xs px-2 py-1 rounded-md font-semibold ${
+            activePage === 'archived' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800'
+          }`}>
+            {archivedTasks.length}
+          </span>
         </button>
 
-        <div className="my-3 mx-4 h-px bg-slate-200" />
+        <div className="h-px bg-gray-200 my-6" />
 
-
-
-        {/* Quick Projects Access */}
-        <div className="px-4">
-          <span className="text-[11px] font-semibold tracking-wide text-slate-500">QUICK PROJECTS</span>
-        </div>
-
-        {projects.slice(0, 5).map((project) => (
+        {/* Quick Projects */}
+        <div className="text-xs font-semibold text-gray-400 mb-4 px-2 tracking-wider">QUICK ACCESS</div>
+        
+        {projects.slice(0, 4).map((project) => (
           <button
             key={project.name || project}
-            onClick={() => { setActivePage('tasks'); setFilter({ ...filter, project: project.name || project }); }}
-            className="mx-3 mb-1 flex items-center justify-between rounded-md px-3 py-2 text-slate-700 hover:bg-indigo-50"
+            onClick={() => { 
+              setActivePage('tasks'); 
+              setFilter({ ...filter, project: project.name || project }); 
+            }}
+            className="group w-full flex items-center justify-between rounded-lg px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all"
           >
-            <span className="text-sm">{project.name || project}</span>
-            <span className="text-[11px] rounded-md bg-indigo-50 px-2 py-0.5 text-slate-700">
+            <span className="text-sm truncate">{project.name || project}</span>
+            <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-md ml-2">
               {tasks.filter(t => t.project === (project.name || project)).length}
             </span>
           </button>
         ))}
 
-        {projects.length > 5 && (
+        {projects.length > 4 && (
           <button
             onClick={() => setActivePage('projects')}
-            className="mx-3 mb-2 text-xs font-medium text-brand hover:text-indigo-700"
+            className="w-full text-left px-3 py-2 text-xs text-blue-600 hover:text-blue-700 transition-colors"
           >
-            +{projects.length - 5} more
+            +{projects.length - 4} more projects
           </button>
         )}
       </nav>
 
       {/* Bottom Actions */}
-      <div className="px-3 py-3 border-t border-slate-200 bg-white">
+      <div className="px-4 py-6 border-t border-gray-200 bg-white space-y-4">
         <button
           onClick={onAddTask}
-          className="w-full mb-3 inline-flex items-center justify-center gap-2 rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white shadow-soft hover:bg-brand-dark"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transform transition-all duration-200 hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
         >
-          <AddIcon fontSize="small" /> Add New Task
+          <AddIcon fontSize="small" />
+          Create New Task
         </button>
 
-        <div className="text-[11px] font-semibold text-slate-500 mb-2">Quick Actions</div>
-        <div className="flex gap-2 mb-2">
-          <button onClick={exportToCSV} className="flex-1 rounded-md bg-slate-100 px-3 py-2 text-slate-700 hover:bg-slate-200">
-            <DownloadIcon fontSize="small" />
-          </button>
-          <label className="flex-1 cursor-pointer rounded-md bg-slate-100 px-3 py-2 text-slate-700 hover:bg-slate-200">
-            <UploadIcon fontSize="small" />
-            <input type="file" hidden accept=".csv" onChange={importFromCSV} />
-          </label>
-          <button
-            onClick={() => { if (window.confirm('Clear all data?')) { localStorage.clear(); window.location.reload(); } }}
-            className="flex-1 rounded-md bg-slate-100 px-3 py-2 text-slate-700 hover:bg-slate-200"
-          >
-            {/* Optional reset icon could be added */}
-            Reset
-          </button>
-        </div>
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-        >
-          {darkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />} {darkMode ? 'Light' : 'Dark'} Mode
-        </button>
+        <div className="text-xs font-semibold text-gray-400 mb-2 tracking-wider">QUICK ACTIONS</div>
         
-        {/* Auto-save indicator */}
-        <div className="mt-3 pt-3 border-t border-slate-200">
-          <div className="flex items-center gap-2 text-[11px] text-emerald-600">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-            Auto-save enabled
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1">Your data is saved automatically</div>
+        <div className="grid grid-cols-3 gap-2">
+          <button 
+            onClick={exportToCSV} 
+            className="bg-gray-100 hover:bg-gray-200 p-3 rounded-lg transition-all flex flex-col items-center gap-1 group"
+            title="Export Data"
+          >
+            <DownloadIcon fontSize="small" className="text-gray-600 group-hover:text-gray-800" />
+            <span className="text-xs text-gray-600 group-hover:text-gray-800">Export</span>
+          </button>
+          
+          {/* <label className="bg-gray-100 hover:bg-gray-200 p-3 rounded-lg transition-all flex flex-col items-center gap-1 group cursor-pointer"
+                 title="Import Data">
+            <UploadIcon fontSize="small" className="text-gray-600 group-hover:text-gray-800" />
+            <span className="text-xs text-gray-600 group-hover:text-gray-800">Import</span>
+            <input type="file" hidden accept=".csv" onChange={importFromCSV} />
+          </label> */}
+          
+          {/* <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="bg-gray-100 hover:bg-gray-200 p-3 rounded-lg transition-all flex flex-col items-center gap-1 group"
+            title="Toggle Theme"
+          >
+            {darkMode ? 
+              <LightModeIcon fontSize="small" className="text-gray-600 group-hover:text-gray-800" /> : 
+              <DarkModeIcon fontSize="small" className="text-gray-600 group-hover:text-gray-800" />
+            }
+            <span className="text-xs text-gray-600 group-hover:text-gray-800">Theme</span>
+          </button> */}
         </div>
+        
+        {/* Status Indicator */}
+        {/* <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span className="text-xs font-medium text-green-700">Auto-Save Active</span>
+          </div>
+          <div className="text-xs text-green-600 mt-1">Data synchronized in real-time</div>
+        </div> */}
       </div>
     </aside>
   );
