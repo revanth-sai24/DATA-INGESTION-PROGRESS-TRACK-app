@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { Add as AddIcon, Edit as EditIcon, Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import DocumentManager from './DocumentManager';
 
 export default function AddTaskDrawer({
   open,
@@ -50,6 +51,13 @@ export default function AddTaskDrawer({
       checkpoints: checkpoints.map(cp => 
         cp.id === checkpointId ? { ...cp, completed: !cp.completed } : cp
       )
+    });
+  };
+
+  const handleDocumentsChange = (documents) => {
+    setFormData({
+      ...formData,
+      documents: documents
     });
   };
 
@@ -299,6 +307,23 @@ export default function AddTaskDrawer({
                   </Box>
                 </Box>
               )}
+            </Grid>
+
+            {/* Documents Section */}
+            <Grid size={12}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                📎 Task Documents
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Attach files or add links for additional context and resources
+              </Typography>
+              
+              <DocumentManager
+                documents={formData.documents || []}
+                onDocumentsChange={handleDocumentsChange}
+                darkMode={false}
+                maxFiles={10}
+              />
             </Grid>
 
             {/* Submit Button */}

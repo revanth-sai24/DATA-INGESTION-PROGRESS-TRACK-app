@@ -144,6 +144,13 @@ export const importFromCSV = createAsyncThunk(
                                 } catch (e) {
                                     return [];
                                 }
+                            })() : [],
+                            documents: row.documents ? (() => {
+                                try {
+                                    return JSON.parse(row.documents);
+                                } catch (e) {
+                                    return [];
+                                }
                             })() : []
                         }));
                     resolve(importedTasks);
@@ -161,8 +168,43 @@ export const loadTasksFromCSV = createAsyncThunk(
         try {
             const response = await fetch('/api/load-tasks');
             const { tasks } = await response.json();
-            console.log('✅ Loaded', tasks.length, 'tasks from CSV');
-            return tasks || [];
+
+            // Process the loaded tasks to ensure proper data types
+            const processedTasks = tasks.map(task => ({
+                ...task,
+                checkpoints: task.checkpoints ? (() => {
+                    try {
+                        return typeof task.checkpoints === 'string'
+                            ? JSON.parse(task.checkpoints)
+                            : Array.isArray(task.checkpoints)
+                                ? task.checkpoints
+                                : [];
+                    } catch (e) {
+                        return [];
+                    }
+                })() : [],
+                documents: task.documents ? (() => {
+                    try {
+                        return typeof task.documents === 'string'
+                            ? JSON.parse(task.documents)
+                            : Array.isArray(task.documents)
+                                ? task.documents
+                                : [];
+                    } catch (e) {
+                        return [];
+                    }
+                })() : [],
+                tags: task.tags ? (
+                    typeof task.tags === 'string'
+                        ? task.tags.split(';').filter(tag => tag.trim())
+                        : Array.isArray(task.tags)
+                            ? task.tags
+                            : []
+                ) : []
+            }));
+
+            console.log('✅ Loaded', processedTasks.length, 'tasks from CSV');
+            return processedTasks || [];
         } catch (error) {
             console.error('❌ Error loading tasks from CSV:', error);
             return [];
@@ -216,7 +258,8 @@ const taskSlice = createSlice({
                 tags: action.payload.tags || [],
                 description: action.payload.description || '',
                 estimatedTime: action.payload.estimatedTime || '',
-                checkpoints: action.payload.checkpoints || []
+                checkpoints: action.payload.checkpoints || [],
+                documents: action.payload.documents || [] // New field for document attachments
             };
             state.tasks.push(newTask);
 

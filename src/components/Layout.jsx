@@ -16,6 +16,8 @@ import AnalyticsDashboard from './AnalyticsDashboard';
 import TaskForm from './TaskForm';
 import ProjectList from './ProjectList';
 import ArchivedTasks from './ArchivedTasks';
+import CalendarView from './CalendarView';
+import TimelineView from './TimelineView';
 
 export default function Layout({ children }) {
   const [isClient, setIsClient] = useState(false);
@@ -130,6 +132,26 @@ export default function Layout({ children }) {
             setActivePage={setActivePage}
             setFilter={(newFilter) => dispatch({ type: 'tasks/setFilter', payload: newFilter })}
             darkMode={darkMode}
+          />
+        )}
+        
+        {activePage === 'calendar' && (
+          <CalendarView 
+            darkMode={darkMode}
+            onEditTask={(task) => {
+              setEditingTask(task);
+              setShowTaskForm(true);
+            }}
+          />
+        )}
+        
+        {activePage === 'timeline' && (
+          <TimelineView 
+            darkMode={darkMode}
+            onEditTask={(task) => {
+              setEditingTask(task);
+              setShowTaskForm(true);
+            }}
           />
         )}
         

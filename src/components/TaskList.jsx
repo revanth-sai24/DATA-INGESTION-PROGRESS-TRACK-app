@@ -260,6 +260,33 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                         <span>🤝 With: {task.workingWith}</span>
                       </div>
                     )}
+
+                    {task.estimatedTime && (
+                      <div className="flex items-center gap-1">
+                        <span>⏱️ Est: {task.estimatedTime}h</span>
+                      </div>
+                    )}
+
+                    {task.timeElapsed > 0 && (
+                      <div className="flex items-center gap-1">
+                        <span>⏲️ Elapsed: {Math.round(task.timeElapsed / 60)}m</span>
+                      </div>
+                    )}
+
+                    {task.timeTracking?.isRunning && (
+                      <div className="flex items-center gap-1">
+                        <span className="inline-flex items-center gap-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span>Running</span>
+                        </span>
+                      </div>
+                    )}
+
+                    {task.documents && task.documents.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <span>📎 {task.documents.length} attachment{task.documents.length > 1 ? 's' : ''}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Tags */}
@@ -336,6 +363,39 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                       </div>
                     </div>
                   )}
+
+                  {/* Additional Task Metadata */}
+                  <div className={`mt-3 pt-3 border-t ${
+                    darkMode ? 'border-gray-600' : 'border-gray-200'
+                  }`}>
+                    <div className={`flex flex-wrap items-center gap-4 text-xs ${
+                      darkMode ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      <span>ID: {task.id.split('-')[1] ? task.id.split('-')[1].substring(0, 8) : task.id.substring(0, 8)}</span>
+                      
+                      {task.updatedAt && (
+                        <span>Updated: {formatDate(task.updatedAt)}</span>
+                      )}
+                      
+                      {task.checkpoints && task.checkpoints.length > 0 && (
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          task.checkpoints.filter(cp => cp.completed).length === task.checkpoints.length
+                            ? darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'
+                            : darkMode ? 'bg-yellow-900/50 text-yellow-300' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {Math.round((task.checkpoints.filter(cp => cp.completed).length / task.checkpoints.length) * 100)}% Complete
+                        </span>
+                      )}
+
+                      {task.status === 'completed' && task.completedAt && (
+                        <span className={`px-2 py-1 rounded-full ${
+                          darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'
+                        }`}>
+                          ✅ Completed {formatDate(task.completedAt)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Actions */}
@@ -408,7 +468,7 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
               scrollbarColor: darkMode ? '#374151 #111827' : '#D1D5DB #F9FAFB'
             }}
           >
-            <table className="w-full table-fixed min-w-[1200px] border-collapse">
+            <table className="w-full table-fixed min-w-[1300px] border-collapse">
               <thead className={`${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} border-b sticky top-0 z-20`}>
                 <tr>
                   <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-64 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
@@ -423,17 +483,20 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                   <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-28 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Status
                   </th>
-                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                  {/* <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Working For
-                  </th>
-                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                  </th> */}
+                  {/* <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Working With
-                  </th>
+                  </th> */}
                   <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-24 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Due Date
                   </th>
-                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-48 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                  {/* <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-48 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Checkpoints
+                  </th> */}
+                  <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-24 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                    Documents
                   </th>
                   <th className={`text-right px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32`}>
                     Actions
@@ -483,16 +546,16 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                         {task.status || 'todo'}
                       </span>
                     </td>
-                    <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-32 truncate border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    {/* <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-32 truncate border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.workingFor || '-'}
-                    </td>
-                    <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-32 truncate border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    </td> */}
+                    {/* <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-32 truncate border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.workingWith || '-'}
-                    </td>
+                    </td> */}
                     <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-24 whitespace-nowrap border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.dueDate ? formatDate(task.dueDate) : '-'}
                     </td>
-                    <td className={`px-4 py-4 w-48 border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    {/* <td className={`px-4 py-4 w-48 border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.checkpoints && task.checkpoints.length > 0 ? (
                         <div className="flex items-center gap-2 overflow-hidden">
                           <div className="flex flex-col space-y-1 min-w-0 flex-1">
@@ -532,6 +595,18 @@ export default function TaskList({ activePage, filter, onEditTask, darkMode }) {
                           }`}>
                             {task.checkpoints.filter(cp => cp.completed).length}/{task.checkpoints.length}
                           </div>
+                        </div>
+                      ) : (
+                        <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>-</span>
+                      )}
+                    </td> */}
+                    <td className={`px-4 py-4 w-24 border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'} text-center`}>
+                      {task.documents && task.documents.length > 0 ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="text-lg">📎</span>
+                          <span className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {task.documents.length}
+                          </span>
                         </div>
                       ) : (
                         <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>-</span>

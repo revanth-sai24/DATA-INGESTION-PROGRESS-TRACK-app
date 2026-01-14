@@ -4,7 +4,8 @@ import {
   ListAlt as ListAltIcon, Archive as ArchiveIcon,
   Add as AddIcon, Download as DownloadIcon, Upload as UploadIcon,
   Brightness4 as DarkModeIcon, Brightness7 as LightModeIcon,
-  Assignment as AssignmentIcon, Dashboard as DashboardIcon, Folder as FolderIcon
+  Assignment as AssignmentIcon, Dashboard as DashboardIcon, Folder as FolderIcon,
+  CalendarToday as CalendarIcon, Timeline as TimelineIcon
 } from '@mui/icons-material';
 
 export default function Sidebar({
@@ -122,6 +123,38 @@ export default function Sidebar({
           }`}>
             {archivedTasks.length}
           </span>
+        </button>
+
+        <button
+          onClick={() => setActivePage('calendar')}
+          className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
+            activePage === 'calendar' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : `${darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`
+          }`}
+        >
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            activePage === 'calendar' ? 'bg-white/20' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
+          }`}>
+            <CalendarIcon className="text-sm" />
+          </div>
+          <span className="font-medium flex-1 text-left">Calendar</span>
+        </button>
+
+        <button
+          onClick={() => setActivePage('timeline')}
+          className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
+            activePage === 'timeline' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : `${darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`
+          }`}
+        >
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            activePage === 'timeline' ? 'bg-white/20' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
+          }`}>
+            <TimelineIcon className="text-sm" />
+          </div>
+          <span className="font-medium flex-1 text-left">Timeline</span>
         </button>
 
         <div className={`h-px ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} my-6`} />

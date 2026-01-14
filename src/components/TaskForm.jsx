@@ -1,24 +1,87 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { addTask, updateTask } from '../redux/slices/taskSlice';
 import { Close as CloseIcon, Add as PlusIcon } from '@mui/icons-material';
+import DocumentManager from './DocumentManager';
 
 export default function TaskForm({ editingTask, onClose, projects }) {
   const dispatch = useDispatch();
+  
+  // Helper function to format date for input
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return '';
+    }
+  };
+
+  // Helper function to safely parse arrays from string or return array
+  const safeParseArray = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string' && value.trim()) {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+  
   const [formData, setFormData] = useState({
-    title: editingTask?.title || '',
-    description: editingTask?.description || '',
-    project: editingTask?.project || '',
-    priority: editingTask?.priority || 'medium',
-    status: editingTask?.status || 'todo',
-    dueDate: editingTask?.dueDate || '',
-    tags: editingTask?.tags || [],
-    workingFor: editingTask?.workingFor || '',
-    workingWith: editingTask?.workingWith || '',
-    checkpoints: editingTask?.checkpoints || [],
-    ...editingTask
+    title: '',
+    description: '',
+    project: '',
+    priority: 'medium',
+    status: 'todo',
+    dueDate: '',
+    tags: [],
+    workingFor: '',
+    workingWith: '',
+    checkpoints: [],
+    documents: []
   });
+
+  // Update form data when editingTask changes
+  useEffect(() => {
+    if (editingTask) {
+      console.log('📝 Updating form with task data:', editingTask);
+      setFormData({
+        title: editingTask.title || '',
+        description: editingTask.description || '',
+        project: editingTask.project || '',
+        priority: editingTask.priority || 'medium',
+        status: editingTask.status || 'todo',
+        dueDate: formatDateForInput(editingTask.dueDate),
+        tags: safeParseArray(editingTask.tags),
+        workingFor: editingTask.workingFor || '',
+        workingWith: editingTask.workingWith || '',
+        checkpoints: safeParseArray(editingTask.checkpoints),
+        documents: safeParseArray(editingTask.documents)
+      });
+    } else {
+      // Reset form for new task
+      setFormData({
+        title: '',
+        description: '',
+        project: '',
+        priority: 'medium',
+        status: 'todo',
+        dueDate: '',
+        tags: [],
+        workingFor: '',
+        workingWith: '',
+        checkpoints: [],
+        documents: []
+      });
+    }
+  }, [editingTask]);
 
   const [newTag, setNewTag] = useState('');
   const [newCheckpoint, setNewCheckpoint] = useState('');
@@ -54,16 +117,33 @@ export default function TaskForm({ editingTask, onClose, projects }) {
     });
   };
 
+  const handleDocumentsChange = (documents) => {
+    setFormData({
+      ...formData,
+      documents: documents
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
 
+    // Properly format the due date
+    const formattedDueDate = formData.dueDate 
+      ? new Date(formData.dueDate + 'T00:00:00.000Z').toISOString()
+      : '';
+
     const taskData = {
       ...formData,
-      id: editingTask?.id || Date.now().toString(),
+      id: editingTask?.id || `task-${Date.now()}`,
+      dueDate: formattedDueDate,
       createdAt: editingTask?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      timeTracking: editingTask?.timeTracking || { totalTime: 0, isRunning: false }
+      timeTracking: editingTask?.timeTracking || { totalTime: 0, isRunning: false },
+      // Ensure arrays are properly formatted
+      tags: Array.isArray(formData.tags) ? formData.tags : [],
+      checkpoints: Array.isArray(formData.checkpoints) ? formData.checkpoints : [],
+      documents: Array.isArray(formData.documents) ? formData.documents : []
     };
 
     if (editingTask) {
@@ -354,6 +434,23 @@ export default function TaskForm({ editingTask, onClose, projects }) {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Documents Section */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+              📎 Documents
+            </h4>
+            <p className="text-xs text-gray-600">
+              Attach files or add links for additional context and resources
+            </p>
+            
+            <DocumentManager
+              documents={formData.documents || []}
+              onDocumentsChange={handleDocumentsChange}
+              darkMode={false}
+              maxFiles={10}
+            />
           </div>
 
           {/* Form Actions */}
