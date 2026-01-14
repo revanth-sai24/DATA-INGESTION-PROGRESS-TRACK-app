@@ -24,7 +24,7 @@ export default function Sidebar({
 }) {
   return (
     <aside
-      className="fixed h-screen z-40 flex flex-col bg-white border-r border-gray-200 shadow-lg overflow-y-auto"
+      className={`fixed h-screen z-40 flex flex-col ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r shadow-lg overflow-y-auto`}
       style={{ width: drawerWidth }}
     >
       {/* Brand Section */}
@@ -43,18 +43,18 @@ export default function Sidebar({
 
       {/* Navigation */}
       <nav className="flex-1 py-6 px-4 space-y-2 mt-5">
-        <div className="text-xs font-semibold text-gray-400 mb-4 px-2 tracking-wider">MAIN NAVIGATION</div>
+        <div className={`text-xs font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'} mb-4 px-2 tracking-wider`}>MAIN NAVIGATION</div>
         
         <button
           onClick={() => setActivePage('dashboard')}
           className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
             activePage === 'dashboard' 
               ? 'bg-blue-600 text-white shadow-md' 
-              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+              : `${darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`
           }`}
         >
           <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
-            activePage === 'dashboard' ? 'bg-white/20' : 'bg-gray-200'
+            activePage === 'dashboard' ? 'bg-white/20' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
           }`}>
             <DashboardIcon className="text-sm" />
           </div>
@@ -66,11 +66,11 @@ export default function Sidebar({
           className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
             activePage === 'tasks' 
               ? 'bg-blue-600 text-white shadow-md' 
-              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+              : `${darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`
           }`}
         >
           <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
-            activePage === 'tasks' ? 'bg-white/20' : 'bg-gray-200'
+            activePage === 'tasks' ? 'bg-white/20' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
           }`}>
             <ListAltIcon className="text-sm" />
           </div>
@@ -87,17 +87,17 @@ export default function Sidebar({
           className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
             activePage === 'projects' 
               ? 'bg-blue-600 text-white shadow-md' 
-              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+              : `${darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`
           }`}
         >
           <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
-            activePage === 'projects' ? 'bg-white/20' : 'bg-gray-200'
+            activePage === 'projects' ? 'bg-white/20' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
           }`}>
             <FolderIcon className="text-sm" />
           </div>
           <span className="font-medium flex-1 text-left">Projects</span>
           <span className={`text-xs px-2 py-1 rounded-md font-semibold ${
-            activePage === 'projects' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'
+            activePage === 'projects' ? 'bg-white/20 text-white' : `${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800'}`
           }`}>
             {projects.length}
           </span>
@@ -108,26 +108,26 @@ export default function Sidebar({
           className={`group w-full flex items-center gap-4 rounded-lg px-4 py-3 transition-all duration-200 ${
             activePage === 'archived' 
               ? 'bg-blue-600 text-white shadow-md' 
-              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+              : `${darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`
           }`}
         >
           <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
-            activePage === 'archived' ? 'bg-white/20' : 'bg-gray-200'
+            activePage === 'archived' ? 'bg-white/20' : `${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
           }`}>
             <ArchiveIcon className="text-sm" />
           </div>
           <span className="font-medium flex-1 text-left">Archived</span>
           <span className={`text-xs px-2 py-1 rounded-md font-semibold ${
-            activePage === 'archived' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800'
+            activePage === 'archived' ? 'bg-white/20 text-white' : `${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`
           }`}>
             {archivedTasks.length}
           </span>
         </button>
 
-        <div className="h-px bg-gray-200 my-6" />
+        <div className={`h-px ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} my-6`} />
 
         {/* Quick Projects */}
-        <div className="text-xs font-semibold text-gray-400 mb-4 px-2 tracking-wider">QUICK ACCESS</div>
+        <div className={`text-xs font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'} mb-4 px-2 tracking-wider`}>QUICK ACCESS</div>
         
         {projects.slice(0, 4).map((project) => (
           <button
@@ -136,10 +136,10 @@ export default function Sidebar({
               setActivePage('tasks'); 
               setFilter({ ...filter, project: project.name || project }); 
             }}
-            className="group w-full flex items-center justify-between rounded-lg px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all"
+            className={`group w-full flex items-center justify-between rounded-lg px-3 py-2 ${darkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} transition-all`}
           >
             <span className="text-sm truncate">{project.name || project}</span>
-            <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-md ml-2">
+            <span className={`text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-800'} px-2 py-0.5 rounded-md ml-2`}>
               {tasks.filter(t => t.project === (project.name || project)).length}
             </span>
           </button>
@@ -148,7 +148,7 @@ export default function Sidebar({
         {projects.length > 4 && (
           <button
             onClick={() => setActivePage('projects')}
-            className="w-full text-left px-3 py-2 text-xs text-blue-600 hover:text-blue-700 transition-colors"
+            className={`w-full text-left px-3 py-2 text-xs ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} transition-colors`}
           >
             +{projects.length - 4} more projects
           </button>
@@ -156,7 +156,7 @@ export default function Sidebar({
       </nav>
 
       {/* Bottom Actions */}
-      <div className="px-4 py-6 border-t border-gray-200 bg-white space-y-4">
+      <div className={`px-4 py-6 border-t ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} space-y-4`}>
         <button
           onClick={onAddTask}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transform transition-all duration-200 hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
@@ -165,17 +165,17 @@ export default function Sidebar({
           Create New Task
         </button>
 
-        <div className="text-xs font-semibold text-gray-400 mb-2 tracking-wider">QUICK ACTIONS</div>
+        {/* <div className="text-xs font-semibold text-gray-400 mb-2 tracking-wider">QUICK ACTIONS</div> */}
         
         <div className="grid grid-cols-3 gap-2">
-          <button 
+          {/* <button 
             onClick={exportToCSV} 
             className="bg-gray-100 hover:bg-gray-200 p-3 rounded-lg transition-all flex flex-col items-center gap-1 group"
             title="Export Data"
           >
             <DownloadIcon fontSize="small" className="text-gray-600 group-hover:text-gray-800" />
             <span className="text-xs text-gray-600 group-hover:text-gray-800">Export</span>
-          </button>
+          </button> */}
           
           {/* <label className="bg-gray-100 hover:bg-gray-200 p-3 rounded-lg transition-all flex flex-col items-center gap-1 group cursor-pointer"
                  title="Import Data">

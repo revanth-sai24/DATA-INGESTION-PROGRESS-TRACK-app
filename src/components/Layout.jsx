@@ -22,7 +22,7 @@ export default function Layout({ children }) {
   const [activePage, setActivePage] = useState('dashboard');
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   
   const dispatch = useDispatch();
   
@@ -50,11 +50,11 @@ export default function Layout({ children }) {
   const drawerWidth = 320;
 
   return (
-    <div className="flex min-h-screen relative">
+    <div className={`flex min-h-screen relative ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
       {/* Header Bar */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 shadow-sm z-50 flex items-center justify-between px-6">
+      <div className={`fixed top-0 left-0 right-0 h-16 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-sm z-50 flex items-center justify-between px-6`}>
         <div className="flex items-center gap-4">
-          <div className="text-xl font-bold text-gray-800">Task Manager</div>
+          <div className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Task Manager</div>
           {/* <div className="text-sm text-gray-500">Enterprise Task Management</div> */}
         </div>
         
@@ -99,10 +99,10 @@ export default function Layout({ children }) {
       />
 
       <main 
-        className="flex-1 pt-20 p-8 animate-fade-in-up bg-gray-50"
+        className={`flex-1 pt-20 p-8 animate-fade-in-up ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}
         style={{ marginLeft: `${drawerWidth}px` }}
       >
-        {activePage === 'dashboard' && <AnalyticsDashboard />}
+        {activePage === 'dashboard' && <AnalyticsDashboard darkMode={darkMode} />}
         
         {activePage === 'tasks' && (
           <>
@@ -111,6 +111,7 @@ export default function Layout({ children }) {
               setFilter={(newFilter) => dispatch({ type: 'tasks/setFilter', payload: newFilter })}
               projects={projects}
               activePage={activePage}
+              darkMode={darkMode}
             />
             <TaskList
               activePage={activePage}
@@ -119,6 +120,7 @@ export default function Layout({ children }) {
                 setEditingTask(task);
                 setShowTaskForm(true);
               }}
+              darkMode={darkMode}
             />
           </>
         )}
@@ -127,10 +129,11 @@ export default function Layout({ children }) {
           <ProjectList 
             setActivePage={setActivePage}
             setFilter={(newFilter) => dispatch({ type: 'tasks/setFilter', payload: newFilter })}
+            darkMode={darkMode}
           />
         )}
         
-        {activePage === 'archived' && <ArchivedTasks />}
+        {activePage === 'archived' && <ArchivedTasks darkMode={darkMode} />}
       </main>
 
       {showTaskForm && (

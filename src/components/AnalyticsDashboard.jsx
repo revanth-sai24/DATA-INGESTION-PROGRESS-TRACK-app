@@ -15,7 +15,7 @@ import {
 const COLORS = ['#667eea', '#764ba2', '#f093fb', '#f5576c'];
 const PRIORITY_COLORS = ['#ff6b6b', '#feca57', '#48dbfb'];
 
-export default function AnalyticsDashboard() {
+export default function AnalyticsDashboard({ darkMode }) {
   const tasks = useSelector(state => state.tasks.tasks);
   const projects = useSelector(state => state.tasks.projects);
   
@@ -51,8 +51,8 @@ export default function AnalyticsDashboard() {
     <div className="space-y-8 animate-fade-in-up">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-3">Task Analytics Dashboard</h1>
-        <p className="text-gray-600 text-lg">Comprehensive overview of your productivity metrics</p>
+        <h1 className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>Task Analytics Dashboard</h1>
+        <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-lg`}>Comprehensive overview of your productivity metrics</p>
       </div>
 
       {/* Key Metrics Cards */}
@@ -63,11 +63,11 @@ export default function AnalyticsDashboard() {
               <TaskIcon className="text-white" />
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-gray-800">{totalTasks}</div>
-              <div className="text-gray-600 text-sm">Total Tasks</div>
+              <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{totalTasks}</div>
+              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Total Tasks</div>
             </div>
           </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
             <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-1000" 
                  style={{ width: totalTasks > 0 ? '100%' : '0%' }}></div>
           </div>
@@ -79,11 +79,11 @@ export default function AnalyticsDashboard() {
               <ProjectIcon className="text-white" />
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-gray-800">{projects.length}</div>
-              <div className="text-gray-600 text-sm">Projects</div>
+              <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{projects.length}</div>
+              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Projects</div>
             </div>
           </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
             <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000" 
                  style={{ width: projects.length > 0 ? '100%' : '0%' }}></div>
           </div>
@@ -95,11 +95,11 @@ export default function AnalyticsDashboard() {
               <CompletedIcon className="text-white" />
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-gray-800">{completedTasks}</div>
-              <div className="text-gray-600 text-sm">Completed</div>
+              <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{completedTasks}</div>
+              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Completed</div>
             </div>
           </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
             <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-1000" 
                  style={{ width: `${completionRate}%` }}></div>
           </div>
@@ -111,11 +111,11 @@ export default function AnalyticsDashboard() {
               <TrendingUpIcon className="text-white" />
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-gray-800">{completionRate}%</div>
-              <div className="text-gray-600 text-sm">Completion Rate</div>
+              <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{completionRate}%</div>
+              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Completion Rate</div>
             </div>
           </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
             <div className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-1000" 
                  style={{ width: `${completionRate}%` }}></div>
           </div>
@@ -131,8 +131,8 @@ export default function AnalyticsDashboard() {
               <span className="text-white text-lg">📊</span>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-800">Task Status Distribution</h3>
-              <p className="text-gray-600 text-sm">Overview of task completion status</p>
+              <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Task Status Distribution</h3>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Overview of task completion status</p>
             </div>
           </div>
           
@@ -155,16 +155,16 @@ export default function AnalyticsDashboard() {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-                    border: '1px solid rgba(255, 255, 255, 0.2)', 
+                    backgroundColor: darkMode ? '#374151' : 'rgba(255, 255, 255, 0.95)', 
+                    border: `1px solid ${darkMode ? '#4B5563' : 'rgba(255, 255, 255, 0.2)'}`, 
                     borderRadius: '8px',
-                    color: 'white'
+                    color: darkMode ? 'white' : '#374151'
                   }} 
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-64 flex items-center justify-center text-gray-500">
+            <div className={`h-64 flex items-center justify-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               <div className="text-center">
                 <div className="text-4xl mb-2">📋</div>
                 <div>No tasks yet</div>
@@ -180,8 +180,8 @@ export default function AnalyticsDashboard() {
               <span className="text-white text-lg">🎯</span>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-800">Priority Breakdown</h3>
-              <p className="text-gray-600 text-sm">Task distribution by priority level</p>
+              <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Priority Breakdown</h3>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Task distribution by priority level</p>
             </div>
           </div>
           
@@ -204,16 +204,16 @@ export default function AnalyticsDashboard() {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-                    border: '1px solid rgba(255, 255, 255, 0.2)', 
+                    backgroundColor: darkMode ? '#374151' : 'rgba(255, 255, 255, 0.95)', 
+                    border: `1px solid ${darkMode ? '#4B5563' : 'rgba(255, 255, 255, 0.2)'}`, 
                     borderRadius: '8px',
-                    color: 'white'
+                    color: darkMode ? 'white' : '#374151'
                   }} 
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-64 flex items-center justify-center text-gray-500">
+            <div className={`h-64 flex items-center justify-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               <div className="text-center">
                 <div className="text-4xl mb-2">⚡</div>
                 <div>No priority data</div>
@@ -231,32 +231,32 @@ export default function AnalyticsDashboard() {
               <span className="text-white text-lg">📁</span>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-800">Project Performance</h3>
-              <p className="text-gray-600 text-sm">Task completion across projects</p>
+              <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Project Performance</h3>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Task completion across projects</p>
             </div>
           </div>
           
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={projectData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#4B5563' : '#e5e7eb'} />
               <XAxis 
                 dataKey="name" 
-                tick={{ fill: '#374151', fontSize: 12 }}
-                axisLine={{ stroke: '#d1d5db' }}
+                tick={{ fill: darkMode ? '#D1D5DB' : '#374151', fontSize: 12 }}
+                axisLine={{ stroke: darkMode ? '#6B7280' : '#d1d5db' }}
               />
               <YAxis 
-                tick={{ fill: '#374151', fontSize: 12 }}
-                axisLine={{ stroke: '#d1d5db' }}
+                tick={{ fill: darkMode ? '#D1D5DB' : '#374151', fontSize: 12 }}
+                axisLine={{ stroke: darkMode ? '#6B7280' : '#d1d5db' }}
               />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e5e7eb', 
+                  backgroundColor: darkMode ? '#374151' : 'white', 
+                  border: `1px solid ${darkMode ? '#4B5563' : '#e5e7eb'}`, 
                   borderRadius: '8px',
-                  color: '#374151'
+                  color: darkMode ? 'white' : '#374151'
                 }} 
               />
-              <Legend wrapperStyle={{ color: '#374151' }} />
+              <Legend wrapperStyle={{ color: darkMode ? '#D1D5DB' : '#374151' }} />
               <Bar dataKey="tasks" fill="#667eea" name="Total Tasks" radius={[4, 4, 0, 0]} />
               <Bar dataKey="completed" fill="#48dbfb" name="Completed" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -268,8 +268,8 @@ export default function AnalyticsDashboard() {
       {totalTasks === 0 && (
         <div className="premium-card text-center py-16">
           <div className="text-6xl mb-4">🚀</div>
-          <h3 className="text-2xl font-semibold text-gray-800 mb-2">Ready to Get Started?</h3>
-          <p className="text-gray-600 mb-6">Create your first task or import existing data to see comprehensive analytics</p>
+          <h3 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-2`}>Ready to Get Started?</h3>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>Create your first task or import existing data to see comprehensive analytics</p>
           <div className="flex justify-center gap-4">
             <button className="btn-primary">Create First Task</button>
             <button className="btn-secondary">Import CSV Data</button>

@@ -37,17 +37,33 @@ body {
   overflow-x: hidden;
 }
 
+.dark body {
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+}
+
 /* Normal Card Styles */
 .card {
   @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+}
+
+.dark .card {
+  @apply bg-gray-800 border-gray-700;
 }
 
 .premium-card {
   @apply bg-white border border-gray-200 rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl;
 }
 
+.dark .premium-card {
+  @apply bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-6 transition-all duration-300 hover:shadow-2xl;
+}
+
 .metric-card {
   @apply premium-card bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200;
+}
+
+.dark .metric-card {
+  @apply bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-6 transition-all duration-300 hover:shadow-2xl bg-gradient-to-br from-gray-800 to-gray-900;
 }
 
 /* Button Styles */
@@ -55,8 +71,16 @@ body {
   @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transform transition-all duration-200 hover:scale-105 hover:shadow-lg;
 }
 
+.dark .btn-primary {
+  @apply bg-blue-500 hover:bg-blue-600 shadow-2xl;
+}
+
 .btn-secondary {
   @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-4 py-2 rounded-lg transform transition-all duration-200 hover:scale-105;
+}
+
+.dark .btn-secondary {
+  @apply bg-gray-700 hover:bg-gray-600 text-gray-200;
 }
 
 /* Custom Scrollbar */
@@ -68,13 +92,25 @@ body {
   background: #f1f5f9;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: #374151;
+}
+
 ::-webkit-scrollbar-thumb {
   background: #94a3b8;
   border-radius: 3px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 /* Animations */

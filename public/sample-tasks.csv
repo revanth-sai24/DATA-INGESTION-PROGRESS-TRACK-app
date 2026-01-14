@@ -1,11 +1,11 @@
 id,title,description,status,project,priority,dueDate,createdAt,estimatedTime,tags,timeElapsed,workingFor,workingWith
-task-1768375729903,RBAC Implementation,Implement user level activity in all 4 pillars,completed,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T07:28:49.903Z,,,0,Client Team,Development Team
+task-1768375729903,User Level Activity Implementation,Implement user level activity in all 4 pillars,todo,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T07:28:49.903Z,,,0,Client Team,Development Team
 task-1768383377992,HLS DATASET & Prompts,Prepare new dataset on data explorer and prepare some prompts,completed,ZenseAI.Data,medium,2026-01-07T00:00:00.000Z,2026-01-14T09:36:17.992Z,,,0,,
 task-1768383426523,"Fix Vulnerabilities on all Pillars ","npm audit --json | audit-export --path ./audit-report.html --title ai-infused
 
 npm audit fix",todo,ZenseAI.Data,high,,2026-01-14T09:37:06.523Z,,,0,,
 task-1768383461797,DQ Enhanchments,"Fix while re-generating the sql instead of re-generating all the sqls , generate only that selected rule and re-generate the sql
-update the scores accordingly",todo,ZenseAI.Data,medium,,2026-01-14T09:37:41.797Z,,,0,,
+update the scores accordingly",on-hold,ZenseAI.Data,medium,,2026-01-14T09:37:41.797Z,,,0,,
 task-1768383511847,OTP Integration,Integrate OTP based and native for all four pillars and deploy it,completed,ZenseAI.Data,high,,2026-01-14T09:38:31.847Z,,,0,,
 task-1768383558108,Videos app for databricks,Develop videos displaying and otp based and deploy it,completed,ZenseAI.Data,high,,2026-01-14T09:39:18.108Z,,,0,,
 task-1768383624998,Integrating DQ and Data explorer,Integrate dq and explorer in Insights and Governance,completed,ZenseAI.Data,medium,,2026-01-14T09:40:24.998Z,,,0,,

@@ -6,7 +6,7 @@ import {
   Search as SearchIcon 
 } from '@mui/icons-material';
 
-export default function Filters({ filter, setFilter, projects, clearFilters }) {
+export default function Filters({ filter, setFilter, projects, clearFilters, darkMode }) {
   const handleClearFilters = () => {
     setFilter({ status: '', priority: '', project: '', search: '' });
   };
@@ -19,19 +19,19 @@ export default function Filters({ filter, setFilter, projects, clearFilters }) {
           <FilterListIcon className="text-white text-sm" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">Smart Filters</h3>
-          <p className="text-gray-600 text-sm">Refine your task view with intelligent filtering</p>
+          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Smart Filters</h3>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Refine your task view with intelligent filtering</p>
         </div>
       </div>
 
       {/* Search Bar */}
       <div className="mb-6">
         <div className="relative">
-          <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" fontSize="small" />
+          <SearchIcon className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} fontSize="small" />
           <input
             type="text"
             placeholder="Search tasks by title, description, or tags..."
-            className="w-full bg-gray-100 pl-12 pr-4 py-3 rounded-lg text-gray-800 placeholder-gray-500 border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`w-full ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-100 text-gray-800 placeholder-gray-500'} pl-12 pr-4 py-3 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-blue-500`}
             value={filter.search || ''}
             onChange={(e) => setFilter({ ...filter, search: e.target.value })}
           />
@@ -42,40 +42,40 @@ export default function Filters({ filter, setFilter, projects, clearFilters }) {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {/* Status Filter */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Status</label>
+          <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Status</label>
           <select
-            className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className={`w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'} border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
             value={filter.status || ''}
             onChange={(e) => setFilter({ ...filter, status: e.target.value })}
           >
-            <option value="" className="bg-white text-gray-800">All Status</option>
-            <option value="todo" className="bg-white text-gray-800">📋 To Do</option>
-            <option value="in-progress" className="bg-white text-gray-800">⚡ In Progress</option>
-            <option value="completed" className="bg-white text-gray-800">✅ Completed</option>
-            <option value="on-hold" className="bg-white text-gray-800">⏸️ On Hold</option>
+            <option value="" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>All Status</option>
+            <option value="todo" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>📋 To Do</option>
+            <option value="in-progress" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>⚡ In Progress</option>
+            <option value="completed" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>✅ Completed</option>
+            <option value="on-hold" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>⏸️ On Hold</option>
           </select>
         </div>
 
         {/* Priority Filter */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Priority</label>
+          <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Priority</label>
           <select
-            className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className={`w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'} border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
             value={filter.priority || ''}
             onChange={(e) => setFilter({ ...filter, priority: e.target.value })}
           >
-            <option value="" className="bg-white text-gray-800">All Priorities</option>
-            <option value="high" className="bg-white text-gray-800">🔴 High Priority</option>
-            <option value="medium" className="bg-white text-gray-800">🟡 Medium Priority</option>
-            <option value="low" className="bg-white text-gray-800">🟢 Low Priority</option>
+            <option value="" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>All Priorities</option>
+            <option value="high" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>🔴 High Priority</option>
+            <option value="medium" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>🟡 Medium Priority</option>
+            <option value="low" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>🟢 Low Priority</option>
           </select>
         </div>
 
         {/* Project Filter */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Project</label>
+          <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Project</label>
           <select
-            className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className={`w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'} border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
             value={filter.project || ''}
             onChange={(e) => setFilter({ ...filter, project: e.target.value })}
           >
@@ -93,7 +93,7 @@ export default function Filters({ filter, setFilter, projects, clearFilters }) {
 
         {/* Clear Filters Button */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Actions</label>
+          <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Actions</label>
           <button
             onClick={handleClearFilters}
             className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
@@ -106,9 +106,9 @@ export default function Filters({ filter, setFilter, projects, clearFilters }) {
 
       {/* Active Filters Display */}
       {(filter.status || filter.priority || filter.project || filter.search) && (
-        <div className="mt-6 pt-4 border-t border-gray-200">
+        <div className={`mt-6 pt-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-t`}>
           <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-gray-600">Active filters:</span>
+            <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Active filters:</span>
             {filter.status && (
               <span className="bg-blue-100 border border-blue-200 px-3 py-1 rounded-full text-xs text-blue-800">
                 Status: {filter.status}

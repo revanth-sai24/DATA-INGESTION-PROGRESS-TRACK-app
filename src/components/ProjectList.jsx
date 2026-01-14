@@ -13,7 +13,7 @@ import {
   ViewList as TableViewIcon
 } from '@mui/icons-material';
 
-export default function ProjectList({ setActivePage, setFilter }) {
+export default function ProjectList({ setActivePage, setFilter, darkMode }) {
   const dispatch = useDispatch();
   const { tasks, projects } = useSelector((state) => state.tasks);
   const [showForm, setShowForm] = useState(false);
@@ -80,18 +80,18 @@ export default function ProjectList({ setActivePage, setFilter }) {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Projects</h1>
-          <p className="text-gray-600 mt-1">Manage your project collections</p>
+          <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Projects</h1>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-1`}>Manage your project collections</p>
         </div>
         <div className="flex items-center gap-3">
           {/* View Toggle */}
-          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+          <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg p-1`}>
             <button
               onClick={() => setViewMode('card')}
               className={`p-2 rounded-md transition-colors ${
                 viewMode === 'card' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? `${darkMode ? 'bg-gray-600 text-blue-400' : 'bg-white text-blue-600'} shadow-sm` 
+                  : `${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`
               }`}
               title="Card View"
             >
@@ -101,8 +101,8 @@ export default function ProjectList({ setActivePage, setFilter }) {
               onClick={() => setViewMode('table')}
               className={`p-2 rounded-md transition-colors ${
                 viewMode === 'table' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? `${darkMode ? 'bg-gray-600 text-blue-400' : 'bg-white text-blue-600'} shadow-sm` 
+                  : `${darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-600/50' : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'}`
               }`}
               title="Table View"
             >
@@ -121,14 +121,14 @@ export default function ProjectList({ setActivePage, setFilter }) {
 
       {/* Project Creation Form */}
       {showForm && (
-        <div className="premium-card p-6 border-l-4 border-l-blue-500">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className={`premium-card p-6 border-l-4 border-l-blue-500 ${darkMode ? 'bg-gray-800' : ''}`}>
+          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
             {editingProject ? 'Edit Project' : 'Create New Project'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                   Project Name *
                 </label>
                 <input
@@ -136,18 +136,26 @@ export default function ProjectList({ setActivePage, setFilter }) {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    darkMode 
+                      ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
+                      : 'border-gray-300 bg-white text-gray-900'
+                  }`}
                   placeholder="Enter project name..."
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                   Status
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    darkMode 
+                      ? 'border-gray-600 bg-gray-700 text-white' 
+                      : 'border-gray-300 bg-white text-gray-900'
+                  }`}
                 >
                   <option value="active">🟢 Active</option>
                   <option value="on-hold">⏸️ On Hold</option>
@@ -158,20 +166,24 @@ export default function ProjectList({ setActivePage, setFilter }) {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                 Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  darkMode 
+                    ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
+                    : 'border-gray-300 bg-white text-gray-900'
+                }`}
                 placeholder="Project description..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                 Project Color
               </label>
               <div className="flex items-center gap-3">
@@ -179,13 +191,19 @@ export default function ProjectList({ setActivePage, setFilter }) {
                   type="color"
                   value={formData.color}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
+                  className={`w-12 h-10 border rounded-lg cursor-pointer ${
+                    darkMode ? 'border-gray-600' : 'border-gray-300'
+                  }`}
                 />
                 <input
                   type="text"
                   value={formData.color}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    darkMode 
+                      ? 'border-gray-600 bg-gray-700 text-white' 
+                      : 'border-gray-300 bg-white text-gray-900'
+                  }`}
                   placeholder="#3B82F6"
                 />
               </div>
@@ -229,8 +247,8 @@ export default function ProjectList({ setActivePage, setFilter }) {
                       style={{ backgroundColor: projectData.color }}
                     ></div>
                     <div>
-                      <h3 className="font-semibold text-gray-800">{projectName}</h3>
-                      <span className="text-xs text-gray-500 capitalize">
+                      <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{projectName}</h3>
+                      <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} capitalize`}>
                         {projectData.status}
                       </span>
                     </div>
@@ -238,13 +256,21 @@ export default function ProjectList({ setActivePage, setFilter }) {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(projectData)}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        darkMode 
+                          ? 'text-gray-400 hover:text-blue-400 hover:bg-blue-900/20' 
+                          : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                      }`}
                     >
                       <EditIcon fontSize="small" />
                     </button>
                     <button
                       onClick={() => handleDelete(projectName)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        darkMode 
+                          ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/20' 
+                          : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                      }`}
                     >
                       <DeleteIcon fontSize="small" />
                     </button>
@@ -253,7 +279,7 @@ export default function ProjectList({ setActivePage, setFilter }) {
 
                 {/* Project Description */}
                 {projectData.description && (
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-4 line-clamp-2`}>
                     {projectData.description}
                   </p>
                 )}
@@ -261,14 +287,14 @@ export default function ProjectList({ setActivePage, setFilter }) {
                 {/* Task Statistics */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm">
-                    <TaskIcon fontSize="small" className="text-gray-400" />
-                    <span className="text-gray-600">
+                    <TaskIcon fontSize="small" className={darkMode ? 'text-gray-500' : 'text-gray-400'} />
+                    <span className={darkMode ? 'text-gray-300' : 'text-gray-600'}>
                       {stats.total} tasks total
                     </span>
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className={`w-full ${darkMode ? 'bg-gray-600' : 'bg-gray-200'} rounded-full h-2`}>
                     <div
                       className="bg-green-500 h-2 rounded-full transition-all duration-300"
                       style={{ 
@@ -278,7 +304,7 @@ export default function ProjectList({ setActivePage, setFilter }) {
                   </div>
 
                   {/* Status Breakdown */}
-                  <div className="flex justify-between text-xs text-gray-600">
+                  <div className={`flex justify-between text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <span>✅ {stats.completed}</span>
                     <span>⚡ {stats.inProgress}</span>
                     <span>📋 {stats.todo}</span>
@@ -286,7 +312,7 @@ export default function ProjectList({ setActivePage, setFilter }) {
                 </div>
 
                 {/* Project Actions */}
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className={`mt-4 pt-4 border-t ${darkMode ? 'border-gray-600' : 'border-gray-100'}`}>
                   <button 
                     onClick={() => {
                       if (setFilter && setActivePage) {
@@ -294,7 +320,9 @@ export default function ProjectList({ setActivePage, setFilter }) {
                         setActivePage('tasks');
                       }
                     }}
-                    className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    className={`w-full text-sm font-medium transition-colors ${
+                      darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                    }`}
                   >
                     View Project Tasks →
                   </button>
@@ -308,46 +336,46 @@ export default function ProjectList({ setActivePage, setFilter }) {
         <div className="premium-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className={`${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} border-b`}>
                 <tr>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Project
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Status
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Description
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Tasks
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Progress
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className={`text-left px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Created
                   </th>
-                  <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className={`text-right px-6 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className={`${darkMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'} divide-y`}>
                 {projects.map((project, index) => {
                   const projectName = typeof project === 'string' ? project : project.name;
                   const projectData = typeof project === 'string' ? { name: project, color: '#3B82F6', status: 'active' } : project;
                   const stats = getProjectStats(projectName);
                   
                   return (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <tr key={index} className={darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div 
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: projectData.color }}
                           ></div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                             {projectName}
                           </div>
                         </div>
@@ -363,20 +391,20 @@ export default function ProjectList({ setActivePage, setFilter }) {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs truncate">
+                        <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} max-w-xs truncate`}>
                           {projectData.description || '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
+                        <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
                           {stats.total} total
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                           {stats.completed} completed
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className={`w-full ${darkMode ? 'bg-gray-600' : 'bg-gray-200'} rounded-full h-2`}>
                           <div
                             className="bg-green-500 h-2 rounded-full"
                             style={{ 
@@ -384,11 +412,11 @@ export default function ProjectList({ setActivePage, setFilter }) {
                             }}
                           ></div>
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
                           {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
                         {projectData.createdAt ? new Date(projectData.createdAt).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -400,21 +428,33 @@ export default function ProjectList({ setActivePage, setFilter }) {
                                 setActivePage('tasks');
                               }
                             }}
-                            className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors"
+                            className={`p-1 rounded transition-colors ${
+                              darkMode 
+                                ? 'text-green-400 hover:text-green-300 hover:bg-green-900/20' 
+                                : 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                            }`}
                             title="View Tasks"
                           >
                             <TaskIcon fontSize="small" />
                           </button>
                           <button
                             onClick={() => handleEdit(projectData)}
-                            className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                            className={`p-1 rounded transition-colors ${
+                              darkMode 
+                                ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-900/20' 
+                                : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                            }`}
                             title="Edit"
                           >
                             <EditIcon fontSize="small" />
                           </button>
                           <button
                             onClick={() => handleDelete(projectName)}
-                            className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                            className={`p-1 rounded transition-colors ${
+                              darkMode 
+                                ? 'text-red-400 hover:text-red-300 hover:bg-red-900/20' 
+                                : 'text-red-600 hover:text-red-700 hover:bg-red-50'
+                            }`}
                             title="Delete"
                           >
                             <DeleteIcon fontSize="small" />
@@ -433,9 +473,9 @@ export default function ProjectList({ setActivePage, setFilter }) {
       {/* Empty State */}
       {projects.length === 0 && (
         <div className="col-span-full text-center py-12">
-          <ProjectIcon className="mx-auto text-gray-400 mb-4" style={{ fontSize: 64 }} />
-          <h3 className="text-lg font-medium text-gray-600 mb-2">No projects yet</h3>
-          <p className="text-gray-500 mb-6">Create your first project to organize your tasks</p>
+          <ProjectIcon className={`mx-auto ${darkMode ? 'text-gray-500' : 'text-gray-400'} mb-4`} style={{ fontSize: 64 }} />
+          <h3 className={`text-lg font-medium ${darkMode ? 'text-gray-200' : 'text-gray-600'} mb-2`}>No projects yet</h3>
+          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-6`}>Create your first project to organize your tasks</p>
           <button
             onClick={() => setShowForm(true)}
             className="btn-primary"
