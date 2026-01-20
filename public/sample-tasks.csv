@@ -1,5 +1,5 @@
 id,title,description,status,project,priority,dueDate,createdAt,estimatedTime,tags,timeElapsed,workingFor,workingWith,checkpoints,documents
-task-1768375729903,User Level Activity Implementation,Implement user level activity in all 4 pillars,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T07:28:49.903Z,,4-Pillars,0,,Development Team,"[{""id"":1768402508032,""text"":""Validate all Modules"",""completed"":false,""createdAt"":""2026-01-14T14:55:08.032Z""}]","[{""id"":1,""name"":""API Documentation"",""url"":""https://docs.example.com/api"",""type"":""link""}]"
+task-1768375729903,User Level Activity Implementation,Implement user level activity in all 4 pillars,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T07:28:49.903Z,,4-Pillars,0,,Development Team,"[{""id"":1768552917740,""text"":""Governance"",""completed"":false,""createdAt"":""2026-01-16T08:41:57.740Z""},{""id"":1768552920597,""text"":""Insights"",""completed"":false,""createdAt"":""2026-01-16T08:42:00.597Z""},{""id"":1768552923391,""text"":""Engineering"",""completed"":false,""createdAt"":""2026-01-16T08:42:03.391Z""},{""id"":1768552925601,""text"":""AMS"",""completed"":false,""createdAt"":""2026-01-16T08:42:05.601Z""}]","[{""id"":1768553317571.1848,""name"":""Status Sheet"",""url"":""https://zensar-my.sharepoint.com/:x:/p/s_neelam/IQA76zDD2bURRZw8QicaBqu-AfRnlUtjBkwNKrlubUzqot0?email=s.neelam%40zensar.com&e=KJhdBo"",""type"":""link"",""addedAt"":""2026-01-16T08:48:37.571Z""}]"
 task-1768383377992,HLS DATASET & Prompts,Prepare new dataset on data explorer and prepare some prompts,completed,ZenseAI.Data,medium,2026-01-06T00:00:00.000Z,2026-01-14T09:36:17.992Z,,Data Eplorer,0,,,[],[]
 task-1768383426523,"Fix Vulnerabilities on all Pillars ","npm audit --json | audit-export --path ./audit-report.html --title ai-infused
 
@@ -14,7 +14,33 @@ task-1768383715214,Implement Session based chat for Data explorer,Implement Sess
 task-1768383947670,Governance-NFUM,Prepare the Separate Instance for NFUM include only recommended modules only and change the app theme to Yellow and deploy it,completed,ZenseAI.Data,high,2026-01-01T00:00:00.000Z,2026-01-14T09:45:47.670Z,,,0,,,[],[]
 task-1768383991277,Prepare the VAPT code for testing,Prepare the code for VAPT testing and deploy it on separate Instance,completed,ZenseAI.Data,medium,2025-11-05T00:00:00.000Z,2026-01-14T09:46:31.277Z,,,0,,,[],[]
 task-1768386669658,Create Separate Deployment for NFUM,Do the deployment of NFUM Road show,completed,ZenseAI.Data,high,2026-01-13T00:00:00.000Z,2026-01-14T10:31:09.658Z,,,0,,,[],[]
-task-1768387003554,User Activity Governance,Develop the Governance with User Activity for all modules,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T10:36:43.554Z,,,0,,Sriram,"[{""id"":1768402892731,""text"":""Validate all modules"",""completed"":false,""createdAt"":""2026-01-14T15:01:32.731Z""}]",[]
+task-1768387003554,User Activity Governance,Develop the Governance with User Activity for all modules,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T10:36:43.554Z,,,0,,Sriram,"[{""id"":1768552875506,""text"":""Validate All Modules"",""completed"":true,""createdAt"":""2026-01-16T08:41:15.506Z""},{""id"":1768552889179,""text"":""Merge the PRs and Deploy it"",""completed"":true,""createdAt"":""2026-01-16T08:41:29.179Z""},{""id"":1768827072116,""text"":""Deployment"",""completed"":false,""createdAt"":""2026-01-19T12:51:12.116Z""}]",[]
 task-1768387170141,Explore AutoGen Framework,Explore about AutoGen Framework and implement that in any modules,on-hold,Learnings,medium,2026-01-29T00:00:00.000Z,2026-01-14T10:39:30.141Z,,Learning,0,Nimesh,,"[{""id"":1768409256698,""text"":""Implement Any module"",""completed"":false,""createdAt"":""2026-01-14T16:47:36.698Z""}]","[{""id"":1768412292141.7878,""name"":""AutoGen"",""url"":""https://microsoft.github.io/autogen/stable/"",""type"":""link"",""addedAt"":""2026-01-14T17:38:12.141Z""}]"
 task-1768412752405,Explore System Design,System Design,todo,Learnings,high,2026-02-02T00:00:00.000Z,2026-01-14T17:45:52.405Z,,Learning,0,,,"[{""id"":1768413137569,""text"":""Prepare Interview Level"",""completed"":false,""createdAt"":""2026-01-14T17:52:17.569Z""}]",[]
-task-1768412822382,Implement Prod Level App,"Implement production level app for 1k to 2k users and explore the System Design ",todo,Learnings,high,2026-02-02T00:00:00.000Z,2026-01-14T17:47:02.382Z,,Learning,0,,,"[{""id"":1768412862569,""text"":""Validate Yourself"",""completed"":false,""createdAt"":""2026-01-14T17:47:42.569Z""},{""id"":1768412875806,""text"":""See the Pointers of Implementation"",""completed"":false,""createdAt"":""2026-01-14T17:47:55.806Z""},{""id"":1768412884581,""text"":""Prepare for Interview Level"",""completed"":false,""createdAt"":""2026-01-14T17:48:04.581Z""}]",[]
+task-1768412822382,Implement Prod Level App,"Implement production level app for 1k to 2k users and explore the System Design 
+Implementing Data Explorer ",on-hold,Learnings,high,2026-02-02T00:00:00.000Z,2026-01-14T17:47:02.382Z,,Learning,0,,,"[{""id"":1768412862569,""text"":""Validate Yourself"",""completed"":false,""createdAt"":""2026-01-14T17:47:42.569Z""},{""id"":1768412875806,""text"":""See the Pointers of Implementation"",""completed"":false,""createdAt"":""2026-01-14T17:47:55.806Z""},{""id"":1768412884581,""text"":""Prepare for Interview Level"",""completed"":false,""createdAt"":""2026-01-14T17:48:04.581Z""}]",[]
+task-1768553010441,User Activity Engineering,Implement user Level Activity on Engineering Module,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-16T08:43:30.441Z,,,0,,,"[{""id"":1768552994145,""text"":""Validate all Modules"",""completed"":true,""createdAt"":""2026-01-16T08:43:14.145Z""},{""id"":1768553008741,""text"":""Raise PRs and Deploy them"",""completed"":true,""createdAt"":""2026-01-16T08:43:28.741Z""}]",[]
+task-1768553071332,User Activity Insights,Implement user level activity on allmodules,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-16T08:44:31.332Z,,,0,,,"[{""id"":1768553061226,""text"":""Validate all modules"",""completed"":true,""createdAt"":""2026-01-16T08:44:21.226Z""},{""id"":1768553069706,""text"":""Raise PRs and Deploy"",""completed"":true,""createdAt"":""2026-01-16T08:44:29.706Z""}]",[]
+task-1768575781417,Theme Changes for NFUM,change the primary to nfum theme for all pillars,in-progress,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-16T15:03:01.417Z,,4-Pillars,0,,,"[{""id"":1768575769092,""text"":""Governance"",""completed"":false,""createdAt"":""2026-01-16T15:02:49.092Z""},{""id"":1768575774229,""text"":""Engineering"",""completed"":false,""createdAt"":""2026-01-16T15:02:54.229Z""},{""id"":1768575776619,""text"":""AMS"",""completed"":false,""createdAt"":""2026-01-16T15:02:56.619Z""},{""id"":1768575779734,""text"":""Insights"",""completed"":false,""createdAt"":""2026-01-16T15:02:59.734Z""}]",[]
+task-1768804932575,Starting app in WSL via shotcut,"
+cat >> ~/.bashrc <<'EOF'
+tapp() {
+  (
+    cd /home/revanth/tracking-status/app || { echo ""Path not found""; return 1; }
+    nohup npm start > nohup.out 2>&1 &
+  )
+  echo ""Started t-app (log: /home/revanth/tracking-status/app/nohup.out)""
+}
+
+tapp-logs() {
+  tail -f /home/revanth/tracking-status/app/nohup.out
+}
+
+tapp-stop() {
+  pkill -f ""node.*tracking-status|npm start"" && echo ""Stopped t-app""
+}
+EOF
+
+# Reload your shell config
+source ~/.bashrc
+",completed,Learnings,high,2026-01-18T00:00:00.000Z,2026-01-19T06:42:12.575Z,,Learning,0,,,[],[]
