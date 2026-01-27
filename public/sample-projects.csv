@@ -1,3 +1,6 @@
 id,name,description,color,status,createdAt,updatedAt
 1768375252017,ZenseAI.Data,"ZenseAI.Data Platform development ",#3B82F6,active,2026-01-14T07:20:52.017Z,2026-01-14T07:20:52.017Z
 1768387221519,Learnings,Add all tasks that comes under learning or Exploring new things,#f73bd4,active,2026-01-14T10:40:21.519Z,2026-01-14T10:40:21.519Z
+1769497318728,Data Quality,Develop Data Quality Application,#64f73b,completed,2026-01-27T07:01:58.728Z,2026-01-27T07:01:58.728Z
+1769497354730,Data Explorer,Develop Enhanced chat based app using react,#f7d83b,completed,2026-01-27T07:02:34.730Z,2026-01-27T07:02:34.730Z
+1769497418484,Data Ingestion,Develop a smart pipeline system using Agentic AI solution,#f73b96,completed,2026-01-27T07:03:38.484Z,2026-01-27T07:03:38.484Z
