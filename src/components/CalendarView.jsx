@@ -1,20 +1,20 @@
 "use client";
-import React, { useState, useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { updateTask } from '../redux/slices/taskSlice';
+import React, { useState, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { updateTask } from "../redux/slices/taskSlice";
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Today as TodayIcon,
   Event as EventIcon,
   Flag as FlagIcon,
-  PlayArrow as PlayIcon
-} from '@mui/icons-material';
+  PlayArrow as PlayIcon,
+} from "@mui/icons-material";
 
 const CalendarView = ({ darkMode, onEditTask }) => {
   const dispatch = useDispatch();
   const { tasks } = useSelector((state) => state.tasks);
-  
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -30,14 +30,14 @@ const CalendarView = ({ darkMode, onEditTask }) => {
     const daysInMonth = lastDayOfMonth.getDate();
 
     const days = [];
-    
+
     // Previous month's trailing days
     const prevMonth = new Date(year, month - 1, 0);
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       days.push({
         date: prevMonth.getDate() - i,
         isCurrentMonth: false,
-        fullDate: new Date(year, month - 1, prevMonth.getDate() - i)
+        fullDate: new Date(year, month - 1, prevMonth.getDate() - i),
       });
     }
 
@@ -46,7 +46,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
       days.push({
         date,
         isCurrentMonth: true,
-        fullDate: new Date(year, month, date)
+        fullDate: new Date(year, month, date),
       });
     }
 
@@ -56,7 +56,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
       days.push({
         date,
         isCurrentMonth: false,
-        fullDate: new Date(year, month + 1, date)
+        fullDate: new Date(year, month + 1, date),
       });
     }
 
@@ -65,10 +65,13 @@ const CalendarView = ({ darkMode, onEditTask }) => {
 
   // Get tasks for a specific date
   const getTasksForDate = (date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return tasks.filter(task => {
+    // Format date as YYYY-MM-DD in local timezone
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    return tasks.filter((task) => {
       if (!task.dueDate) return false;
-      const taskDateStr = new Date(task.dueDate).toISOString().split('T')[0];
+      // Parse the task due date and format in local timezone
+      const taskDate = new Date(task.dueDate);
+      const taskDateStr = `${taskDate.getFullYear()}-${String(taskDate.getMonth() + 1).padStart(2, "0")}-${String(taskDate.getDate()).padStart(2, "0")}`;
       return taskDateStr === dateStr;
     });
   };
@@ -91,28 +94,48 @@ const CalendarView = ({ darkMode, onEditTask }) => {
 
   // Task status update
   const handleStatusChange = (taskId, newStatus) => {
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasks.find((t) => t.id === taskId);
     if (task) {
-      dispatch(updateTask({ ...task, status: newStatus, updatedAt: new Date().toISOString() }));
+      dispatch(
+        updateTask({
+          ...task,
+          status: newStatus,
+          updatedAt: new Date().toISOString(),
+        }),
+      );
     }
   };
 
   // Priority color helper
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
-      case 'high': return 'bg-red-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'low': return 'bg-green-500';
-      default: return 'bg-gray-500';
+      case "high":
+        return "bg-red-500";
+      case "medium":
+        return "bg-yellow-500";
+      case "low":
+        return "bg-green-500";
+      default:
+        return "bg-gray-500";
     }
   };
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const today = new Date();
   const isToday = (date) => {
     return date.toDateString() === today.toDateString();
@@ -121,17 +144,21 @@ const CalendarView = ({ darkMode, onEditTask }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 shadow-sm`}>
+      <div
+        className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg p-6 shadow-sm`}
+      >
         <div className="flex items-center justify-between mb-4">
-          <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+          <h1
+            className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+          >
             Calendar View
           </h1>
           <button
             onClick={goToToday}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              darkMode 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
+              darkMode
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
           >
             <TodayIcon fontSize="small" />
@@ -145,45 +172,51 @@ const CalendarView = ({ darkMode, onEditTask }) => {
             <button
               onClick={goToPreviousMonth}
               className={`p-2 rounded-lg transition-colors ${
-                darkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                darkMode
+                  ? "text-gray-300 hover:text-white hover:bg-gray-700"
+                  : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
               }`}
             >
               <ChevronLeftIcon />
             </button>
-            
-            <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+
+            <h2
+              className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+            >
               {monthNames[month]} {year}
             </h2>
-            
+
             <button
               onClick={goToNextMonth}
               className={`p-2 rounded-lg transition-colors ${
-                darkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                darkMode
+                  ? "text-gray-300 hover:text-white hover:bg-gray-700"
+                  : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
               }`}
             >
               <ChevronRightIcon />
             </button>
           </div>
 
-          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            {tasks.filter(task => task.dueDate).length} tasks scheduled
+          <div
+            className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+          >
+            {tasks.filter((task) => task.dueDate).length} tasks scheduled
           </div>
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 shadow-sm`}>
+      <div
+        className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg p-6 shadow-sm`}
+      >
         {/* Week header */}
         <div className="grid grid-cols-7 gap-4 mb-4">
           {weekDays.map((day) => (
             <div
               key={day}
               className={`text-center py-2 text-sm font-medium ${
-                darkMode ? 'text-gray-400' : 'text-gray-500'
+                darkMode ? "text-gray-400" : "text-gray-500"
               }`}
             >
               {day}
@@ -195,36 +228,48 @@ const CalendarView = ({ darkMode, onEditTask }) => {
         <div className="grid grid-cols-7 gap-4">
           {calendarDays.map((day, index) => {
             const dayTasks = getTasksForDate(day.fullDate);
-            const isSelected = selectedDate && selectedDate.toDateString() === day.fullDate.toDateString();
-            
+            const isSelected =
+              selectedDate &&
+              selectedDate.toDateString() === day.fullDate.toDateString();
+
             return (
               <div
                 key={index}
                 className={`min-h-[120px] p-3 rounded-lg border cursor-pointer transition-all ${
                   day.isCurrentMonth
-                    ? darkMode 
-                      ? `bg-gray-700 border-gray-600 hover:bg-gray-600 ${isSelected ? 'ring-2 ring-blue-500' : ''}`
-                      : `bg-white border-gray-200 hover:bg-gray-50 ${isSelected ? 'ring-2 ring-blue-500' : ''}`
+                    ? darkMode
+                      ? `bg-gray-700 border-gray-600 hover:bg-gray-600 ${isSelected ? "ring-2 ring-blue-500" : ""}`
+                      : `bg-white border-gray-200 hover:bg-gray-50 ${isSelected ? "ring-2 ring-blue-500" : ""}`
                     : darkMode
-                      ? 'bg-gray-800 border-gray-700 opacity-50'
-                      : 'bg-gray-50 border-gray-100 opacity-50'
-                } ${isToday(day.fullDate) ? 'ring-2 ring-blue-400' : ''}`}
+                      ? "bg-gray-800 border-gray-700 opacity-50"
+                      : "bg-gray-50 border-gray-100 opacity-50"
+                } ${isToday(day.fullDate) ? "ring-2 ring-blue-400" : ""}`}
                 onClick={() => setSelectedDate(day.fullDate)}
               >
                 <div className={`flex items-center justify-between mb-2`}>
-                  <span className={`text-sm font-medium ${
-                    isToday(day.fullDate)
-                      ? 'text-blue-600 font-bold'
-                      : day.isCurrentMonth
-                        ? darkMode ? 'text-white' : 'text-gray-800'
-                        : darkMode ? 'text-gray-500' : 'text-gray-400'
-                  }`}>
+                  <span
+                    className={`text-sm font-medium ${
+                      isToday(day.fullDate)
+                        ? "text-blue-600 font-bold"
+                        : day.isCurrentMonth
+                          ? darkMode
+                            ? "text-white"
+                            : "text-gray-800"
+                          : darkMode
+                            ? "text-gray-500"
+                            : "text-gray-400"
+                    }`}
+                  >
                     {day.date}
                   </span>
                   {dayTasks.length > 0 && (
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      darkMode ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        darkMode
+                          ? "bg-blue-600 text-white"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
                       {dayTasks.length}
                     </span>
                   )}
@@ -236,7 +281,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                     <div
                       key={task.id}
                       className={`p-2 rounded text-xs ${
-                        darkMode ? 'bg-gray-600' : 'bg-gray-100'
+                        darkMode ? "bg-gray-600" : "bg-gray-100"
                       } hover:opacity-80 transition-opacity`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -244,20 +289,28 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                       }}
                     >
                       <div className="flex items-center gap-1 mb-1">
-                        <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
-                        <span className={`font-medium truncate ${
-                          darkMode ? 'text-gray-200' : 'text-gray-800'
-                        }`}>
+                        <div
+                          className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}
+                        />
+                        <span
+                          className={`font-medium truncate ${
+                            darkMode ? "text-gray-200" : "text-gray-800"
+                          }`}
+                        >
                           {task.title}
                         </span>
                       </div>
-                      <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} truncate`}>
+                      <div
+                        className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"} truncate`}
+                      >
                         {task.project}
                       </div>
                     </div>
                   ))}
                   {dayTasks.length > 3 && (
-                    <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} text-center`}>
+                    <div
+                      className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} text-center`}
+                    >
                       +{dayTasks.length - 3} more
                     </div>
                   )}
@@ -270,18 +323,25 @@ const CalendarView = ({ darkMode, onEditTask }) => {
 
       {/* Selected Date Details */}
       {selectedDate && (
-        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 shadow-sm`}>
-          <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            Tasks for {selectedDate.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+        <div
+          className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg p-6 shadow-sm`}
+        >
+          <h3
+            className={`text-lg font-semibold mb-4 ${darkMode ? "text-white" : "text-gray-800"}`}
+          >
+            Tasks for{" "}
+            {selectedDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}
           </h3>
-          
+
           {getTasksForDate(selectedDate).length === 0 ? (
-            <p className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p
+              className={`text-center py-8 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+            >
               No tasks scheduled for this date
             </p>
           ) : (
@@ -290,23 +350,32 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                 <div
                   key={task.id}
                   className={`p-4 rounded-lg border ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600' 
-                      : 'bg-gray-50 border-gray-200'
+                    darkMode
+                      ? "bg-gray-700 border-gray-600"
+                      : "bg-gray-50 border-gray-200"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className={`w-3 h-3 rounded-full ${getPriorityColor(task.priority)}`} />
+                      <div
+                        className={`w-3 h-3 rounded-full ${getPriorityColor(task.priority)}`}
+                      />
                       <div className="flex-1">
-                        <h4 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                        <h4
+                          className={`font-medium ${darkMode ? "text-white" : "text-gray-800"}`}
+                        >
                           {task.title}
                         </h4>
-                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <p
+                          className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+                        >
                           {task.description}
                         </p>
-                        <div className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                          Project: {task.project} • Priority: {task.priority} • Status: {task.status}
+                        <div
+                          className={`text-xs mt-1 ${darkMode ? "text-gray-500" : "text-gray-500"}`}
+                        >
+                          Project: {task.project} • Priority: {task.priority} •
+                          Status: {task.status}
                         </div>
                       </div>
                     </div>
@@ -314,20 +383,22 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                       <button
                         onClick={() => onEditTask && onEditTask(task)}
                         className={`px-3 py-1 rounded text-xs ${
-                          darkMode 
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          darkMode
+                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                            : "bg-blue-600 hover:bg-blue-700 text-white"
                         }`}
                       >
                         Edit
                       </button>
-                      {task.status !== 'completed' && (
+                      {task.status !== "completed" && (
                         <button
-                          onClick={() => handleStatusChange(task.id, 'completed')}
+                          onClick={() =>
+                            handleStatusChange(task.id, "completed")
+                          }
                           className={`px-3 py-1 rounded text-xs ${
-                            darkMode 
-                              ? 'bg-green-600 hover:bg-green-700 text-white' 
-                              : 'bg-green-600 hover:bg-green-700 text-white'
+                            darkMode
+                              ? "bg-green-600 hover:bg-green-700 text-white"
+                              : "bg-green-600 hover:bg-green-700 text-white"
                           }`}
                         >
                           Complete
