@@ -31,6 +31,7 @@ import {
   Deselect as DeselectIcon,
   CheckCircle as CompleteIcon,
   Close as CloseIcon,
+  CenterFocusStrong as FocusIcon,
 } from "@mui/icons-material";
 
 // Color labels configuration
@@ -52,6 +53,7 @@ export default function TaskList({
   onContextMenu,
   onTaskHover,
   onTaskLeave,
+  onFocusTask,
   darkMode,
 }) {
   const dispatch = useDispatch();
@@ -891,6 +893,20 @@ export default function TaskList({
                         <EditIcon fontSize="small" />
                       </button>
 
+                      {task.status !== "completed" && onFocusTask && (
+                        <button
+                          onClick={() => onFocusTask(task)}
+                          className={`p-2 transition-colors rounded-lg ${
+                            darkMode
+                              ? "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20"
+                              : "text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50"
+                          }`}
+                          title="Focus Mode"
+                        >
+                          <FocusIcon fontSize="small" />
+                        </button>
+                      )}
+
                       <button
                         onClick={() => handleDuplicate(task.id)}
                         className={`p-2 transition-colors rounded-lg ${
@@ -1056,21 +1072,26 @@ export default function TaskList({
                 {filteredTasks.map((task) => (
                   <tr
                     key={task.id}
-                    className={`${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"} border-b ${darkMode ? "border-gray-700" : "border-gray-200"} ${task.colorLabel ? `border-l-4 ${COLOR_LABELS[task.colorLabel]?.split(" ")[0] || ""}` : ""} ${selectedTasks.includes(task.id) ? (darkMode ? 'bg-blue-900/20' : 'bg-blue-50') : ''}`}
+                    className={`${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"} border-b ${darkMode ? "border-gray-700" : "border-gray-200"} ${task.colorLabel ? `border-l-4 ${COLOR_LABELS[task.colorLabel]?.split(" ")[0] || ""}` : ""} ${selectedTasks.includes(task.id) ? (darkMode ? "bg-blue-900/20" : "bg-blue-50") : ""}`}
                   >
-                    <td className={`px-4 py-4 w-12 border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+                    <td
+                      className={`px-4 py-4 w-12 border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                    >
                       <button
                         onClick={() => handleSelectTask(task.id)}
                         className={`p-1 rounded transition-colors ${
                           selectedTasks.includes(task.id)
-                            ? 'text-blue-500'
-                            : darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'
+                            ? "text-blue-500"
+                            : darkMode
+                              ? "text-gray-500 hover:text-gray-300"
+                              : "text-gray-400 hover:text-gray-600"
                         }`}
                       >
-                        {selectedTasks.includes(task.id) 
-                          ? <CheckBoxIcon fontSize="small" />
-                          : <CheckBoxOutlineBlankIcon fontSize="small" />
-                        }
+                        {selectedTasks.includes(task.id) ? (
+                          <CheckBoxIcon fontSize="small" />
+                        ) : (
+                          <CheckBoxOutlineBlankIcon fontSize="small" />
+                        )}
                       </button>
                     </td>
                     <td
@@ -1252,6 +1273,19 @@ export default function TaskList({
                             >
                               <EditIcon fontSize="small" />
                             </button>
+                            {task.status !== "completed" && onFocusTask && (
+                              <button
+                                onClick={() => onFocusTask(task)}
+                                className={`p-1 rounded transition-colors ${
+                                  darkMode
+                                    ? "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20"
+                                    : "text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50"
+                                }`}
+                                title="Focus Mode"
+                              >
+                                <FocusIcon fontSize="small" />
+                              </button>
+                            )}
                             <button
                               onClick={() => handleDuplicate(task.id)}
                               className={`p-1 rounded transition-colors ${

@@ -9,6 +9,7 @@ import {
   Event as EventIcon,
   Flag as FlagIcon,
   PlayArrow as PlayIcon,
+  DragIndicator as DragIcon,
 } from "@mui/icons-material";
 
 const CalendarView = ({ darkMode, onEditTask }) => {
@@ -17,6 +18,8 @@ const CalendarView = ({ darkMode, onEditTask }) => {
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [draggedTask, setDraggedTask] = useState(null);
+  const [dragOverDate, setDragOverDate] = useState(null);
 
   // Get current month and year
   const year = currentDate.getFullYear();
@@ -199,9 +202,17 @@ const CalendarView = ({ darkMode, onEditTask }) => {
           </div>
 
           <div
-            className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+            className={`text-sm flex items-center gap-4 ${darkMode ? "text-gray-300" : "text-gray-600"}`}
           >
-            {tasks.filter((task) => task.dueDate).length} tasks scheduled
+            <span>
+              {tasks.filter((task) => task.dueDate).length} tasks scheduled
+            </span>
+            <span
+              className={`flex items-center gap-1 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+            >
+              <DragIcon style={{ fontSize: 14 }} />
+              Drag tasks to reschedule
+            </span>
           </div>
         </div>
       </div>
@@ -275,20 +286,61 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                   )}
                 </div>
 
-                {/* Tasks preview */}
-                <div className="space-y-1">
+                {/* Tasks preview - Draggable */}
+                <div
+                  className={`space-y-1 min-h-[40px] ${
+                    dragOverDate === day.fullDate.toDateString()
+                      ? darkMode
+                        ? "bg-blue-900/30 border-2 border-dashed border-blue-500 rounded"
+                        : "bg-blue-100/50 border-2 border-dashed border-blue-400 rounded"
+                      : ""
+                  }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOverDate(day.fullDate.toDateString());
+                  }}
+                  onDragLeave={() => setDragOverDate(null)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOverDate(null);
+                    if (draggedTask) {
+                      // Format new due date
+                      const newDueDate = `${day.fullDate.getFullYear()}-${String(day.fullDate.getMonth() + 1).padStart(2, "0")}-${String(day.fullDate.getDate()).padStart(2, "0")}`;
+                      dispatch(
+                        updateTask({
+                          ...draggedTask,
+                          dueDate: newDueDate,
+                          updatedAt: new Date().toISOString(),
+                        }),
+                      );
+                      setDraggedTask(null);
+                    }
+                  }}
+                >
                   {dayTasks.slice(0, 3).map((task) => (
                     <div
                       key={task.id}
+                      draggable
+                      onDragStart={(e) => {
+                        setDraggedTask(task);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragEnd={() => setDraggedTask(null)}
                       className={`p-2 rounded text-xs ${
                         darkMode ? "bg-gray-600" : "bg-gray-100"
-                      } hover:opacity-80 transition-opacity`}
+                      } hover:opacity-80 transition-opacity cursor-grab active:cursor-grabbing ${
+                        draggedTask?.id === task.id ? "opacity-50" : ""
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onEditTask && onEditTask(task);
                       }}
                     >
                       <div className="flex items-center gap-1 mb-1">
+                        <DragIcon
+                          className={`w-3 h-3 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                          style={{ fontSize: 12 }}
+                        />
                         <div
                           className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}
                         />
@@ -301,7 +353,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                         </span>
                       </div>
                       <div
-                        className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"} truncate`}
+                        className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"} truncate pl-5`}
                       >
                         {task.project}
                       </div>

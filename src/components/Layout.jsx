@@ -20,6 +20,8 @@ import {
   Redo as RedoIcon,
   Keyboard as KeyboardIcon,
   PictureAsPdf as PdfIcon,
+  Palette as PaletteIcon,
+  CenterFocusStrong as FocusIcon,
 } from "@mui/icons-material";
 
 import Sidebar from "./Sidebar";
@@ -38,6 +40,10 @@ import NotificationCenter from "./NotificationCenter";
 import FavoritesTasks from "./FavoritesTasks";
 import ContextMenu from "./ContextMenu";
 import TaskQuickPreview from "./TaskQuickPreview";
+import Confetti, { useConfetti } from "./Confetti";
+import FocusMode from "./FocusMode";
+import ThemeSelector from "./ThemeSelector";
+import DashboardWidgets from "./DashboardWidgets";
 import {
   useKeyboardShortcuts,
   KeyboardShortcutsModal,
@@ -51,6 +57,9 @@ export default function Layout({ children }) {
   const [darkMode, setDarkMode] = useState(true);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showPDFExport, setShowPDFExport] = useState(false);
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
+  const [showFocusMode, setShowFocusMode] = useState(false);
+  const [focusTask, setFocusTask] = useState(null);
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -64,6 +73,9 @@ export default function Layout({ children }) {
   });
   const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef(null);
+
+  // Confetti hook for celebrations
+  const { showConfetti, triggerConfetti } = useConfetti();
 
   const dispatch = useDispatch();
 
@@ -143,6 +155,7 @@ export default function Layout({ children }) {
         updatedAt: new Date().toISOString(),
       }),
     );
+    triggerConfetti();
     closeContextMenu();
   };
 
@@ -278,6 +291,19 @@ export default function Layout({ children }) {
             <PdfIcon fontSize="small" />
           </button>
 
+          {/* Theme Selector Button */}
+          <button
+            onClick={() => setShowThemeSelector(true)}
+            className={`p-2 rounded-lg transition-colors ${
+              darkMode
+                ? "hover:bg-gray-700 text-gray-300"
+                : "hover:bg-gray-100 text-gray-600"
+            }`}
+            title="Change Theme"
+          >
+            <PaletteIcon fontSize="small" />
+          </button>
+
           {/* Notification Center */}
           <NotificationCenter darkMode={darkMode} />
         </div>
@@ -320,6 +346,7 @@ export default function Layout({ children }) {
 
         {activePage === "dashboard" && (
           <div className="space-y-8">
+            <DashboardWidgets darkMode={darkMode} />
             <AnalyticsDashboard darkMode={darkMode} />
             <AdvancedAnalytics darkMode={darkMode} />
           </div>
@@ -342,6 +369,10 @@ export default function Layout({ children }) {
               onEditTask={(task) => {
                 setEditingTask(task);
                 setShowTaskForm(true);
+              }}
+              onFocusTask={(task) => {
+                setFocusTask(task);
+                setShowFocusMode(true);
               }}
               onContextMenu={handleContextMenu}
               onTaskHover={handleTaskHover}
@@ -456,6 +487,51 @@ export default function Layout({ children }) {
         onClose={() => setShowPDFExport(false)}
         darkMode={darkMode}
       />
+
+      {/* Theme Selector Modal */}
+      <ThemeSelector
+        isOpen={showThemeSelector}
+        onClose={() => setShowThemeSelector(false)}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+      />
+
+      {/* Focus Mode */}
+      {showFocusMode && focusTask && (
+        <FocusMode
+          task={focusTask}
+          onClose={() => {
+            setShowFocusMode(false);
+            setFocusTask(null);
+          }}
+          onComplete={(task) => {
+            dispatch(
+              updateTask({
+                ...task,
+                status: "completed",
+                completedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              }),
+            );
+            triggerConfetti();
+          }}
+          onNextTask={() => {
+            const incompleteTasks = tasks.filter(
+              (t) => t.status !== "completed" && t.id !== focusTask.id,
+            );
+            if (incompleteTasks.length > 0) {
+              setFocusTask(incompleteTasks[0]);
+            } else {
+              setShowFocusMode(false);
+              setFocusTask(null);
+            }
+          }}
+          darkMode={darkMode}
+        />
+      )}
+
+      {/* Confetti Animation */}
+      <Confetti show={showConfetti} />
     </div>
   );
 }
