@@ -6,6 +6,8 @@ import {
   deleteTask,
   duplicateTask,
   togglePinned,
+  bulkArchive,
+  bulkDelete,
 } from "../redux/slices/taskSlice";
 import {
   Edit as EditIcon,
@@ -25,6 +27,10 @@ import {
   StarBorder as StarBorderIcon,
   Warning as WarningIcon,
   Label as LabelIcon,
+  SelectAll as SelectAllIcon,
+  Deselect as DeselectIcon,
+  CheckCircle as CompleteIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 
 // Color labels configuration
@@ -169,6 +175,76 @@ export default function TaskList({
     dispatch(togglePinned(taskId));
   };
 
+  // Bulk action handlers
+  const handleSelectTask = (taskId) => {
+    setSelectedTasks((prev) =>
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId],
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTasks.length === filteredTasks.length) {
+      setSelectedTasks([]);
+    } else {
+      setSelectedTasks(filteredTasks.map((t) => t.id));
+    }
+  };
+
+  const handleBulkComplete = () => {
+    selectedTasks.forEach((taskId) => {
+      const task = tasks.find((t) => t.id === taskId);
+      if (task && task.status !== "completed") {
+        dispatch(
+          updateTask({
+            ...task,
+            status: "completed",
+            completedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }),
+        );
+      }
+    });
+    setSelectedTasks([]);
+  };
+
+  const handleBulkArchive = () => {
+    if (
+      confirm(`Are you sure you want to archive ${selectedTasks.length} tasks?`)
+    ) {
+      dispatch(bulkArchive(selectedTasks));
+      setSelectedTasks([]);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (
+      confirm(
+        `Are you sure you want to delete ${selectedTasks.length} tasks? This cannot be undone.`,
+      )
+    ) {
+      dispatch(bulkDelete(selectedTasks));
+      setSelectedTasks([]);
+    }
+  };
+
+  const handleBulkPriorityChange = (priority) => {
+    selectedTasks.forEach((taskId) => {
+      const task = tasks.find((t) => t.id === taskId);
+      if (task) {
+        dispatch(
+          updateTask({
+            ...task,
+            priority,
+            updatedAt: new Date().toISOString(),
+          }),
+        );
+      }
+    });
+    setSelectedTasks([]);
+  };
+
   const toggleCheckpoint = (taskId, checkpointId) => {
     const task = tasks.find((t) => t.id === taskId);
     if (task && task.checkpoints) {
@@ -280,33 +356,163 @@ export default function TaskList({
         </div>
 
         {/* View Toggle Buttons */}
-        <div
-          className={`flex items-center gap-2 ${darkMode ? "bg-gray-700" : "bg-gray-100"} rounded-lg p-1`}
-        >
+        <div className="flex items-center gap-3">
+          {/* Select All Button */}
           <button
-            onClick={() => setViewMode("card")}
-            className={`p-2 rounded-md transition-all duration-200 ${
-              viewMode === "card"
-                ? `${darkMode ? "bg-gray-600 text-blue-400" : "bg-white text-blue-600"} shadow-sm`
-                : `${darkMode ? "text-gray-300 hover:text-white hover:bg-gray-600/50" : "text-gray-600 hover:text-gray-800 hover:bg-white/50"}`
+            onClick={handleSelectAll}
+            className={`p-2 rounded-lg transition-colors ${
+              darkMode
+                ? "text-gray-400 hover:text-white hover:bg-gray-700"
+                : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
             }`}
-            title="Card View"
+            title={
+              selectedTasks.length === filteredTasks.length
+                ? "Deselect All"
+                : "Select All"
+            }
           >
-            <CardViewIcon fontSize="small" />
+            {selectedTasks.length === filteredTasks.length &&
+            filteredTasks.length > 0 ? (
+              <DeselectIcon fontSize="small" />
+            ) : (
+              <SelectAllIcon fontSize="small" />
+            )}
           </button>
-          <button
-            onClick={() => setViewMode("table")}
-            className={`p-2 rounded-md transition-all duration-200 ${
-              viewMode === "table"
-                ? `${darkMode ? "bg-gray-600 text-blue-400" : "bg-white text-blue-600"} shadow-sm`
-                : `${darkMode ? "text-gray-300 hover:text-white hover:bg-gray-600/50" : "text-gray-600 hover:text-gray-800 hover:bg-white/50"}`
-            }`}
-            title="Table View"
+
+          <div
+            className={`flex items-center gap-2 ${darkMode ? "bg-gray-700" : "bg-gray-100"} rounded-lg p-1`}
           >
-            <TableViewIcon fontSize="small" />
-          </button>
+            <button
+              onClick={() => setViewMode("card")}
+              className={`p-2 rounded-md transition-all duration-200 ${
+                viewMode === "card"
+                  ? `${darkMode ? "bg-gray-600 text-blue-400" : "bg-white text-blue-600"} shadow-sm`
+                  : `${darkMode ? "text-gray-300 hover:text-white hover:bg-gray-600/50" : "text-gray-600 hover:text-gray-800 hover:bg-white/50"}`
+              }`}
+              title="Card View"
+            >
+              <CardViewIcon fontSize="small" />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`p-2 rounded-md transition-all duration-200 ${
+                viewMode === "table"
+                  ? `${darkMode ? "bg-gray-600 text-blue-400" : "bg-white text-blue-600"} shadow-sm`
+                  : `${darkMode ? "text-gray-300 hover:text-white hover:bg-gray-600/50" : "text-gray-600 hover:text-gray-800 hover:bg-white/50"}`
+              }`}
+              title="Table View"
+            >
+              <TableViewIcon fontSize="small" />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      {selectedTasks.length > 0 && (
+        <div
+          className={`flex items-center justify-between p-4 rounded-lg animate-slide-in-up ${
+            darkMode
+              ? "bg-blue-900/30 border border-blue-700"
+              : "bg-blue-50 border border-blue-200"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span
+              className={`font-medium ${darkMode ? "text-blue-300" : "text-blue-700"}`}
+            >
+              {selectedTasks.length} task{selectedTasks.length > 1 ? "s" : ""}{" "}
+              selected
+            </span>
+            <button
+              onClick={() => setSelectedTasks([])}
+              className={`p-1 rounded-full transition-colors ${
+                darkMode
+                  ? "hover:bg-blue-800 text-blue-400"
+                  : "hover:bg-blue-100 text-blue-600"
+              }`}
+            >
+              <CloseIcon fontSize="small" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Complete All */}
+            <button
+              onClick={handleBulkComplete}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                darkMode
+                  ? "bg-green-900/50 text-green-300 hover:bg-green-800/50"
+                  : "bg-green-100 text-green-700 hover:bg-green-200"
+              }`}
+            >
+              <CompleteIcon fontSize="small" />
+              Complete
+            </button>
+
+            {/* Priority Dropdown */}
+            <div className="relative group">
+              <button
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  darkMode
+                    ? "bg-yellow-900/50 text-yellow-300 hover:bg-yellow-800/50"
+                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                }`}
+              >
+                <PriorityIcon fontSize="small" />
+                Priority
+              </button>
+              <div
+                className={`absolute right-0 top-full mt-1 py-1 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 ${
+                  darkMode
+                    ? "bg-gray-800 border border-gray-700"
+                    : "bg-white border border-gray-200"
+                }`}
+              >
+                {["high", "medium", "low"].map((priority) => (
+                  <button
+                    key={priority}
+                    onClick={() => handleBulkPriorityChange(priority)}
+                    className={`w-full px-4 py-2 text-left text-sm capitalize ${
+                      darkMode
+                        ? "hover:bg-gray-700 text-gray-300"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {priority}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Archive All */}
+            <button
+              onClick={handleBulkArchive}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                darkMode
+                  ? "bg-orange-900/50 text-orange-300 hover:bg-orange-800/50"
+                  : "bg-orange-100 text-orange-700 hover:bg-orange-200"
+              }`}
+            >
+              <ArchiveIcon fontSize="small" />
+              Archive
+            </button>
+
+            {/* Delete All */}
+            <button
+              onClick={handleBulkDelete}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                darkMode
+                  ? "bg-red-900/50 text-red-300 hover:bg-red-800/50"
+                  : "bg-red-100 text-red-700 hover:bg-red-200"
+              }`}
+            >
+              <DeleteIcon fontSize="small" />
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tasks Content */}
       {filteredTasks.length === 0 ? (
@@ -345,7 +551,7 @@ export default function TaskList({
               key={task.id}
               className={`premium-card hover:shadow-lg transition-all duration-200 relative ${
                 task.colorLabel ? "border-l-4" : ""
-              }`}
+              } ${selectedTasks.includes(task.id) ? (darkMode ? "ring-2 ring-blue-500 bg-blue-900/20" : "ring-2 ring-blue-500 bg-blue-50") : ""}`}
               style={{
                 borderLeftColor: task.colorLabel
                   ? COLOR_LABELS[task.colorLabel]
@@ -355,10 +561,31 @@ export default function TaskList({
               onMouseEnter={() => setHoveredTask(task.id)}
               onMouseLeave={() => setHoveredTask(null)}
             >
+              {/* Selection Checkbox */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectTask(task.id);
+                }}
+                className={`absolute top-3 left-3 p-1 rounded transition-colors ${
+                  selectedTasks.includes(task.id)
+                    ? "text-blue-500"
+                    : darkMode
+                      ? "text-gray-500 hover:text-gray-300"
+                      : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {selectedTasks.includes(task.id) ? (
+                  <CheckBoxIcon fontSize="small" />
+                ) : (
+                  <CheckBoxOutlineBlankIcon fontSize="small" />
+                )}
+              </button>
+
               {/* Alert indicators */}
               {(isOverdue(task) || isDueSoon(task)) && (
                 <div
-                  className={`absolute -top-1 -left-1 w-3 h-3 rounded-full ${
+                  className={`absolute -top-1 left-8 w-3 h-3 rounded-full ${
                     isOverdue(task)
                       ? "bg-red-500 animate-pulse"
                       : "bg-yellow-500"
@@ -377,7 +604,7 @@ export default function TaskList({
                 </div>
               )}
 
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-4 ml-8">
                 {/* Task Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
@@ -756,6 +983,28 @@ export default function TaskList({
               >
                 <tr>
                   <th
+                    className={`px-4 py-3 w-12 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                  >
+                    <button
+                      onClick={handleSelectAll}
+                      className={`p-1 rounded transition-colors ${
+                        selectedTasks.length === filteredTasks.length &&
+                        filteredTasks.length > 0
+                          ? "text-blue-500"
+                          : darkMode
+                            ? "text-gray-400 hover:text-gray-200"
+                            : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      {selectedTasks.length === filteredTasks.length &&
+                      filteredTasks.length > 0 ? (
+                        <CheckBoxIcon fontSize="small" />
+                      ) : (
+                        <CheckBoxOutlineBlankIcon fontSize="small" />
+                      )}
+                    </button>
+                  </th>
+                  <th
                     className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-500"} uppercase tracking-wider w-64 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
                   >
                     Task
@@ -807,8 +1056,23 @@ export default function TaskList({
                 {filteredTasks.map((task) => (
                   <tr
                     key={task.id}
-                    className={`${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"} border-b ${darkMode ? "border-gray-700" : "border-gray-200"} ${task.colorLabel ? `border-l-4 ${COLOR_LABELS[task.colorLabel]?.split(" ")[0] || ""}` : ""}`}
+                    className={`${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"} border-b ${darkMode ? "border-gray-700" : "border-gray-200"} ${task.colorLabel ? `border-l-4 ${COLOR_LABELS[task.colorLabel]?.split(" ")[0] || ""}` : ""} ${selectedTasks.includes(task.id) ? (darkMode ? 'bg-blue-900/20' : 'bg-blue-50') : ''}`}
                   >
+                    <td className={`px-4 py-4 w-12 border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+                      <button
+                        onClick={() => handleSelectTask(task.id)}
+                        className={`p-1 rounded transition-colors ${
+                          selectedTasks.includes(task.id)
+                            ? 'text-blue-500'
+                            : darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                      >
+                        {selectedTasks.includes(task.id) 
+                          ? <CheckBoxIcon fontSize="small" />
+                          : <CheckBoxOutlineBlankIcon fontSize="small" />
+                        }
+                      </button>
+                    </td>
                     <td
                       className={`px-4 py-4 w-64 border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}
                     >

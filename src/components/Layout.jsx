@@ -19,12 +19,15 @@ import {
   Undo as UndoIcon,
   Redo as RedoIcon,
   Keyboard as KeyboardIcon,
+  PictureAsPdf as PdfIcon,
 } from "@mui/icons-material";
 
 import Sidebar from "./Sidebar";
 import Filters from "./Filters";
 import TaskList from "./TaskList";
 import AnalyticsDashboard from "./AnalyticsDashboard";
+import AdvancedAnalytics from "./AdvancedAnalytics";
+import PDFExport from "./PDFExport";
 import TaskForm from "./TaskForm";
 import ProjectList from "./ProjectList";
 import ArchivedTasks from "./ArchivedTasks";
@@ -47,6 +50,7 @@ export default function Layout({ children }) {
   const [editingTask, setEditingTask] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showPDFExport, setShowPDFExport] = useState(false);
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -261,6 +265,19 @@ export default function Layout({ children }) {
             <KeyboardIcon fontSize="small" />
           </button>
 
+          {/* PDF Export Button */}
+          <button
+            onClick={() => setShowPDFExport(true)}
+            className={`p-2 rounded-lg transition-colors ${
+              darkMode
+                ? "hover:bg-gray-700 text-gray-300"
+                : "hover:bg-gray-100 text-gray-600"
+            }`}
+            title="Export to PDF"
+          >
+            <PdfIcon fontSize="small" />
+          </button>
+
           {/* Notification Center */}
           <NotificationCenter darkMode={darkMode} />
         </div>
@@ -302,7 +319,10 @@ export default function Layout({ children }) {
         )}
 
         {activePage === "dashboard" && (
-          <AnalyticsDashboard darkMode={darkMode} />
+          <div className="space-y-8">
+            <AnalyticsDashboard darkMode={darkMode} />
+            <AdvancedAnalytics darkMode={darkMode} />
+          </div>
         )}
 
         {activePage === "tasks" && (
@@ -427,6 +447,13 @@ export default function Layout({ children }) {
       <KeyboardShortcutsModal
         isOpen={showShortcutsHelp}
         onClose={() => setShowShortcutsHelp(false)}
+        darkMode={darkMode}
+      />
+
+      {/* PDF Export Modal */}
+      <PDFExport
+        isOpen={showPDFExport}
+        onClose={() => setShowPDFExport(false)}
         darkMode={darkMode}
       />
     </div>
