@@ -1,9 +1,11 @@
 id,title,description,status,project,priority,dueDate,createdAt,estimatedTime,tags,timeElapsed,workingFor,workingWith,checkpoints,documents,pinned,colorLabel
 task-1768375729903,User Level Activity Implementation,Implement user level activity in all 4 pillars,completed,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T07:28:49.903Z,,4-Pillars,0,,Development Team,"[{""id"":1768552917740,""text"":""Governance"",""completed"":true,""createdAt"":""2026-01-16T08:41:57.740Z""},{""id"":1768552920597,""text"":""Insights"",""completed"":true,""createdAt"":""2026-01-16T08:42:00.597Z""},{""id"":1768552923391,""text"":""Engineering"",""completed"":true,""createdAt"":""2026-01-16T08:42:03.391Z""}]","[{""id"":1768553317571.1848,""name"":""Status Sheet"",""url"":""https://zensar-my.sharepoint.com/:x:/p/s_neelam/IQA76zDD2bURRZw8QicaBqu-AfRnlUtjBkwNKrlubUzqot0?email=s.neelam%40zensar.com&e=KJhdBo"",""type"":""link"",""addedAt"":""2026-01-16T08:48:37.571Z""}]",false,
 task-1768383377992,HLS DATASET & Prompts,Prepare new dataset on data explorer and prepare some prompts,completed,ZenseAI.Data,medium,2026-01-06T00:00:00.000Z,2026-01-14T09:36:17.992Z,,Data Eplorer,0,,,[],[],false,
-task-1768383426523,"Fix Vulnerabilities on all Pillars ","npm audit --json | audit-export --path ./audit-report.html --title ai-infused
+task-1768383426523,"Fix Vulnerabilities on all Pillars ","npm i -D audit-export
 
-npm audit fix",todo,ZenseAI.Data,high,2026-01-23T00:00:00.000Z,2026-01-14T09:37:06.523Z,,,0,,,[],[],false,
+npm audit --json | audit-export --path ./audit-report.html --title ai-infused
+
+npm audit fix",in-progress,ZenseAI.Data,high,2026-02-06T00:00:00.000Z,2026-01-14T09:37:06.523Z,,,0,,,"[{""id"":1770103447150,""text"":""Governence"",""completed"":false,""createdAt"":""2026-02-03T07:24:07.150Z""},{""id"":1770103453274,""text"":""Engineering"",""completed"":false,""createdAt"":""2026-02-03T07:24:13.274Z""},{""id"":1770103457423,""text"":""Insights"",""completed"":false,""createdAt"":""2026-02-03T07:24:17.423Z""},{""id"":1770103501963,""text"":""AMS"",""completed"":false,""createdAt"":""2026-02-03T07:25:01.963Z""}]",[],true,
 task-1768383461797,DQ Enhanchments,"Fix while re-generating the sql instead of re-generating all the sqls , generate only that selected rule and re-generate the sql
 update the scores accordingly",on-hold,ZenseAI.Data,medium,2026-02-06T00:00:00.000Z,2026-01-14T09:37:41.797Z,,,0,,,[],[],false,
 task-1768383511847,OTP Integration,Integrate OTP based and native for all four pillars and deploy it,completed,ZenseAI.Data,high,2026-01-07T00:00:00.000Z,2026-01-14T09:38:31.847Z,,,0,,,[],[],false,
@@ -45,12 +47,14 @@ EOF
 source ~/.bashrc
 ",completed,Learnings,high,2026-01-18T00:00:00.000Z,2026-01-19T06:42:12.575Z,,Learning,0,,,[],[],false,
 task-1768996441486,Implement Agentic Approach for code Migration,"do R&d and implement best ",todo,Learnings,high,2026-03-01T00:00:00.000Z,2026-01-21T11:54:01.486Z,,,0,,,[],[],false,
-task-1769496399108,User redirecting,redirect user from PM to pillars,completed,ZenseAI.Data,high,2026-02-01T00:00:00.000Z,2026-01-27T06:46:39.108Z,,PM & 4-apps,0,,,[],[],false,
+task-1769496399108,User redirecting,redirect user from PM to pillars,in-progress,ZenseAI.Data,high,2026-02-01T00:00:00.000Z,2026-01-27T06:46:39.108Z,,PM & 4-apps,0,,,[],[],true,
 task-1769496546615,DQ-Scores-UI,update the code in DQ Agent in main prod with nfum code (BE),todo,ZenseAI.Data,high,2026-01-29T00:00:00.000Z,2026-01-27T06:49:06.615Z,,,0,,,[],[],false,
 task-1769496586958,"NFUM-logo ",change the zensar logo to nfum logo,completed,ZenseAI.Data,high,2026-01-27T00:00:00.000Z,2026-01-27T06:49:46.958Z,,,0,,,[],[],false,
 task-1769497588550,Explore Agentic AI,"Explore Agentic Ai solution ",todo,Learnings,high,2026-02-28T00:00:00.000Z,2026-01-27T07:06:28.550Z,,Agentic-Learnings,0,,,[],"[{""id"":1769497568911.4023,""name"":""Ref-1"",""url"":""https://github.com/Shubhamsaboo/awesome-llm-apps"",""type"":""link"",""addedAt"":""2026-01-27T07:06:08.911Z""},{""id"":1769497584448.7168,""name"":""Ref-2"",""url"":""https://github.com/kaushikb11/awesome-llm-agents"",""type"":""link"",""addedAt"":""2026-01-27T07:06:24.448Z""}]",false,
 task-1769611470790,Enhance the App from streamlit to React App,Develop the app in the React and Flask,completed,Data Explorer,medium,2024-08-28T00:00:00.000Z,2026-01-28T14:44:30.790Z,,,0,,,[],[],false,
 task-1769611504125,data explorer charts,Enhance the Charts with Ag-grids,completed,Data Explorer,high,2024-07-30T00:00:00.000Z,2026-01-28T14:45:04.125Z,,,0,,,[],[],false,
-task-1769777153917,Go through Project files,"Go through the project files and doc, videos",in-progress,Enlace - BCBS,high,2026-02-05T00:00:00.000Z,2026-01-30T12:45:53.917Z,,Enlace;BCBS,0,,,[],[],true,
+task-1769777153917,Go through Project files,"Go through the project files and doc, videos",todo,Enlace - BCBS,high,2026-02-05T00:00:00.000Z,2026-01-30T12:45:53.917Z,,Enlace;BCBS,0,,,[],[],false,
 task-1770016597784,Innovation Festival App,Develop a innovation app for 1000+ users that should work,in-progress,ZenseAI.Data,high,2026-02-26T00:00:00.000Z,2026-02-02T07:16:37.784Z,,Innovation_festival,0,,,[],[],true,
 task-1770042924004,Enlance - Data Explorer,Create a dataset on redshift and use Anthropic and test on top of Data Explorer,todo,Enlace - BCBS,high,2026-02-06T00:00:00.000Z,2026-02-02T14:35:24.004Z,,Enlace,0,,,[],[],false,
+task-1770628712246,IBM Watsonx - AI Requirements,"Deploy the KC,TM using IBM models and deploy on there platform",todo,ZenseAI.Data,high,2026-03-20T00:00:00.000Z,2026-02-09T09:18:32.246Z,,IBM,0,,,"[{""id"":1770628710387,""text"":""Requirements"",""completed"":false,""createdAt"":""2026-02-09T09:18:30.387Z""}]",[],false,
+task-1770630405228,KC Development (Agentic),Implement Agentic in the CM & KC with Nimesh,todo,POCs-Development,high,2026-02-12T00:00:00.000Z,2026-02-09T09:46:45.228Z,,,0,,,[],[],true,
