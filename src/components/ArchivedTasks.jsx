@@ -72,7 +72,7 @@ export default function ArchivedTasks() {
       case 'high': return 'text-red-600 bg-red-50';
       case 'medium': return 'text-yellow-600 bg-yellow-50';
       case 'low': return 'text-green-600 bg-green-50';
-      default: return 'text-gray-600 bg-gray-50';
+      default: return 'text-[var(--fg-muted)] bg-[var(--surface-2)]';
     }
   };
 
@@ -90,8 +90,8 @@ export default function ArchivedTasks() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Archived Tasks</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-xl font-semibold tracking-[-0.01em] text-[var(--fg)]">Archived Tasks</h1>
+          <p className="text-[var(--fg-muted)] mt-1">
             {archivedTasks.length} archived task{archivedTasks.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -102,13 +102,13 @@ export default function ArchivedTasks() {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fontSize="small" />
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--fg-subtle)]" fontSize="small" />
             <input
               type="text"
               placeholder="Search archived tasks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-[var(--border-strong)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] focus:border-[var(--accent)]"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function ArchivedTasks() {
             <select
               value={filterProject}
               onChange={(e) => setFilterProject(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-[var(--border-strong)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] focus:border-[var(--accent)]"
             >
               <option value="">All Projects</option>
               {projects.map((project, index) => {
@@ -136,7 +136,7 @@ export default function ArchivedTasks() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-[var(--border-strong)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] focus:border-[var(--accent)]"
             >
               <option value="archivedDate">Sort by Archived Date</option>
               <option value="title">Sort by Title</option>
@@ -155,19 +155,19 @@ export default function ArchivedTasks() {
                 {/* Task Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-gray-700 truncate">{task.title}</h3>
+                    <h3 className="font-semibold text-[var(--fg-muted)] truncate">{task.title}</h3>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
                       {getPriorityIcon(task.priority)} {task.priority || 'medium'}
                     </span>
                   </div>
                   
                   {task.description && (
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                    <p className="text-sm text-[var(--fg-muted)] mb-3 line-clamp-2">
                       {task.description}
                     </p>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--fg-subtle)]">
                     {task.project && (
                       <div className="flex items-center gap-1">
                         <TaskIcon fontSize="small" />
@@ -206,7 +206,7 @@ export default function ArchivedTasks() {
                       {task.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
+                          className="px-2 py-1 bg-[var(--surface-2)] text-[var(--fg-muted)] rounded-full text-xs"
                         >
                           {tag}
                         </span>
@@ -239,11 +239,11 @@ export default function ArchivedTasks() {
       ) : (
         /* Empty State */
         <div className="text-center py-12">
-          <ArchiveIcon className="mx-auto text-gray-400 mb-4" style={{ fontSize: 64 }} />
-          <h3 className="text-lg font-medium text-gray-600 mb-2">
+          <ArchiveIcon className="mx-auto text-[var(--fg-subtle)] mb-4" style={{ fontSize: 64 }} />
+          <h3 className="text-lg font-medium text-[var(--fg-muted)] mb-2">
             {archivedTasks.length === 0 ? 'No archived tasks' : 'No tasks match your filters'}
           </h3>
-          <p className="text-gray-500 mb-6">
+          <p className="text-[var(--fg-subtle)] mb-6">
             {archivedTasks.length === 0 
               ? 'Tasks you archive will appear here for future reference'
               : 'Try adjusting your search or filter criteria'
@@ -266,7 +266,7 @@ export default function ArchivedTasks() {
       {/* Footer Stats */}
       {archivedTasks.length > 0 && (
         <div className="premium-card p-4">
-          <div className="flex flex-wrap justify-between items-center gap-4 text-sm text-gray-600">
+          <div className="flex flex-wrap justify-between items-center gap-4 text-sm text-[var(--fg-muted)]">
             <span>
               Showing {sortedTasks.length} of {archivedTasks.length} archived tasks
             </span>

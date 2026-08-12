@@ -12,7 +12,7 @@ import {
   CheckCircle as CompletedIcon
 } from '@mui/icons-material';
 
-const COLORS = ['#667eea', '#764ba2', '#f093fb', '#f5576c'];
+const COLORS = ['#3b6fe0', '#5b9bd5', '#7c8698', '#c2703f'];
 const PRIORITY_COLORS = ['#ff6b6b', '#feca57', '#48dbfb'];
 
 export default function AnalyticsDashboard({ darkMode }) {
@@ -257,7 +257,7 @@ export default function AnalyticsDashboard({ darkMode }) {
                 }} 
               />
               <Legend wrapperStyle={{ color: darkMode ? '#D1D5DB' : '#374151' }} />
-              <Bar dataKey="tasks" fill="#667eea" name="Total Tasks" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="tasks" fill="#3b6fe0" name="Total Tasks" radius={[4, 4, 0, 0]} />
               <Bar dataKey="completed" fill="#48dbfb" name="Completed" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

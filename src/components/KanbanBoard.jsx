@@ -236,25 +236,25 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
 
   return (
     <div
-      className={`h-full min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}
+      className="min-h-0"
       onClick={closeContextMenu}
     >
       {/* Header */}
       <div className={`mb-6 flex items-center justify-between`}>
         <div>
           <h2
-            className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+            className="text-xl font-semibold tracking-[-0.01em] text-[var(--fg)]"
           >
             Kanban Board
           </h2>
           <p
-            className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"} mt-1`}
+            className={`text-sm text-[var(--fg-subtle)] mt-1`}
           >
             Drag and drop tasks between columns
           </p>
         </div>
         <div
-          className={`flex items-center gap-4 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+          className={`flex items-center gap-4 text-sm text-[var(--fg-subtle)]`}
         >
           <span className="flex items-center gap-1">
             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -273,20 +273,26 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
 
       {/* Kanban Columns */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-4 gap-4 h-[calc(100vh-220px)]">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 lg:h-[calc(100dvh-220px)]">
           {KANBAN_COLUMNS.map((column) => (
             <div
               key={column.id}
-              className={`flex flex-col rounded-xl ${darkMode ? "bg-gray-800/50" : "bg-gray-100"} overflow-hidden`}
+              className="flex min-h-[220px] flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]"
             >
               {/* Column Header */}
-              <div className={`p-4 ${column.bgColor} text-white`}>
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">{column.title}</h3>
-                  <span className="bg-white/20 px-2 py-1 rounded-full text-sm">
-                    {tasksByStatus[column.id]?.length || 0}
-                  </span>
+              <div className="flex items-center justify-between border-b border-[var(--border)] px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className={`h-1.5 w-1.5 rounded-full ${column.bgColor}`}
+                  />
+                  <h3 className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--fg-muted)]">
+                    {column.title}
+                  </h3>
                 </div>
+                <span className="font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]">
+                  {tasksByStatus[column.id]?.length || 0}
+                </span>
               </div>
 
               {/* Tasks */}
@@ -320,7 +326,7 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
                             onMouseLeave={() => setHoveredTask(null)}
                             className={`
                               relative p-4 rounded-lg shadow-sm cursor-grab active:cursor-grabbing
-                              ${darkMode ? "bg-gray-700 hover:bg-gray-650" : "bg-white hover:bg-gray-50"}
+                              bg-[var(--surface-2)] hover:bg-gray-650
                               ${snapshot.isDragging ? "shadow-lg ring-2 ring-blue-500" : ""}
                               ${task.colorLabel ? `border-l-4` : "border-l-4 border-transparent"}
                               transition-all duration-200
@@ -357,7 +363,7 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
 
                             {/* Task Title */}
                             <h4
-                              className={`font-medium text-sm mb-2 pr-6 ${darkMode ? "text-white" : "text-gray-800"}`}
+                              className={`font-medium text-sm mb-2 pr-6 text-[var(--fg)]`}
                             >
                               {task.title}
                             </h4>
@@ -508,7 +514,7 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
                     {/* Empty State */}
                     {tasksByStatus[column.id]?.length === 0 && (
                       <div
-                        className={`text-center py-8 ${darkMode ? "text-gray-500" : "text-gray-400"}`}
+                        className={`text-center py-8 text-[var(--fg-subtle)]`}
                       >
                         <p className="text-sm">No tasks</p>
                         <p className="text-xs mt-1">Drag tasks here</p>
@@ -575,7 +581,7 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
 
             {/* Color Label Submenu */}
             <div
-              className={`px-4 py-2 text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+              className={`px-4 py-2 text-sm text-[var(--fg-muted)]`}
             >
               <div className="mb-2">Color Label</div>
               <div className="flex flex-wrap gap-1">
@@ -602,7 +608,7 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
             </div>
 
             <div
-              className={`border-t ${darkMode ? "border-gray-700" : "border-gray-200"} my-1`}
+              className={`border-t border-[var(--border)] my-1`}
             ></div>
 
             <button

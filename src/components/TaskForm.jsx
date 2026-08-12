@@ -173,11 +173,11 @@ export default function TaskForm({ editingTask, onClose, projects }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-modal flex items-end justify-center bg-[rgb(13_17_23/0.55)] backdrop-blur-[2px] p-0 sm:items-center sm:p-4">
+      <div className="flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-[var(--border)] bg-[var(--surface)] shadow-lg sm:max-h-[90dvh] sm:rounded-xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--border)] px-5 py-4">
+          <h2 className="text-lg font-semibold tracking-[-0.01em] text-[var(--fg)]">
             {editingTask ? 'Edit Task' : 'Create New Task'}
           </h2>
           <button 
@@ -189,10 +189,10 @@ export default function TaskForm({ editingTask, onClose, projects }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
               Task Title *
             </label>
             <input
@@ -200,21 +200,21 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               required
               value={formData.title || ''}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               placeholder="Enter task title..."
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
               Description
             </label>
             <textarea
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               placeholder="Describe the task..."
             />
           </div>
@@ -222,7 +222,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
           {/* Project and Priority */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
                 Project
               </label>
               <div className="relative">
@@ -230,7 +230,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
                   type="text"
                   value={formData.project}
                   onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                   placeholder="Type project name or select from existing..."
                   list="project-options"
                 />
@@ -246,17 +246,17 @@ export default function TaskForm({ editingTask, onClose, projects }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
                 Priority
               </label>
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               >
-                <option value="low">🟢 Low Priority</option>
-                <option value="medium">🟡 Medium Priority</option>
-                <option value="high">🔴 High Priority</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
               </select>
             </div>
           </div>
@@ -264,37 +264,37 @@ export default function TaskForm({ editingTask, onClose, projects }) {
           {/* Status and Due Date */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
                 Status
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               >
-                <option value="todo">📋 To Do</option>
-                <option value="in-progress">⚡ In Progress</option>
-                <option value="completed">✅ Completed</option>
-                <option value="on-hold">⏸️ On Hold</option>
+                <option value="todo">To do</option>
+                <option value="in-progress">In progress</option>
+                <option value="completed">Completed</option>
+                <option value="on-hold">On hold</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
                 Due Date
               </label>
               <input
                 type="date"
                 value={formData.dueDate || ''}
                 onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
               Tags
             </label>
             <div className="flex gap-2 mb-3">
@@ -303,13 +303,13 @@ export default function TaskForm({ editingTask, onClose, projects }) {
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="flex-1 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 placeholder="Add a tag..."
               />
               <button
                 type="button"
                 onClick={handleAddTag}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="btn-primary text-sm"
               >
                 <PlusIcon fontSize="small" />
               </button>
@@ -336,27 +336,27 @@ export default function TaskForm({ editingTask, onClose, projects }) {
           {/* Working For and Working With */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
                 Working For
               </label>
               <input
                 type="text"
                 value={formData.workingFor || ''}
                 onChange={(e) => setFormData({ ...formData, workingFor: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 placeholder="Who is this task for?"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
                 Working With
               </label>
               <input
                 type="text"
                 value={formData.workingWith || ''}
                 onChange={(e) => setFormData({ ...formData, workingWith: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 placeholder="Who are you working with?"
               />
             </div>
@@ -364,8 +364,8 @@ export default function TaskForm({ editingTask, onClose, projects }) {
 
           {/* Checkpoints Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              ✅ Task Checkpoints
+            <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
+              Checkpoints
             </label>
             <p className="text-sm text-gray-500 mb-4">
               Add checkpoints to track progress and validate task completion
@@ -378,14 +378,14 @@ export default function TaskForm({ editingTask, onClose, projects }) {
                 value={newCheckpoint}
                 onChange={(e) => setNewCheckpoint(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCheckpoint())}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="flex-1 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 placeholder="Add a checkpoint (e.g., Setup database connection)"
               />
               <button
                 type="button"
                 onClick={addCheckpoint}
                 disabled={!newCheckpoint.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                className="btn-primary text-sm"
               >
                 <PlusIcon fontSize="small" />
               </button>
@@ -439,7 +439,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
           {/* Documents Section */}
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-              📎 Documents
+              Documents
             </h4>
             <p className="text-xs text-gray-600">
               Attach files or add links for additional context and resources
@@ -454,17 +454,17 @@ export default function TaskForm({ editingTask, onClose, projects }) {
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-shrink-0 justify-end gap-2 border-t border-[var(--border)] pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="btn-secondary text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="btn-primary text-sm"
             >
               {editingTask ? 'Update Task' : 'Create Task'}
             </button>

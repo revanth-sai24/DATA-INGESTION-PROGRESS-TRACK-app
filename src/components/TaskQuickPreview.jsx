@@ -132,7 +132,7 @@ export default function TaskQuickPreview({
 
       {/* Header */}
       <div
-        className={`p-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+        className={`p-4 border-b border-[var(--border)]`}
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -143,7 +143,7 @@ export default function TaskQuickPreview({
               />
             )}
             <h3
-              className={`font-semibold truncate ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`font-semibold truncate text-[var(--fg)]`}
             >
               {task.title}
             </h3>
@@ -181,7 +181,7 @@ export default function TaskQuickPreview({
         {task.description && (
           <div>
             <p
-              className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"} line-clamp-3`}
+              className={`text-sm text-[var(--fg-muted)] line-clamp-3`}
             >
               {task.description}
             </p>
@@ -213,7 +213,7 @@ export default function TaskQuickPreview({
         {/* Project */}
         {task.project && (
           <div
-            className={`flex items-center gap-2 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+            className={`flex items-center gap-2 text-sm text-[var(--fg-subtle)]`}
           >
             <FolderIcon fontSize="small" />
             <span>{task.project}</span>
@@ -253,7 +253,7 @@ export default function TaskQuickPreview({
               </span>
             </div>
             <div
-              className={`h-2 rounded-full overflow-hidden ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}
+              className={`h-2 rounded-full overflow-hidden bg-[var(--surface-3)]`}
             >
               <div
                 className={`h-full transition-all duration-300 ${
@@ -271,7 +271,7 @@ export default function TaskQuickPreview({
 
         {/* Metadata Footer */}
         <div
-          className={`pt-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+          className={`pt-3 border-t border-[var(--border)]`}
         >
           <div
             className={`flex items-center justify-between text-xs ${

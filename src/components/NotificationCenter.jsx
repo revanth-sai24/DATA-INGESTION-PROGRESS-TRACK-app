@@ -248,11 +248,11 @@ export default function NotificationCenter({ darkMode }) {
         >
           {/* Header */}
           <div
-            className={`p-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+            className={`p-4 border-b border-[var(--border)]`}
           >
             <div className="flex items-center justify-between">
               <h3
-                className={`font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`font-semibold text-[var(--fg)]`}
               >
                 Notifications
               </h3>
@@ -283,7 +283,7 @@ export default function NotificationCenter({ darkMode }) {
               )}
               {soonCount > 0 && (
                 <span
-                  className={`flex items-center gap-1 ${darkMode ? "text-yellow-400" : "text-yellow-600"}`}
+                  className={`flex items-center gap-1 text-[var(--warning)]`}
                 >
                   <InfoIcon fontSize="inherit" /> {soonCount} soon
                 </span>
@@ -295,7 +295,7 @@ export default function NotificationCenter({ darkMode }) {
           <div className="max-h-[350px] overflow-y-auto">
             {notifications.length === 0 ? (
               <div
-                className={`p-8 text-center ${darkMode ? "text-gray-500" : "text-gray-400"}`}
+                className={`p-8 text-center text-[var(--fg-subtle)]`}
               >
                 <CheckCircleIcon className="mx-auto mb-2" fontSize="large" />
                 <p>All caught up!</p>
@@ -324,12 +324,12 @@ export default function NotificationCenter({ darkMode }) {
                       {getNotificationIcon(notification.type)}
                       <div className="flex-1 min-w-0">
                         <h4
-                          className={`font-medium text-sm ${darkMode ? "text-white" : "text-gray-800"}`}
+                          className={`font-medium text-sm text-[var(--fg)]`}
                         >
                           {notification.title}
                         </h4>
                         <p
-                          className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} truncate`}
+                          className={`text-sm text-[var(--fg-muted)] truncate`}
                         >
                           {notification.message}
                         </p>
@@ -344,7 +344,7 @@ export default function NotificationCenter({ darkMode }) {
           {/* Footer */}
           {!hasPermission && (
             <div
-              className={`p-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+              className={`p-3 border-t border-[var(--border)]`}
             >
               <button
                 onClick={() => {

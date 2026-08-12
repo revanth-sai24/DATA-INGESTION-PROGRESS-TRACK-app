@@ -148,11 +148,11 @@ const CalendarView = ({ darkMode, onEditTask }) => {
     <div className="space-y-6">
       {/* Header */}
       <div
-        className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg p-6 shadow-sm`}
+        className={`bg-[var(--surface)] rounded-xl border border-[var(--border)] p-4 sm:p-5`}
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1
-            className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+            className={`text-lg font-semibold tracking-[-0.01em] sm:text-xl text-[var(--fg)]`}
           >
             Calendar View
           </h1>
@@ -170,8 +170,8 @@ const CalendarView = ({ darkMode, onEditTask }) => {
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={goToPreviousMonth}
               className={`p-2 rounded-lg transition-colors ${
@@ -184,7 +184,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
             </button>
 
             <h2
-              className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`min-w-[9ch] text-center text-base font-semibold sm:text-lg text-[var(--fg)]`}
             >
               {monthNames[month]} {year}
             </h2>
@@ -202,13 +202,13 @@ const CalendarView = ({ darkMode, onEditTask }) => {
           </div>
 
           <div
-            className={`text-sm flex items-center gap-4 ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+            className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-[var(--fg-muted)]`}
           >
             <span>
               {tasks.filter((task) => task.dueDate).length} tasks scheduled
             </span>
             <span
-              className={`flex items-center gap-1 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`hidden items-center gap-1 text-xs lg:flex text-[var(--fg-subtle)]`}
             >
               <DragIcon style={{ fontSize: 14 }} />
               Drag tasks to reschedule
@@ -219,10 +219,10 @@ const CalendarView = ({ darkMode, onEditTask }) => {
 
       {/* Calendar Grid */}
       <div
-        className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg p-6 shadow-sm`}
+        className={`bg-[var(--surface)] rounded-lg p-6 shadow-sm`}
       >
         {/* Week header */}
-        <div className="grid grid-cols-7 gap-4 mb-4">
+        <div className="mb-2 grid grid-cols-7 gap-1 sm:mb-4 sm:gap-3">
           {weekDays.map((day) => (
             <div
               key={day}
@@ -236,7 +236,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
         </div>
 
         {/* Calendar days */}
-        <div className="grid grid-cols-7 gap-4">
+        <div className="grid grid-cols-7 gap-1 sm:gap-3">
           {calendarDays.map((day, index) => {
             const dayTasks = getTasksForDate(day.fullDate);
             const isSelected =
@@ -338,7 +338,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                     >
                       <div className="flex items-center gap-1 mb-1">
                         <DragIcon
-                          className={`w-3 h-3 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                          className={`w-3 h-3 text-[var(--fg-subtle)]`}
                           style={{ fontSize: 12 }}
                         />
                         <div
@@ -353,7 +353,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                         </span>
                       </div>
                       <div
-                        className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"} truncate pl-5`}
+                        className={`text-xs text-[var(--fg-muted)] truncate pl-5`}
                       >
                         {task.project}
                       </div>
@@ -361,7 +361,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                   ))}
                   {dayTasks.length > 3 && (
                     <div
-                      className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} text-center`}
+                      className={`text-xs text-[var(--fg-subtle)] text-center`}
                     >
                       +{dayTasks.length - 3} more
                     </div>
@@ -376,10 +376,10 @@ const CalendarView = ({ darkMode, onEditTask }) => {
       {/* Selected Date Details */}
       {selectedDate && (
         <div
-          className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg p-6 shadow-sm`}
+          className={`bg-[var(--surface)] rounded-lg p-6 shadow-sm`}
         >
           <h3
-            className={`text-lg font-semibold mb-4 ${darkMode ? "text-white" : "text-gray-800"}`}
+            className={`text-lg font-semibold mb-4 text-[var(--fg)]`}
           >
             Tasks for{" "}
             {selectedDate.toLocaleDateString("en-US", {
@@ -392,7 +392,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
 
           {getTasksForDate(selectedDate).length === 0 ? (
             <p
-              className={`text-center py-8 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-center py-8 text-[var(--fg-subtle)]`}
             >
               No tasks scheduled for this date
             </p>
@@ -414,17 +414,17 @@ const CalendarView = ({ darkMode, onEditTask }) => {
                       />
                       <div className="flex-1">
                         <h4
-                          className={`font-medium ${darkMode ? "text-white" : "text-gray-800"}`}
+                          className={`font-medium text-[var(--fg)]`}
                         >
                           {task.title}
                         </h4>
                         <p
-                          className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+                          className={`text-sm text-[var(--fg-muted)]`}
                         >
                           {task.description}
                         </p>
                         <div
-                          className={`text-xs mt-1 ${darkMode ? "text-gray-500" : "text-gray-500"}`}
+                          className={`text-xs mt-1 text-[var(--fg-subtle)]`}
                         >
                           Project: {task.project} • Priority: {task.priority} •
                           Status: {task.status}

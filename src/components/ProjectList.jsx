@@ -78,12 +78,12 @@ export default function ProjectList({ setActivePage, setFilter, darkMode }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Projects</h1>
-          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-1`}>Manage your project collections</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className={`text-xl font-semibold tracking-[-0.01em] ${darkMode ? 'text-white' : 'text-gray-800'}`}>Projects</h1>
+          <p className={`mt-0.5 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Manage your project collections</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-shrink-0 items-center gap-2">
           {/* View Toggle */}
           <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg p-1`}>
             <button

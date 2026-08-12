@@ -121,15 +121,15 @@ export default function ContextMenu({
     >
       {/* Task Info Header */}
       <div
-        className={`px-4 py-3 border-b ${darkMode ? "border-gray-700 bg-gray-750" : "border-gray-200 bg-gray-50"}`}
+        className={`px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)]`}
       >
         <div
-          className={`font-medium text-sm truncate ${darkMode ? "text-white" : "text-gray-800"}`}
+          className={`font-medium text-sm truncate text-[var(--fg)]`}
         >
           {task.title}
         </div>
         <div
-          className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+          className={`text-xs mt-1 text-[var(--fg-subtle)]`}
         >
           {task.status} • {task.priority}
         </div>
@@ -192,7 +192,7 @@ export default function ContextMenu({
 
         {/* Color Label */}
         <div
-          className={`border-t ${darkMode ? "border-gray-700" : "border-gray-200"} my-1`}
+          className={`border-t border-[var(--border)] my-1`}
         ></div>
 
         <div className="relative">
@@ -263,7 +263,7 @@ export default function ContextMenu({
         </div>
 
         <div
-          className={`border-t ${darkMode ? "border-gray-700" : "border-gray-200"} my-1`}
+          className={`border-t border-[var(--border)] my-1`}
         ></div>
 
         <MenuItem

@@ -120,16 +120,16 @@ export function KeyboardShortcutsModal({ isOpen, onClose, darkMode }) {
       onClick={onClose}
     >
       <div
-        className={`w-full max-w-lg mx-4 rounded-xl shadow-2xl ${darkMode ? "bg-gray-800" : "bg-white"}`}
+        className={`w-full max-w-lg mx-4 rounded-xl shadow-2xl bg-[var(--surface)]`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div
-          className={`p-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+          className={`p-4 border-b border-[var(--border)]`}
         >
           <div className="flex items-center justify-between">
             <h2
-              className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`text-lg font-semibold text-[var(--fg)]`}
             >
               ⌨️ Keyboard Shortcuts
             </h2>
@@ -151,7 +151,7 @@ export function KeyboardShortcutsModal({ isOpen, onClose, darkMode }) {
           {shortcutGroups.map((group, index) => (
             <div key={group.title} className={index > 0 ? "mt-6" : ""}>
               <h3
-                className={`text-sm font-semibold mb-3 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-sm font-semibold mb-3 text-[var(--fg-subtle)]`}
               >
                 {group.title}
               </h3>
@@ -164,7 +164,7 @@ export function KeyboardShortcutsModal({ isOpen, onClose, darkMode }) {
                     }`}
                   >
                     <span
-                      className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                      className={`text-sm text-[var(--fg-muted)]`}
                     >
                       {shortcut.description}
                     </span>
@@ -201,11 +201,11 @@ export function KeyboardShortcutsModal({ isOpen, onClose, darkMode }) {
 
         {/* Footer */}
         <div
-          className={`p-4 border-t ${darkMode ? "border-gray-700 text-gray-500" : "border-gray-200 text-gray-400"} text-xs text-center`}
+          className={`p-4 border-t border-[var(--border)] text-[var(--fg-subtle)] text-xs text-center`}
         >
           Press{" "}
           <kbd
-            className={`px-1 py-0.5 rounded ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}
+            className={`px-1 py-0.5 rounded bg-[var(--surface-2)]`}
           >
             Esc
           </kbd>{" "}

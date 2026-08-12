@@ -2,26 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
-
+/* ============================================================================
+   Design tokens
+   One accent, one (cool) gray family, tinted shadows, flat surfaces.
+   The previous palette was built on a purple→indigo gradient and a gradient
+   page background; both are gone — they read as decoration, not hierarchy.
+   ========================================================================= */
 :root {
-  /* Premium Color Palette */
-  --primary-50: #eff6ff;
-  --primary-100: #dbeafe;
-  --primary-500: #3b82f6;
-  --primary-600: #2563eb;
-  --primary-700: #1d4ed8;
-  --primary-900: #1e3a8a;
+  /* Surfaces, lightest to darkest. `app` is the page, `surface` is a card. */
+  --app-bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --surface-3: #e8edf4;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
 
-  /* Glass Effects */
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --fg: #0f172a;
+  --fg-muted: #55637a;
+  --fg-subtle: #8593a8;
 
-  /* Premium Gradients */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  /* Blue carries the data; amber is the single highlight, used sparingly for
+     the thing that needs attention now (overdue, at-risk, today). */
+  --accent: #1e40af;
+  --accent-hover: #1b3894;
+  --accent-fg: #ffffff;
+  --accent-soft: #e8eefc;
+  --accent-2: #b45309;
+  --accent-2-soft: #fdf0dc;
+
+  --success: #15803d;
+  --success-soft: #e6f4ea;
+  --warning: #b45309;
+  --danger: #b91c1c;
+  --danger-soft: #fdeaea;
+
+  --focus-ring: rgba(30, 64, 175, 0.45);
+  --shadow-color: 15 23 42;
+
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Density 8/10 — dashboard scale. Tighter than a marketing site on purpose:
+     more rows on screen without the layout feeling cramped. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  color-scheme: light;
+}
+
+.dark {
+  /* Blue-tinted near-black. Dark mode uses lighter tonal variants of the same
+     hues — not inverted light-mode values, which go muddy. */
+  --app-bg: #0b1120;
+  --surface: #111a2e;
+  --surface-2: #172136;
+  --surface-3: #1e2a43;
+  --border: #22304d;
+  --border-strong: #33425f;
+
+  --fg: #e6ecf5;
+  --fg-muted: #94a3bb;
+  --fg-subtle: #64748b;
+
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-fg: #0b1120;
+  --accent-soft: rgba(96, 165, 250, 0.14);
+  --accent-2: #fbbf24;
+  --accent-2-soft: rgba(251, 191, 36, 0.14);
+
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.14);
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+
+  --focus-ring: rgba(96, 165, 250, 0.55);
+  --shadow-color: 0 0 0;
+
+  color-scheme: dark;
 }
 
 * {
@@ -30,91 +94,304 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  min-height: 100vh;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  background: var(--app-bg);
+  color: var(--fg);
+  /* dvh, not vh — vh jumps when mobile browser chrome hides. */
+  min-height: 100dvh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-.dark body {
-  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+/* Counts, durations and dates line up column-to-column. */
+.tabular,
+table td,
+table th {
+  font-variant-numeric: tabular-nums;
 }
 
-/* Normal Card Styles */
+/* Headings get tighter tracking as they get larger. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* One visible focus treatment for every interactive element. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 70;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================================
+   Surfaces
+   A card earns a border, not a drop shadow. Elevation is reserved for things
+   that actually float (menus, modals, the mobile drawer).
+   ========================================================================= */
 .card {
-  @apply bg-white border border-gray-200 rounded-lg shadow-sm;
-}
-
-.dark .card {
-  @apply bg-gray-800 border-gray-700;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .premium-card {
-  @apply bg-white border border-gray-200 rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  transition:
+    border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dark .premium-card {
-  @apply bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-6 transition-all duration-300 hover:shadow-2xl;
+@media (min-width: 640px) {
+  .premium-card {
+    padding: 1.5rem;
+  }
+}
+
+.premium-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 8px -2px rgb(var(--shadow-color) / 0.07);
 }
 
 .metric-card {
-  @apply premium-card bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
 }
 
-.dark .metric-card {
-  @apply bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-6 transition-all duration-300 hover:shadow-2xl bg-gradient-to-br from-gray-800 to-gray-900;
+/* ============================================================================
+   Data-dense dashboard primitives
+   ========================================================================= */
+
+/* KPI tile: label reads first, the number is the object of interest, context
+   sits underneath. Numbers are monospaced so a column of tiles aligns. */
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  transition: border-color 0.15s ease;
 }
 
-/* Button Styles */
+.kpi:hover {
+  border-color: var(--border-strong);
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+
+.kpi-value {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+
+.kpi-meta {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* Section heading — the same rhythm on every panel. */
+.panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+}
+
+/* Data table: separators, not zebra stripes; the whole row lights on hover so
+   the eye can track across many columns without losing the line. */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.625rem 0.75rem;
+  font-size: 13px;
+  color: var(--fg);
+  vertical-align: middle;
+}
+
+.data-table tbody tr {
+  transition: background-color 0.12s ease;
+}
+
+.data-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+/* Status pills — a tinted wash with a readable label, not a saturated block. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  border-radius: var(--radius-sm);
+  padding: 0.125rem 0.4375rem;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pill-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+  flex: none;
+}
+
+/* ============================================================================
+   Buttons
+   Press feedback is a 1px settle, not a 5% grow — scaling on hover makes text
+   resample and reads as a toy.
+   ========================================================================= */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transform transition-all duration-200 hover:scale-105 hover:shadow-lg;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 500;
+  padding: 0.625rem 1.125rem;
+  border-radius: var(--radius);
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
 }
 
-.dark .btn-primary {
-  @apply bg-blue-500 hover:bg-blue-600 shadow-2xl;
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {
-  @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-4 py-2 rounded-lg transform transition-all duration-200 hover:scale-105;
+  background: var(--surface-2);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  font-weight: 500;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
 }
 
-.dark .btn-secondary {
-  @apply bg-gray-700 hover:bg-gray-600 text-gray-200;
+.btn-secondary:hover {
+  border-color: var(--border-strong);
 }
 
-/* Custom Scrollbar */
+.btn-secondary:active {
+  transform: translateY(1px);
+}
+
+/* Scrollbars follow the theme instead of staying light-mode gray. */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #374151;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 3px;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #6b7280;
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: var(--fg-subtle);
+  background-clip: content-box;
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
 /* Animations */

@@ -73,7 +73,7 @@ export default function Confetti({ trigger, duration = 3000 }) {
   if (!isActive || pieces.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 z-toast overflow-hidden">
       {pieces.map((piece) => (
         <div
           key={piece.id}

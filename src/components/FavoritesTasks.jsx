@@ -102,12 +102,12 @@ export default function FavoritesTasks({ darkMode, onEditTask }) {
 
   return (
     <div
-      className={`mb-6 p-4 rounded-xl ${darkMode ? "bg-gray-800/50" : "bg-yellow-50"} border ${darkMode ? "border-gray-700" : "border-yellow-200"}`}
+      className={`mb-6 p-4 rounded-xl ${darkMode ? "bg-gray-800/50" : "bg-yellow-50"} border border-[var(--border)]`}
     >
       <div className="flex items-center gap-2 mb-4">
         <StarIcon className="text-yellow-500" />
         <h3
-          className={`font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+          className={`font-semibold text-[var(--fg)]`}
         >
           Pinned Tasks
         </h3>
@@ -163,7 +163,7 @@ export default function FavoritesTasks({ darkMode, onEditTask }) {
 
             {/* Task content */}
             <h4
-              className={`font-medium text-sm mb-2 pr-8 ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`font-medium text-sm mb-2 pr-8 text-[var(--fg)]`}
             >
               {task.title}
             </h4>

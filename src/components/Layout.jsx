@@ -22,9 +22,11 @@ import {
   PictureAsPdf as PdfIcon,
   Palette as PaletteIcon,
   CenterFocusStrong as FocusIcon,
+  Menu as MenuIcon,
 } from "@mui/icons-material";
 
 import Sidebar from "./Sidebar";
+import TodayView from "./TodayView";
 import Filters from "./Filters";
 import TaskList from "./TaskList";
 import AnalyticsDashboard from "./AnalyticsDashboard";
@@ -51,7 +53,7 @@ import {
 
 export default function Layout({ children }) {
   const [isClient, setIsClient] = useState(false);
-  const [activePage, setActivePage] = useState("dashboard");
+  const [activePage, setActivePage] = useState("today");
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
@@ -72,10 +74,12 @@ export default function Layout({ children }) {
     position: { x: 0, y: 0 },
   });
   const [searchFocused, setSearchFocused] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const searchRef = useRef(null);
 
-  // Confetti hook for celebrations
-  const { showConfetti, triggerConfetti } = useConfetti();
+  // useConfetti returns { trigger, fireConfetti } — destructuring any other
+  // names left fireConfetti undefined and threw on every "mark complete".
+  const { trigger: confettiTrigger, fireConfetti } = useConfetti();
 
   const dispatch = useDispatch();
 
@@ -97,6 +101,7 @@ export default function Layout({ children }) {
       search: () => searchRef.current?.focus(),
       undo: () => dispatch(undo()),
       redo: () => dispatch(redo()),
+      today: () => setActivePage("today"),
       dashboard: () => setActivePage("dashboard"),
       tasks: () => setActivePage("tasks"),
       kanban: () => setActivePage("kanban"),
@@ -155,7 +160,7 @@ export default function Layout({ children }) {
         updatedAt: new Date().toISOString(),
       }),
     );
-    triggerConfetti();
+    fireConfetti();
     closeContextMenu();
   };
 
@@ -205,112 +210,26 @@ export default function Layout({ children }) {
 
   if (!isClient) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-blue-600 to-purple-600">
-        <div className="text-white text-xl">Loading...</div>
+      <div className={darkMode ? "dark" : undefined}>
+        <div className="flex min-h-dvh items-center justify-center bg-[var(--app-bg)]">
+          <div className="flex items-center gap-3 text-sm text-[var(--fg-muted)]">
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[var(--border-strong)] border-t-[var(--accent)]" />
+            Loading
+          </div>
+        </div>
       </div>
     );
   }
 
-  const drawerWidth = 320;
+  const iconBtn =
+    "rounded-lg p-2 text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent";
 
   return (
     <div
-      className={`flex min-h-screen relative ${darkMode ? "dark bg-gray-900" : "bg-white"}`}
+      className={`relative min-h-dvh bg-[var(--app-bg)] ${darkMode ? "dark" : ""}`}
       onClick={closeContextMenu}
     >
-      {/* Header Bar */}
-      <div
-        className={`fixed top-0 left-0 right-0 h-16 ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"} border-b shadow-sm z-50 flex items-center justify-between px-6`}
-      >
-        <div className="flex items-center gap-4">
-          <div
-            className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
-          >
-            Task Manager
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Undo/Redo Buttons */}
-          <button
-            onClick={() => dispatch(undo())}
-            disabled={historyIndex <= 0}
-            className={`p-2 rounded-lg transition-colors ${
-              historyIndex <= 0
-                ? "opacity-50 cursor-not-allowed"
-                : darkMode
-                  ? "hover:bg-gray-700 text-gray-300"
-                  : "hover:bg-gray-100 text-gray-600"
-            }`}
-            title="Undo (Ctrl+Z)"
-          >
-            <UndoIcon fontSize="small" />
-          </button>
-          <button
-            onClick={() => dispatch(redo())}
-            disabled={historyIndex >= history.length - 1}
-            className={`p-2 rounded-lg transition-colors ${
-              historyIndex >= history.length - 1
-                ? "opacity-50 cursor-not-allowed"
-                : darkMode
-                  ? "hover:bg-gray-700 text-gray-300"
-                  : "hover:bg-gray-100 text-gray-600"
-            }`}
-            title="Redo (Ctrl+Y)"
-          >
-            <RedoIcon fontSize="small" />
-          </button>
-
-          <div
-            className={`w-px h-6 ${darkMode ? "bg-gray-700" : "bg-gray-200"} mx-2`}
-          ></div>
-
-          {/* Keyboard Shortcuts Help */}
-          <button
-            onClick={() => setShowShortcutsHelp(true)}
-            className={`p-2 rounded-lg transition-colors ${
-              darkMode
-                ? "hover:bg-gray-700 text-gray-300"
-                : "hover:bg-gray-100 text-gray-600"
-            }`}
-            title="Keyboard Shortcuts (Shift+?)"
-          >
-            <KeyboardIcon fontSize="small" />
-          </button>
-
-          {/* PDF Export Button */}
-          <button
-            onClick={() => setShowPDFExport(true)}
-            className={`p-2 rounded-lg transition-colors ${
-              darkMode
-                ? "hover:bg-gray-700 text-gray-300"
-                : "hover:bg-gray-100 text-gray-600"
-            }`}
-            title="Export to PDF"
-          >
-            <PdfIcon fontSize="small" />
-          </button>
-
-          {/* Theme Selector Button */}
-          <button
-            onClick={() => setShowThemeSelector(true)}
-            className={`p-2 rounded-lg transition-colors ${
-              darkMode
-                ? "hover:bg-gray-700 text-gray-300"
-                : "hover:bg-gray-100 text-gray-600"
-            }`}
-            title="Change Theme"
-          >
-            <PaletteIcon fontSize="small" />
-          </button>
-
-          {/* Notification Center */}
-          <NotificationCenter darkMode={darkMode} />
-        </div>
-      </div>
-
       <Sidebar
-        drawerWidth={drawerWidth}
         activePage={activePage}
         setActivePage={setActivePage}
         tasks={tasks}
@@ -320,22 +239,101 @@ export default function Layout({ children }) {
         setFilter={(newFilter) =>
           dispatch({ type: "tasks/setFilter", payload: newFilter })
         }
-        exportToCSV={() => dispatch({ type: "tasks/exportToCSV" })}
-        importFromCSV={(e) =>
-          dispatch({ type: "tasks/importFromCSV", payload: e })
-        }
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
         onAddTask={() => setShowTaskForm(true)}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
-      <main
-        className={`flex-1 pt-20 p-8 animate-fade-in-up ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}
-        style={{ marginLeft: `${drawerWidth}px` }}
-      >
+      {/* Everything right of the drawer. The drawer is docked from lg up. */}
+      <div className="lg:pl-[280px]">
+        <header className="sticky top-0 z-sticky flex h-16 items-center gap-2 border-b border-[var(--border)] bg-[var(--surface)]/85 px-4 backdrop-blur-md sm:px-6">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSidebarOpen(true);
+            }}
+            aria-label="Open navigation"
+            className={`${iconBtn} lg:hidden`}
+          >
+            <MenuIcon fontSize="small" />
+          </button>
+
+          <h1 className="flex-1 truncate text-[15px] font-semibold capitalize tracking-[-0.01em] text-[var(--fg)]">
+            {activePage === "today" ? "Today" : activePage}
+          </h1>
+
+          <div className="flex items-center gap-0.5">
+            {/* Undo/redo are desktop-only — they need a pointer to be useful */}
+            <button
+              onClick={() => dispatch(undo())}
+              disabled={historyIndex <= 0}
+              className={`${iconBtn} hidden sm:inline-flex`}
+              title="Undo (Ctrl+Z)"
+              aria-label="Undo"
+            >
+              <UndoIcon fontSize="small" />
+            </button>
+            <button
+              onClick={() => dispatch(redo())}
+              disabled={historyIndex >= history.length - 1}
+              className={`${iconBtn} hidden sm:inline-flex`}
+              title="Redo (Ctrl+Y)"
+              aria-label="Redo"
+            >
+              <RedoIcon fontSize="small" />
+            </button>
+
+            <span
+              aria-hidden="true"
+              className="mx-1.5 hidden h-5 w-px bg-[var(--border)] sm:block"
+            />
+
+            <button
+              onClick={() => setShowShortcutsHelp(true)}
+              className={`${iconBtn} hidden md:inline-flex`}
+              title="Keyboard shortcuts (Shift+?)"
+              aria-label="Keyboard shortcuts"
+            >
+              <KeyboardIcon fontSize="small" />
+            </button>
+            <button
+              onClick={() => setShowPDFExport(true)}
+              className={`${iconBtn} hidden sm:inline-flex`}
+              title="Export to PDF"
+              aria-label="Export to PDF"
+            >
+              <PdfIcon fontSize="small" />
+            </button>
+            <button
+              onClick={() => setShowThemeSelector(true)}
+              className={iconBtn}
+              title="Appearance"
+              aria-label="Appearance"
+            >
+              <PaletteIcon fontSize="small" />
+            </button>
+
+            <NotificationCenter darkMode={darkMode} />
+          </div>
+        </header>
+
+        <main
+          id="main-content"
+          className="mx-auto w-full max-w-[1400px] animate-fade-in-up px-4 py-6 sm:px-6 sm:py-8"
+        >
         {/* Pinned/Favorites Tasks - Show on Tasks and Kanban pages */}
         {(activePage === "tasks" || activePage === "kanban") && (
           <FavoritesTasks
+            darkMode={darkMode}
+            onEditTask={(task) => {
+              setEditingTask(task);
+              setShowTaskForm(true);
+            }}
+          />
+        )}
+
+        {activePage === "today" && (
+          <TodayView
             darkMode={darkMode}
             onEditTask={(task) => {
               setEditingTask(task);
@@ -424,7 +422,8 @@ export default function Layout({ children }) {
         )}
 
         {activePage === "archived" && <ArchivedTasks darkMode={darkMode} />}
-      </main>
+        </main>
+      </div>
 
       {/* Task Form Modal */}
       {showTaskForm && (
@@ -489,31 +488,32 @@ export default function Layout({ children }) {
       />
 
       {/* Theme Selector Modal */}
+      {/* ThemeSelector reads `currentTheme`/`onThemeChange`; it was being given
+          `setDarkMode`, which it does not accept, so picking a theme did nothing. */}
       <ThemeSelector
         isOpen={showThemeSelector}
         onClose={() => setShowThemeSelector(false)}
         darkMode={darkMode}
-        setDarkMode={setDarkMode}
+        currentTheme={darkMode ? "default-dark" : "default-light"}
+        onThemeChange={(themeId) => setDarkMode(!String(themeId).includes("light"))}
       />
 
-      {/* Focus Mode */}
+      {/* Focus Mode — `isOpen` is required; without it the component returned
+          null on every render and the feature never appeared. */}
       {showFocusMode && focusTask && (
         <FocusMode
+          isOpen={showFocusMode}
           task={focusTask}
           onClose={() => {
             setShowFocusMode(false);
             setFocusTask(null);
           }}
-          onComplete={(task) => {
-            dispatch(
-              updateTask({
-                ...task,
-                status: "completed",
-                completedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              }),
-            );
-            triggerConfetti();
+          onTaskComplete={() => {
+            // FocusMode dispatches the status change itself and invokes this
+            // with no arguments, so there is nothing to update here.
+            fireConfetti();
+            setShowFocusMode(false);
+            setFocusTask(null);
           }}
           onNextTask={() => {
             const incompleteTasks = tasks.filter(
@@ -531,7 +531,7 @@ export default function Layout({ children }) {
       )}
 
       {/* Confetti Animation */}
-      <Confetti show={showConfetti} />
+      <Confetti trigger={confettiTrigger} />
     </div>
   );
 }

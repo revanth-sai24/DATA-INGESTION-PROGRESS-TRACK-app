@@ -6,12 +6,17 @@
     "dev": "next dev -p 2406",
     "build": "next build",
     "start": "next start -p 2406",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:migrate": "node scripts/migrate.mjs up",
+    "db:status": "node scripts/migrate.mjs status",
+    "db:reset": "node scripts/migrate.mjs reset",
+    "db:import": "node scripts/import-csv.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@hello-pangea/dnd": "^18.0.1",
+    "@libsql/client": "^0.17.4",
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "@mui/x-date-pickers": "^8.4.0",

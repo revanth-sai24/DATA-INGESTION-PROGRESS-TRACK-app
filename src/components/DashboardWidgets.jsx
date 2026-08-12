@@ -23,15 +23,9 @@ const TotalTasksWidget = ({ darkMode }) => {
   const total = tasks.filter((t) => t.status !== "archived").length;
 
   return (
-    <div className="text-center">
-      <div
-        className={`text-4xl font-bold mb-2 ${darkMode ? "text-white" : "text-gray-800"}`}
-      >
-        {total}
-      </div>
-      <div
-        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
+    <div>
+      <div className="kpi-value">{total}</div>
+      <div className="kpi-meta">
         Total Tasks
       </div>
     </div>
@@ -45,15 +39,9 @@ const CompletedWidget = ({ darkMode }) => {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <div className="text-center">
-      <div className={`text-4xl font-bold mb-2 text-green-500`}>
-        {completed}
-      </div>
-      <div
-        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
-        Completed ({percentage}%)
-      </div>
+    <div>
+      <div className="kpi-value" style={{ color: "var(--success)" }}>{completed}</div>
+      <div className="kpi-meta">Completed ({percentage}%)</div>
     </div>
   );
 };
@@ -67,15 +55,14 @@ const OverdueWidget = ({ darkMode }) => {
   }).length;
 
   return (
-    <div className="text-center">
+    <div>
       <div
-        className={`text-4xl font-bold mb-2 ${overdue > 0 ? "text-red-500" : "text-green-500"}`}
+        className="kpi-value"
+        style={{ color: overdue > 0 ? "var(--danger)" : "var(--success)" }}
       >
         {overdue}
       </div>
-      <div
-        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
+      <div className="kpi-meta">
         Overdue Tasks
       </div>
     </div>
@@ -92,15 +79,14 @@ const DueTodayWidget = ({ darkMode }) => {
   }).length;
 
   return (
-    <div className="text-center">
+    <div>
       <div
-        className={`text-4xl font-bold mb-2 ${dueToday > 0 ? "text-yellow-500" : darkMode ? "text-gray-400" : "text-gray-500"}`}
+        className="kpi-value"
+        style={{ color: dueToday > 0 ? "var(--accent-2)" : "var(--fg-subtle)" }}
       >
         {dueToday}
       </div>
-      <div
-        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
+      <div className="kpi-meta">
         Due Today
       </div>
     </div>
@@ -117,15 +103,9 @@ const HighPriorityWidget = ({ darkMode }) => {
   ).length;
 
   return (
-    <div className="text-center">
-      <div className={`text-4xl font-bold mb-2 text-red-500`}>
-        {highPriority}
-      </div>
-      <div
-        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
-        High Priority
-      </div>
+    <div>
+      <div className="kpi-value" style={{ color: "var(--danger)" }}>{highPriority}</div>
+      <div className="kpi-meta">High Priority</div>
     </div>
   );
 };
@@ -135,15 +115,9 @@ const InProgressWidget = ({ darkMode }) => {
   const inProgress = tasks.filter((t) => t.status === "in-progress").length;
 
   return (
-    <div className="text-center">
-      <div className={`text-4xl font-bold mb-2 text-blue-500`}>
-        {inProgress}
-      </div>
-      <div
-        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
-        In Progress
-      </div>
+    <div>
+      <div className="kpi-value" style={{ color: "var(--accent)" }}>{inProgress}</div>
+      <div className="kpi-meta">In Progress</div>
     </div>
   );
 };
@@ -152,15 +126,9 @@ const ProjectsWidget = ({ darkMode }) => {
   const projects = useSelector((state) => state.tasks.projects);
 
   return (
-    <div className="text-center">
-      <div
-        className={`text-4xl font-bold mb-2 ${darkMode ? "text-purple-400" : "text-purple-500"}`}
-      >
-        {projects.length}
-      </div>
-      <div
-        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
+    <div>
+      <div className="kpi-value">{projects.length}</div>
+      <div className="kpi-meta">
         Projects
       </div>
     </div>
@@ -174,13 +142,9 @@ const PinnedWidget = ({ darkMode }) => {
   ).length;
 
   return (
-    <div className="text-center">
-      <div className={`text-4xl font-bold mb-2 text-yellow-500`}>{pinned}</div>
-      <div
-        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
-        Pinned Tasks
-      </div>
+    <div>
+      <div className="kpi-value" style={{ color: "var(--warning)" }}>{pinned}</div>
+      <div className="kpi-meta">Pinned Tasks</div>
     </div>
   );
 };
@@ -209,7 +173,7 @@ const RecentTasksWidget = ({ darkMode }) => {
         ))
       ) : (
         <div
-          className={`text-center text-sm ${darkMode ? "text-gray-500" : "text-gray-400"}`}
+          className={`text-center text-sm text-[var(--fg-subtle)]`}
         >
           No recent tasks
         </div>
@@ -238,7 +202,7 @@ const WeeklyProgressWidget = ({ darkMode }) => {
     <div className="space-y-2">
       <div className="flex justify-between items-center">
         <span
-          className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+          className={`text-sm text-[var(--fg-subtle)]`}
         >
           Completed
         </span>
@@ -246,12 +210,12 @@ const WeeklyProgressWidget = ({ darkMode }) => {
       </div>
       <div className="flex justify-between items-center">
         <span
-          className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+          className={`text-sm text-[var(--fg-subtle)]`}
         >
           Created
         </span>
         <span
-          className={`font-bold ${darkMode ? "text-blue-400" : "text-blue-500"}`}
+          className={`font-bold text-[var(--accent)]`}
         >
           {createdThisWeek}
         </span>
@@ -359,19 +323,13 @@ export default function DashboardWidgets({ darkMode }) {
     <div className="mb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2
-          className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
-        >
-          Quick Stats
-        </h2>
+        <h2 className="panel-title">Overview</h2>
         <button
           onClick={() => setIsCustomizing(!isCustomizing)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`flex items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-xs font-medium transition-colors ${
             isCustomizing
-              ? "bg-blue-500 text-white"
-              : darkMode
-                ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-[var(--accent)] text-[var(--accent-fg)]"
+              : "border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
           }`}
         >
           <SettingsIcon fontSize="small" />
@@ -382,10 +340,10 @@ export default function DashboardWidgets({ darkMode }) {
       {/* Widget Selector (shown when customizing) */}
       {isCustomizing && (
         <div
-          className={`mb-4 p-4 rounded-xl ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+          className={`mb-4 p-4 rounded-xl bg-[var(--surface)]`}
         >
           <p
-            className={`text-sm mb-3 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+            className={`text-sm mb-3 text-[var(--fg-subtle)]`}
           >
             Click to toggle widgets:
           </p>
@@ -411,7 +369,7 @@ export default function DashboardWidgets({ darkMode }) {
       )}
 
       {/* Widgets Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {activeWidgets.map((widgetId) => {
           const widget = AVAILABLE_WIDGETS.find((w) => w.id === widgetId);
           if (!widget) return null;
@@ -420,28 +378,15 @@ export default function DashboardWidgets({ darkMode }) {
           const colSpan = widget.size === "medium" ? "col-span-2" : "";
 
           return (
-            <div
-              key={widget.id}
-              className={`${colSpan} p-4 rounded-xl transition-all ${
-                darkMode
-                  ? "bg-gray-800 hover:bg-gray-750"
-                  : "bg-white hover:shadow-lg"
-              } shadow-md relative group`}
-            >
+            <div key={widget.id} className={`kpi group relative ${colSpan}`}>
               {/* Widget Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-center gap-1.5">
                   <widget.icon
-                    className={`${darkMode ? "text-gray-500" : "text-gray-400"}`}
-                    fontSize="small"
+                    sx={{ fontSize: 13 }}
+                    className="flex-none text-[var(--fg-subtle)]"
                   />
-                  <span
-                    className={`text-xs font-medium uppercase tracking-wide ${
-                      darkMode ? "text-gray-500" : "text-gray-400"
-                    }`}
-                  >
-                    {widget.name}
-                  </span>
+                  <span className="kpi-label truncate">{widget.name}</span>
                 </div>
                 {isCustomizing && (
                   <button

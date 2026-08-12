@@ -96,7 +96,7 @@ export default function Filters({ filter, setFilter, projects, clearFilters, dar
           <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Actions</label>
           <button
             onClick={handleClearFilters}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-4 py-2.5 font-medium text-[var(--fg)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface)] active:translate-y-px"
           >
             <ClearIcon fontSize="small" />
             Clear All

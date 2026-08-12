@@ -32,14 +32,7 @@ import {
   Schedule as ScheduleIcon,
 } from "@mui/icons-material";
 
-const COLORS = [
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#8B5CF6",
-  "#EC4899",
-];
+const COLORS = ["#1E40AF", "#3B82F6", "#0891B2", "#B45309", "#15803D", "#7C3AED"];
 
 export default function AdvancedAnalytics({ darkMode }) {
   const tasks = useSelector((state) => state.tasks.tasks);
@@ -269,12 +262,12 @@ export default function AdvancedAnalytics({ darkMode }) {
       {/* Time Range Selector */}
       <div className="flex items-center justify-between">
         <h2
-          className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+          className={`text-2xl font-bold text-[var(--fg)]`}
         >
           Advanced Analytics
         </h2>
         <div
-          className={`flex gap-1 p-1 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}
+          className={`flex gap-1 p-1 rounded-lg bg-[var(--surface-2)]`}
         >
           {[
             { id: "week", label: "7 Days" },
@@ -307,12 +300,12 @@ export default function AdvancedAnalytics({ darkMode }) {
             </div>
             <div>
               <h3
-                className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`text-lg font-semibold text-[var(--fg)]`}
               >
                 This Week's Performance
               </h3>
               <p
-                className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-sm text-[var(--fg-subtle)]`}
               >
                 Compared to last week
               </p>
@@ -334,37 +327,37 @@ export default function AdvancedAnalytics({ darkMode }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div
-            className={`p-4 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-50"}`}
+            className={`p-4 rounded-lg bg-[var(--surface-2)]`}
           >
             <div
-              className={`text-3xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`text-3xl font-bold text-[var(--fg)]`}
             >
               {weeklyStats.completed}
             </div>
             <div
-              className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm text-[var(--fg-subtle)]`}
             >
               Tasks Completed
             </div>
           </div>
           <div
-            className={`p-4 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-50"}`}
+            className={`p-4 rounded-lg bg-[var(--surface-2)]`}
           >
             <div
-              className={`text-3xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`text-3xl font-bold text-[var(--fg)]`}
             >
               {weeklyStats.created}
             </div>
             <div
-              className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm text-[var(--fg-subtle)]`}
             >
               Tasks Created
             </div>
           </div>
           <div
-            className={`p-4 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-50"}`}
+            className={`p-4 rounded-lg bg-[var(--surface-2)]`}
           >
             <div
               className={`text-3xl font-bold ${
@@ -377,7 +370,7 @@ export default function AdvancedAnalytics({ darkMode }) {
               {weeklyStats.completed - weeklyStats.created}
             </div>
             <div
-              className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm text-[var(--fg-subtle)]`}
             >
               Net Progress
             </div>
@@ -393,12 +386,12 @@ export default function AdvancedAnalytics({ darkMode }) {
           </div>
           <div>
             <h3
-              className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`text-lg font-semibold text-[var(--fg)]`}
             >
               Completion Trends
             </h3>
             <p
-              className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm text-[var(--fg-subtle)]`}
             >
               Tasks completed vs created over time
             </p>
@@ -465,19 +458,19 @@ export default function AdvancedAnalytics({ darkMode }) {
           </div>
           <div>
             <h3
-              className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`text-lg font-semibold text-[var(--fg)]`}
             >
               Priority Matrix
             </h3>
             <p
-              className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm text-[var(--fg-subtle)]`}
             >
               Eisenhower decision matrix for active tasks
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Urgent & Important */}
           <div
             className={`p-4 rounded-lg border-2 border-red-500 ${darkMode ? "bg-red-900/20" : "bg-red-50"}`}
@@ -487,13 +480,13 @@ export default function AdvancedAnalytics({ darkMode }) {
                 DO FIRST
               </span>
               <span
-                className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`text-2xl font-bold text-[var(--fg)]`}
               >
                 {priorityMatrix.urgentImportant.length}
               </span>
             </div>
             <div
-              className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-xs text-[var(--fg-subtle)]`}
             >
               Urgent & Important
             </div>
@@ -501,7 +494,7 @@ export default function AdvancedAnalytics({ darkMode }) {
               {priorityMatrix.urgentImportant.slice(0, 3).map((task) => (
                 <div
                   key={task.id}
-                  className={`text-xs truncate ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+                  className={`text-xs truncate text-[var(--fg-muted)]`}
                 >
                   • {task.title}
                 </div>
@@ -518,13 +511,13 @@ export default function AdvancedAnalytics({ darkMode }) {
                 SCHEDULE
               </span>
               <span
-                className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`text-2xl font-bold text-[var(--fg)]`}
               >
                 {priorityMatrix.notUrgentImportant.length}
               </span>
             </div>
             <div
-              className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-xs text-[var(--fg-subtle)]`}
             >
               Important, Not Urgent
             </div>
@@ -532,7 +525,7 @@ export default function AdvancedAnalytics({ darkMode }) {
               {priorityMatrix.notUrgentImportant.slice(0, 3).map((task) => (
                 <div
                   key={task.id}
-                  className={`text-xs truncate ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+                  className={`text-xs truncate text-[var(--fg-muted)]`}
                 >
                   • {task.title}
                 </div>
@@ -549,13 +542,13 @@ export default function AdvancedAnalytics({ darkMode }) {
                 DELEGATE
               </span>
               <span
-                className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`text-2xl font-bold text-[var(--fg)]`}
               >
                 {priorityMatrix.urgentNotImportant.length}
               </span>
             </div>
             <div
-              className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-xs text-[var(--fg-subtle)]`}
             >
               Urgent, Not Important
             </div>
@@ -563,7 +556,7 @@ export default function AdvancedAnalytics({ darkMode }) {
               {priorityMatrix.urgentNotImportant.slice(0, 3).map((task) => (
                 <div
                   key={task.id}
-                  className={`text-xs truncate ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+                  className={`text-xs truncate text-[var(--fg-muted)]`}
                 >
                   • {task.title}
                 </div>
@@ -573,22 +566,22 @@ export default function AdvancedAnalytics({ darkMode }) {
 
           {/* Not Urgent & Not Important */}
           <div
-            className={`p-4 rounded-lg border-2 border-gray-400 ${darkMode ? "bg-gray-700/50" : "bg-gray-50"}`}
+            className={`p-4 rounded-lg border-2 border-gray-400 bg-[var(--surface-2)]`}
           >
             <div className="flex items-center justify-between mb-2">
               <span
-                className={`font-semibold text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`font-semibold text-sm text-[var(--fg-subtle)]`}
               >
                 ELIMINATE
               </span>
               <span
-                className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`text-2xl font-bold text-[var(--fg)]`}
               >
                 {priorityMatrix.notUrgentNotImportant.length}
               </span>
             </div>
             <div
-              className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-xs text-[var(--fg-subtle)]`}
             >
               Not Urgent, Not Important
             </div>
@@ -596,7 +589,7 @@ export default function AdvancedAnalytics({ darkMode }) {
               {priorityMatrix.notUrgentNotImportant.slice(0, 3).map((task) => (
                 <div
                   key={task.id}
-                  className={`text-xs truncate ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+                  className={`text-xs truncate text-[var(--fg-muted)]`}
                 >
                   • {task.title}
                 </div>
@@ -614,12 +607,12 @@ export default function AdvancedAnalytics({ darkMode }) {
           </div>
           <div>
             <h3
-              className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`text-lg font-semibold text-[var(--fg)]`}
             >
               Activity Heatmap
             </h3>
             <p
-              className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm text-[var(--fg-subtle)]`}
             >
               Task completion activity over the last 12 weeks
             </p>
@@ -639,7 +632,7 @@ export default function AdvancedAnalytics({ darkMode }) {
             {workloadHeatmap.map((week, weekIndex) => (
               <div key={weekIndex} className="flex flex-col gap-1">
                 <div
-                  className={`text-xs text-center ${darkMode ? "text-gray-500" : "text-gray-400"}`}
+                  className={`text-xs text-center text-[var(--fg-subtle)]`}
                 >
                   {weekIndex === 0 ? "W1" : weekIndex === 11 ? "Now" : ""}
                 </div>
@@ -657,19 +650,19 @@ export default function AdvancedAnalytics({ darkMode }) {
 
         <div className="flex items-center gap-2 mt-4 justify-end">
           <span
-            className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}
+            className={`text-xs text-[var(--fg-subtle)]`}
           >
             Less
           </span>
           <div
-            className={`w-4 h-4 rounded-sm ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}
+            className={`w-4 h-4 rounded-sm bg-[var(--surface-3)]`}
           ></div>
           <div className="w-4 h-4 rounded-sm bg-green-300"></div>
           <div className="w-4 h-4 rounded-sm bg-green-400"></div>
           <div className="w-4 h-4 rounded-sm bg-green-500"></div>
           <div className="w-4 h-4 rounded-sm bg-green-600"></div>
           <span
-            className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}
+            className={`text-xs text-[var(--fg-subtle)]`}
           >
             More
           </span>
@@ -685,12 +678,12 @@ export default function AdvancedAnalytics({ darkMode }) {
             </div>
             <div>
               <h3
-                className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`text-lg font-semibold text-[var(--fg)]`}
               >
                 Overdue Tasks Alert
               </h3>
               <p
-                className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-sm text-[var(--fg-subtle)]`}
               >
                 {overdueStats.total} task{overdueStats.total > 1 ? "s" : ""}{" "}
                 past due date
@@ -698,7 +691,7 @@ export default function AdvancedAnalytics({ darkMode }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div
               className={`p-3 rounded-lg ${darkMode ? "bg-red-900/30" : "bg-red-50"}`}
             >
@@ -706,7 +699,7 @@ export default function AdvancedAnalytics({ darkMode }) {
                 {overdueStats.byPriority.high}
               </div>
               <div
-                className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-xs text-[var(--fg-subtle)]`}
               >
                 High Priority
               </div>
@@ -718,7 +711,7 @@ export default function AdvancedAnalytics({ darkMode }) {
                 {overdueStats.byPriority.medium}
               </div>
               <div
-                className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-xs text-[var(--fg-subtle)]`}
               >
                 Medium Priority
               </div>
@@ -730,7 +723,7 @@ export default function AdvancedAnalytics({ darkMode }) {
                 {overdueStats.byPriority.low}
               </div>
               <div
-                className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-xs text-[var(--fg-subtle)]`}
               >
                 Low Priority
               </div>
@@ -741,7 +734,7 @@ export default function AdvancedAnalytics({ darkMode }) {
             {overdueStats.tasks.slice(0, 5).map((task) => (
               <div
                 key={task.id}
-                className={`flex items-center justify-between p-2 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-50"}`}
+                className={`flex items-center justify-between p-2 rounded-lg bg-[var(--surface-2)]`}
               >
                 <div className="flex items-center gap-2">
                   <FlagIcon
@@ -755,7 +748,7 @@ export default function AdvancedAnalytics({ darkMode }) {
                     fontSize="small"
                   />
                   <span
-                    className={`text-sm truncate max-w-xs ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                    className={`text-sm truncate max-w-xs text-[var(--fg-muted)]`}
                   >
                     {task.title}
                   </span>
@@ -777,12 +770,12 @@ export default function AdvancedAnalytics({ darkMode }) {
           </div>
           <div>
             <h3
-              className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+              className={`text-lg font-semibold text-[var(--fg)]`}
             >
               Task Status Distribution
             </h3>
             <p
-              className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm text-[var(--fg-subtle)]`}
             >
               Current breakdown of all tasks by status
             </p>
@@ -825,13 +818,13 @@ export default function AdvancedAnalytics({ darkMode }) {
                 ></div>
                 <div className="flex-1">
                   <div
-                    className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                    className={`text-sm font-medium text-[var(--fg-muted)]`}
                   >
                     {status.name}
                   </div>
                 </div>
                 <div
-                  className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-800"}`}
+                  className={`text-lg font-bold text-[var(--fg)]`}
                 >
                   {status.value}
                 </div>

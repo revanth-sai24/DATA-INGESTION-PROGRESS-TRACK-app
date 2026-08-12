@@ -341,16 +341,16 @@ export default function TaskList({
     <div className="space-y-6">
       {/* Tasks Header with View Toggle */}
       <div
-        className={`flex justify-between items-center ${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg p-4 shadow-sm`}
+        className={`flex justify-between items-center bg-[var(--surface)] rounded-lg p-4 shadow-sm`}
       >
         <div>
           <h2
-            className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+            className={`text-xl font-semibold text-[var(--fg)]`}
           >
             {activePage === "archived" ? "Archived Tasks" : "Tasks"}
           </h2>
           <p
-            className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-500"} mt-1`}
+            className={`text-sm text-[var(--fg-muted)] mt-1`}
           >
             {filteredTasks.length}{" "}
             {filteredTasks.length === 1 ? "task" : "tasks"} found
@@ -382,14 +382,14 @@ export default function TaskList({
           </button>
 
           <div
-            className={`flex items-center gap-2 ${darkMode ? "bg-gray-700" : "bg-gray-100"} rounded-lg p-1`}
+            className={`flex items-center gap-2 bg-[var(--surface-2)] rounded-lg p-1`}
           >
             <button
               onClick={() => setViewMode("card")}
               className={`p-2 rounded-md transition-all duration-200 ${
                 viewMode === "card"
-                  ? `${darkMode ? "bg-gray-600 text-blue-400" : "bg-white text-blue-600"} shadow-sm`
-                  : `${darkMode ? "text-gray-300 hover:text-white hover:bg-gray-600/50" : "text-gray-600 hover:text-gray-800 hover:bg-white/50"}`
+                  ? `bg-[var(--surface)] text-[var(--accent)] shadow-sm`
+                  : `text-[var(--fg-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--fg)]`
               }`}
               title="Card View"
             >
@@ -399,8 +399,8 @@ export default function TaskList({
               onClick={() => setViewMode("table")}
               className={`p-2 rounded-md transition-all duration-200 ${
                 viewMode === "table"
-                  ? `${darkMode ? "bg-gray-600 text-blue-400" : "bg-white text-blue-600"} shadow-sm`
-                  : `${darkMode ? "text-gray-300 hover:text-white hover:bg-gray-600/50" : "text-gray-600 hover:text-gray-800 hover:bg-white/50"}`
+                  ? `bg-[var(--surface)] text-[var(--accent)] shadow-sm`
+                  : `text-[var(--fg-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--fg)]`
               }`}
               title="Table View"
             >
@@ -421,7 +421,7 @@ export default function TaskList({
         >
           <div className="flex items-center gap-3">
             <span
-              className={`font-medium ${darkMode ? "text-blue-300" : "text-blue-700"}`}
+              className={`font-medium text-[var(--accent)]`}
             >
               {selectedTasks.length} task{selectedTasks.length > 1 ? "s" : ""}{" "}
               selected
@@ -520,18 +520,18 @@ export default function TaskList({
       {filteredTasks.length === 0 ? (
         /* Empty State */
         <div
-          className={`text-center py-12 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg`}
+          className={`text-center py-12 bg-[var(--surface)] rounded-lg`}
         >
           <TaskIcon
-            className={`mx-auto ${darkMode ? "text-gray-500" : "text-gray-400"} mb-4`}
+            className={`mx-auto text-[var(--fg-subtle)] mb-4`}
             style={{ fontSize: 64 }}
           />
           <h3
-            className={`text-lg font-medium ${darkMode ? "text-gray-200" : "text-gray-600"} mb-2`}
+            className={`text-lg font-medium text-[var(--fg-muted)] mb-2`}
           >
             No tasks found
           </h3>
-          <p className={`${darkMode ? "text-gray-400" : "text-gray-500"} mb-6`}>
+          <p className={`text-[var(--fg-subtle)] mb-6`}>
             {activePage === "archived"
               ? "No archived tasks to display"
               : "Create your first task to get started"}
@@ -611,7 +611,7 @@ export default function TaskList({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
                     <h3
-                      className={`font-semibold ${darkMode ? "text-white" : "text-gray-800"} truncate`}
+                      className={`font-semibold text-[var(--fg)] truncate`}
                     >
                       {task.title}
                     </h3>
@@ -640,14 +640,14 @@ export default function TaskList({
 
                   {task.description && (
                     <p
-                      className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"} mb-3 line-clamp-2`}
+                      className={`text-sm text-[var(--fg-muted)] mb-3 line-clamp-2`}
                     >
                       {task.description}
                     </p>
                   )}
 
                   <div
-                    className={`flex flex-wrap items-center gap-4 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                    className={`flex flex-wrap items-center gap-4 text-sm text-[var(--fg-subtle)]`}
                   >
                     {task.project && (
                       <div className="flex items-center gap-1">
@@ -783,7 +783,7 @@ export default function TaskList({
                             <span
                               className={`text-sm ${
                                 checkpoint.completed
-                                  ? `line-through ${darkMode ? "text-gray-400" : "text-gray-500"}`
+                                  ? `line-through text-[var(--fg-subtle)]`
                                   : darkMode
                                     ? "text-gray-300"
                                     : "text-gray-700"
@@ -795,7 +795,7 @@ export default function TaskList({
                         ))}
                         {task.checkpoints.length > 3 && (
                           <div
-                            className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} ml-6`}
+                            className={`text-xs text-[var(--fg-subtle)] ml-6`}
                           >
                             +{task.checkpoints.length - 3} more checkpoints
                           </div>
@@ -993,13 +993,11 @@ export default function TaskList({
               scrollbarColor: darkMode ? "#374151 #111827" : "#D1D5DB #F9FAFB",
             }}
           >
-            <table className="w-full table-fixed min-w-[1300px] border-collapse">
-              <thead
-                className={`${darkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"} border-b sticky top-0 z-20`}
-              >
+            <table className="data-table w-full min-w-[900px] table-fixed">
+              <thead>
                 <tr>
                   <th
-                    className={`px-4 py-3 w-12 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                    className="w-12"
                   >
                     <button
                       onClick={handleSelectAll}
@@ -1021,22 +1019,22 @@ export default function TaskList({
                     </button>
                   </th>
                   <th
-                    className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-500"} uppercase tracking-wider w-64 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                    className="w-64"
                   >
                     Task
                   </th>
                   <th
-                    className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-500"} uppercase tracking-wider w-32 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                    className="w-32"
                   >
                     Project
                   </th>
                   <th
-                    className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-500"} uppercase tracking-wider w-24 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                    className="w-24"
                   >
                     Priority
                   </th>
                   <th
-                    className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-500"} uppercase tracking-wider w-28 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                    className="w-28"
                   >
                     Status
                   </th>
@@ -1047,7 +1045,7 @@ export default function TaskList({
                     Working With
                   </th> */}
                   <th
-                    className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-500"} uppercase tracking-wider w-24 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                    className="w-24"
                   >
                     Due Date
                   </th>
@@ -1055,27 +1053,27 @@ export default function TaskList({
                     Checkpoints
                   </th> */}
                   <th
-                    className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-500"} uppercase tracking-wider w-24 border-r ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                    className="w-24"
                   >
                     Documents
                   </th>
                   <th
-                    className={`text-right px-4 py-3 text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-500"} uppercase tracking-wider w-32`}
+                    className={`text-right px-4 py-3 text-xs font-medium text-[var(--fg-muted)] uppercase tracking-wider w-32`}
                   >
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody
-                className={`${darkMode ? "bg-gray-800 divide-gray-700" : "bg-white divide-gray-200"} divide-y`}
+                className={`bg-[var(--surface)] divide-gray-700 divide-y`}
               >
                 {filteredTasks.map((task) => (
                   <tr
                     key={task.id}
-                    className={`${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"} border-b ${darkMode ? "border-gray-700" : "border-gray-200"} ${task.colorLabel ? `border-l-4 ${COLOR_LABELS[task.colorLabel]?.split(" ")[0] || ""}` : ""} ${selectedTasks.includes(task.id) ? (darkMode ? "bg-blue-900/20" : "bg-blue-50") : ""}`}
+                    className={` border-b border-[var(--border)] ${task.colorLabel ? `border-l-4 ${COLOR_LABELS[task.colorLabel]?.split(" ")[0] || ""}` : ""} ${selectedTasks.includes(task.id) ? (darkMode ? "bg-blue-900/20" : "bg-blue-50") : ""}`}
                   >
                     <td
-                      className={`px-4 py-4 w-12 border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                      className={`px-4 py-4 w-12`}
                     >
                       <button
                         onClick={() => handleSelectTask(task.id)}
@@ -1095,7 +1093,7 @@ export default function TaskList({
                       </button>
                     </td>
                     <td
-                      className={`px-4 py-4 w-64 border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                      className={`px-4 py-4 w-64`}
                     >
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
@@ -1106,7 +1104,7 @@ export default function TaskList({
                             />
                           )}
                           <div
-                            className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"} truncate`}
+                            className={`text-sm font-medium text-[var(--fg)] truncate`}
                           >
                             {task.title}
                           </div>
@@ -1129,7 +1127,7 @@ export default function TaskList({
                         </div>
                         {task.description && (
                           <div
-                            className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"} truncate`}
+                            className={`text-sm text-[var(--fg-subtle)] truncate`}
                           >
                             {task.description}
                           </div>
@@ -1150,7 +1148,7 @@ export default function TaskList({
                             ))}
                             {task.tags.length > 2 && (
                               <span
-                                className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                                className={`text-xs text-[var(--fg-subtle)]`}
                               >
                                 +{task.tags.length - 2}
                               </span>
@@ -1160,12 +1158,12 @@ export default function TaskList({
                       </div>
                     </td>
                     <td
-                      className={`px-4 py-4 text-sm ${darkMode ? "text-gray-300" : "text-gray-900"} w-32 truncate border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                      className={`px-4 py-4 text-sm text-[var(--fg)] w-32 truncate`}
                     >
                       {task.project || "-"}
                     </td>
                     <td
-                      className={`px-4 py-4 w-24 border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                      className={`px-4 py-4 w-24`}
                     >
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)} whitespace-nowrap`}
@@ -1174,7 +1172,7 @@ export default function TaskList({
                       </span>
                     </td>
                     <td
-                      className={`px-4 py-4 w-28 border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                      className={`px-4 py-4 w-28`}
                     >
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)} whitespace-nowrap`}
@@ -1189,7 +1187,7 @@ export default function TaskList({
                       {task.workingWith || '-'}
                     </td> */}
                     <td
-                      className={`px-4 py-4 text-sm ${darkMode ? "text-gray-300" : "text-gray-900"} w-24 whitespace-nowrap border-r ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                      className={`px-4 py-4 text-sm text-[var(--fg)] w-24 whitespace-nowrap`}
                     >
                       {task.dueDate ? formatDate(task.dueDate) : "-"}
                     </td>
@@ -1239,20 +1237,20 @@ export default function TaskList({
                       )}
                     </td> */}
                     <td
-                      className={`px-4 py-4 w-24 border-r ${darkMode ? "border-gray-700" : "border-gray-200"} text-center`}
+                      className={`px-4 py-4 w-24 text-center`}
                     >
                       {task.documents && task.documents.length > 0 ? (
                         <div className="flex items-center justify-center gap-1">
                           <span className="text-lg">📎</span>
                           <span
-                            className={`text-xs font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                            className={`text-xs font-medium text-[var(--fg-muted)]`}
                           >
                             {task.documents.length}
                           </span>
                         </div>
                       ) : (
                         <span
-                          className={`text-sm ${darkMode ? "text-gray-500" : "text-gray-400"}`}
+                          className={`text-sm text-[var(--fg-subtle)]`}
                         >
                           -
                         </span>

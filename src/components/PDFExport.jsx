@@ -306,7 +306,7 @@ export default function PDFExport({ darkMode, isOpen, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
       <div
-        className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-2xl w-full max-w-md p-6 animate-scale-in`}
+        className={`bg-[var(--surface)] rounded-xl shadow-2xl w-full max-w-md p-6 animate-scale-in`}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -316,12 +316,12 @@ export default function PDFExport({ darkMode, isOpen, onClose }) {
             </div>
             <div>
               <h2
-                className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`text-xl font-semibold text-[var(--fg)]`}
               >
                 Export to PDF
               </h2>
               <p
-                className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-sm text-[var(--fg-subtle)]`}
               >
                 Generate a report
               </p>
@@ -329,7 +329,7 @@ export default function PDFExport({ darkMode, isOpen, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg transition-colors ${darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
+            className={`p-2 rounded-lg transition-colors text-[var(--fg-muted)] hover:bg-[var(--surface-2)]`}
           >
             <CloseIcon />
           </button>
@@ -338,11 +338,11 @@ export default function PDFExport({ darkMode, isOpen, onClose }) {
         {/* Export Type Selection */}
         <div className="space-y-3 mb-6">
           <label
-            className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+            className={`text-sm font-medium text-[var(--fg-muted)]`}
           >
             Report Type
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {[
               { id: "tasks", label: "Tasks", icon: TaskListIcon },
               { id: "analytics", label: "Analytics", icon: AnalyticsIcon },
@@ -375,13 +375,13 @@ export default function PDFExport({ darkMode, isOpen, onClose }) {
         {/* Options */}
         <div className="space-y-3 mb-6">
           <label
-            className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+            className={`text-sm font-medium text-[var(--fg-muted)]`}
           >
             Include
           </label>
           <div className="space-y-2">
             <label
-              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${darkMode ? "bg-gray-700 hover:bg-gray-650" : "bg-gray-50 hover:bg-gray-100"}`}
+              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer bg-[var(--surface-2)] hover:bg-[var(--surface-3)]`}
             >
               <input
                 type="checkbox"
@@ -390,13 +390,13 @@ export default function PDFExport({ darkMode, isOpen, onClose }) {
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
               <span
-                className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                className={`text-sm text-[var(--fg-muted)]`}
               >
                 Completed Tasks
               </span>
             </label>
             <label
-              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${darkMode ? "bg-gray-700 hover:bg-gray-650" : "bg-gray-50 hover:bg-gray-100"}`}
+              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer bg-[var(--surface-2)] hover:bg-[var(--surface-3)]`}
             >
               <input
                 type="checkbox"
@@ -405,7 +405,7 @@ export default function PDFExport({ darkMode, isOpen, onClose }) {
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
               <span
-                className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                className={`text-sm text-[var(--fg-muted)]`}
               >
                 Archived Tasks
               </span>

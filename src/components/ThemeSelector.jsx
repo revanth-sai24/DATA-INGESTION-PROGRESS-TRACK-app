@@ -191,7 +191,7 @@ export default function ThemeSelector({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
       <div
-        className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-2xl w-full max-w-2xl p-6 animate-scale-in max-h-[80vh] overflow-y-auto`}
+        className={`bg-[var(--surface)] rounded-xl shadow-2xl w-full max-w-2xl p-6 animate-scale-in max-h-[80vh] overflow-y-auto`}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -201,12 +201,12 @@ export default function ThemeSelector({
             </div>
             <div>
               <h2
-                className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+                className={`text-xl font-semibold text-[var(--fg)]`}
               >
                 Choose Theme
               </h2>
               <p
-                className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-sm text-[var(--fg-subtle)]`}
               >
                 Customize your workspace appearance
               </p>
@@ -261,7 +261,7 @@ export default function ThemeSelector({
 
               {/* Theme Name */}
               <div
-                className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                className={`text-sm font-medium text-[var(--fg-muted)]`}
               >
                 {theme.name}
               </div>
@@ -278,11 +278,11 @@ export default function ThemeSelector({
 
         {/* Quick Toggle */}
         <div
-          className={`mt-6 p-4 rounded-xl ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}
+          className={`mt-6 p-4 rounded-xl bg-[var(--surface-2)]`}
         >
           <div className="flex items-center justify-between">
             <span
-              className={`font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+              className={`font-medium text-[var(--fg-muted)]`}
             >
               Quick Mode Toggle
             </span>

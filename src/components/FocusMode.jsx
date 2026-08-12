@@ -139,11 +139,11 @@ export default function FocusMode({
 
   return (
     <div
-      className={`fixed inset-0 z-[100] ${darkMode ? "bg-gray-900" : "bg-gray-100"} flex flex-col`}
+      className={`fixed inset-0 z-[100] bg-[var(--app-bg)] flex flex-col`}
     >
       {/* Header */}
       <div
-        className={`flex items-center justify-between p-4 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-md`}
+        className={`flex items-center justify-between p-4 bg-[var(--surface)] shadow-md`}
       >
         <div className="flex items-center gap-4">
           <button
@@ -157,7 +157,7 @@ export default function FocusMode({
             <CloseIcon />
           </button>
           <div
-            className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}
+            className={`text-xl font-semibold text-[var(--fg)]`}
           >
             Focus Mode
           </div>
@@ -217,7 +217,7 @@ export default function FocusMode({
         >
           {/* Task Title */}
           <h1
-            className={`text-3xl font-bold mb-4 ${darkMode ? "text-white" : "text-gray-800"}`}
+            className={`text-3xl font-bold mb-4 text-[var(--fg)]`}
           >
             {task.title}
           </h1>
@@ -225,7 +225,7 @@ export default function FocusMode({
           {/* Task Description */}
           {task.description && (
             <p
-              className={`text-lg mb-6 ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+              className={`text-lg mb-6 text-[var(--fg-muted)]`}
             >
               {task.description}
             </p>
@@ -241,7 +241,7 @@ export default function FocusMode({
               >
                 <FlagIcon className={getPriorityColor(task.priority)} />
                 <span
-                  className={`capitalize ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                  className={`capitalize text-[var(--fg-muted)]`}
                 >
                   {task.priority} Priority
                 </span>
@@ -278,7 +278,7 @@ export default function FocusMode({
           {task.checkpoints && task.checkpoints.length > 0 && (
             <div className="mb-8">
               <h3
-                className={`text-lg font-semibold mb-3 ${darkMode ? "text-gray-200" : "text-gray-700"}`}
+                className={`text-lg font-semibold mb-3 text-[var(--fg)]`}
               >
                 Checkpoints
               </h3>
@@ -306,7 +306,7 @@ export default function FocusMode({
                     <span
                       className={`${
                         cp.completed
-                          ? `line-through ${darkMode ? "text-gray-500" : "text-gray-400"}`
+                          ? `line-through text-[var(--fg-subtle)]`
                           : darkMode
                             ? "text-gray-300"
                             : "text-gray-700"
@@ -348,7 +348,7 @@ export default function FocusMode({
             className={`mt-8 p-4 rounded-xl ${darkMode ? "bg-gray-800/50" : "bg-gray-200/50"}`}
           >
             <span
-              className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm text-[var(--fg-subtle)]`}
             >
               Up Next:{" "}
               <span className={darkMode ? "text-gray-300" : "text-gray-700"}>
