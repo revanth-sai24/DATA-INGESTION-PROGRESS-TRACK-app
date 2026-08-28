@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { loadTasksFromCSV, loadProjectsFromCSV } from '../redux/slices/taskSlice';
 import { 
   Archive as ArchiveIcon,
   Unarchive as RestoreIcon,
@@ -8,7 +9,11 @@ import {
   Assignment as TaskIcon,
   Schedule as CalendarIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon
+  FilterList as FilterIcon,
+  CheckBox as CheckBoxIcon,
+  CheckBoxOutlineBlank as CheckBoxBlankIcon,
+  IndeterminateCheckBox as CheckBoxPartialIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { updateTask, deleteTask } from '../redux/slices/taskSlice';
 
@@ -18,6 +23,7 @@ export default function ArchivedTasks() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterProject, setFilterProject] = useState('');
   const [sortBy, setSortBy] = useState('archivedDate'); // archivedDate, title, project
+  const [selected, setSelected] = useState([]);
 
   // Filter archived tasks
   const archivedTasks = tasks.filter(task => task.status === 'archived');
@@ -53,8 +59,44 @@ export default function ArchivedTasks() {
   };
 
   const handlePermanentDelete = (taskId) => {
-    if (confirm('Are you sure you want to permanently delete this task? This action cannot be undone.')) {
+    if (confirm('Permanently delete this task? This cannot be undone.')) {
       dispatch(deleteTask(taskId));
+      setSelected((ids) => ids.filter((id) => id !== taskId));
+    }
+  };
+
+  /* ── multi-select ─────────────────────────────────────────────────────── */
+
+  const toggleOne = (taskId) =>
+    setSelected((ids) =>
+      ids.includes(taskId) ? ids.filter((id) => id !== taskId) : [...ids, taskId],
+    );
+
+  const visibleIds = () => sortedTasks.map((t) => t.id);
+  const allSelected = () =>
+    sortedTasks.length > 0 && selected.length === sortedTasks.length;
+
+  const toggleAll = () =>
+    setSelected(allSelected() ? [] : visibleIds());
+
+  const bulkRestore = () => {
+    const chosen = archivedTasks.filter((t) => selected.includes(t.id));
+    for (const task of chosen) handleRestore(task);
+    setSelected([]);
+  };
+
+  const bulkDeleteForever = () => {
+    const n = selected.length;
+    if (n === 0) return;
+    const all = n === sortedTasks.length && n > 1;
+    if (
+      confirm(
+        `Permanently delete ${n} task${n === 1 ? '' : 's'}${all ? ' \u2014 everything shown here' : ''}?\n\n` +
+          'This cannot be undone. Restore puts them back instead.',
+      )
+    ) {
+      for (const id of selected) dispatch(deleteTask(id));
+      setSelected([]);
     }
   };
 
@@ -85,8 +127,126 @@ export default function ArchivedTasks() {
     }
   };
 
+  /* Archiving a project hides it from the Projects screen, so this is the only
+     place it can be found and put back. Fetched directly because the projects
+     endpoint deliberately excludes archived rows. */
+  const [archivedProjects, setArchivedProjects] = useState([]);
+  const [busyProject, setBusyProject] = useState(null);
+
+  const loadArchivedProjects = useCallback(async () => {
+    try {
+      const res = await fetch('/api/projects?includeArchived=1');
+      const data = await res.json();
+      setArchivedProjects((data.projects || []).filter((p) => p.status === 'archived'));
+    } catch (err) {
+      console.error('Could not load archived projects:', err);
+    }
+  }, []);
+
+  useEffect(() => { loadArchivedProjects(); }, [loadArchivedProjects, tasks.length]);
+
+  const purgeProject = async (project) => {
+    if (
+      !confirm(
+        `Delete the project "${project.name}" permanently?\n\n` +
+          'It has no tasks left, so there is nothing to restore.',
+      )
+    )
+      return;
+    setBusyProject(project.id);
+    try {
+      const res = await fetch(
+        `/api/projects?id=${encodeURIComponent(project.id)}&purge=1`,
+        { method: 'DELETE' },
+      );
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Delete failed');
+      await loadArchivedProjects();
+      dispatch(loadProjectsFromCSV());
+    } catch (err) {
+      console.error('Could not delete the project:', err);
+      alert(`Could not delete "${project.name}": ${err.message}`);
+    } finally {
+      setBusyProject(null);
+    }
+  };
+
+  const restoreProject = async (project) => {
+    setBusyProject(project.id);
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restore: project.id }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Restore failed');
+      await loadArchivedProjects();
+      dispatch(loadProjectsFromCSV());
+      dispatch(loadTasksFromCSV());
+    } catch (err) {
+      console.error('Could not restore the project:', err);
+      alert(`Could not restore "${project.name}": ${err.message}`);
+    } finally {
+      setBusyProject(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {archivedProjects.length > 0 && (
+        <section className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]">
+          <header className="flex items-center justify-between border-b border-[var(--border)] px-4 py-2.5">
+            <h2 className="panel-title">Archived projects</h2>
+            <span className="font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]">
+              {archivedProjects.length}
+            </span>
+          </header>
+          <ul className="divide-y divide-[var(--border)]">
+            {archivedProjects.map((p) => {
+              const count = tasks.filter(
+                (t) => t.project === p.name && t.status === 'archived',
+              ).length;
+              return (
+                <li key={p.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 flex-none rounded-full"
+                    style={{ background: p.color || 'var(--fg-subtle)' }}
+                  />
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--fg)]">
+                    {p.name}
+                  </span>
+                  <span className="font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]">
+                    {count > 0
+                      ? `${count} archived task${count === 1 ? '' : 's'}`
+                      : 'empty \u2014 nothing to restore'}
+                  </span>
+                  <button
+                    onClick={() => restoreProject(p)}
+                    disabled={busyProject === p.id}
+                    className="rounded-[var(--radius-sm)] border border-[var(--border-strong)] px-2.5 py-1 text-[12px] font-medium text-[var(--fg)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
+                  >
+                    {busyProject === p.id ? 'Working…' : count > 0 ? 'Restore' : 'Reactivate'}
+                  </button>
+                  <button
+                    onClick={() => purgeProject(p)}
+                    disabled={busyProject === p.id}
+                    aria-label={`Delete the project ${p.name} permanently`}
+                    className="rounded-[var(--radius-sm)] border border-transparent px-2.5 py-1 text-[12px] font-medium transition-colors hover:bg-[var(--danger-soft)] disabled:opacity-50"
+                    style={{ color: 'var(--danger)' }}
+                  >
+                    Delete
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="border-t border-[var(--border)] px-4 py-2 text-[12px] text-[var(--fg-muted)]">
+            Restoring a project brings its tasks back to the status they had before archiving. Empty ones are removed automatically when their last task is deleted.
+          </p>
+        </section>
+      )}
+
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -149,9 +309,82 @@ export default function ArchivedTasks() {
       {/* Archived Tasks List */}
       {sortedTasks.length > 0 ? (
         <div className="space-y-4">
+          {sortedTasks.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+              <button
+                onClick={toggleAll}
+                className="flex items-center gap-2 text-[13px] text-[var(--fg-muted)] transition-colors hover:text-[var(--fg)]"
+              >
+                <span className={allSelected() ? 'text-[var(--accent)]' : 'text-[var(--fg-subtle)]'}>
+                  {allSelected() ? (
+                    <CheckBoxIcon fontSize="small" />
+                  ) : selected.length > 0 ? (
+                    <CheckBoxPartialIcon fontSize="small" />
+                  ) : (
+                    <CheckBoxBlankIcon fontSize="small" />
+                  )}
+                </span>
+                {selected.length > 0
+                  ? `${selected.length} of ${sortedTasks.length} selected`
+                  : `Select all ${sortedTasks.length}`}
+              </button>
+
+              {selected.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    onClick={bulkRestore}
+                    className="flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border-strong)] px-2.5 py-1 text-[12px] font-medium text-[var(--fg)] transition-colors hover:bg-[var(--surface-2)]"
+                  >
+                    <RestoreIcon sx={{ fontSize: 15 }} />
+                    Restore
+                  </button>
+                  <button
+                    onClick={bulkDeleteForever}
+                    className="flex items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 py-1 text-[12px] font-medium text-white transition-opacity hover:opacity-90"
+                    style={{ background: 'var(--danger)' }}
+                  >
+                    <DeleteIcon sx={{ fontSize: 15 }} />
+                    Delete forever
+                  </button>
+                  <button
+                    onClick={() => setSelected([])}
+                    aria-label="Clear selection"
+                    className="rounded p-1 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+                  >
+                    <CloseIcon sx={{ fontSize: 16 }} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {sortedTasks.map((task) => (
-            <div key={task.id} className="premium-card hover:shadow-lg transition-all duration-200">
+            <div
+              key={task.id}
+              className={`premium-card transition-all duration-200 ${
+                selected.includes(task.id)
+                  ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+                  : 'hover:border-[var(--border-strong)]'
+              }`}
+            >
               <div className="flex items-start justify-between gap-4">
+                <button
+                  onClick={() => toggleOne(task.id)}
+                  aria-label={`${selected.includes(task.id) ? 'Deselect' : 'Select'} ${task.title}`}
+                  aria-pressed={selected.includes(task.id)}
+                  className={`mt-0.5 flex-none transition-colors ${
+                    selected.includes(task.id)
+                      ? 'text-[var(--accent)]'
+                      : 'text-[var(--fg-subtle)] hover:text-[var(--fg)]'
+                  }`}
+                >
+                  {selected.includes(task.id) ? (
+                    <CheckBoxIcon fontSize="small" />
+                  ) : (
+                    <CheckBoxBlankIcon fontSize="small" />
+                  )}
+                </button>
+
                 {/* Task Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">

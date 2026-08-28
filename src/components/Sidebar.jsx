@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   ListAlt as ListAltIcon,
   Archive as ArchiveIcon,
@@ -12,13 +12,52 @@ import {
   ViewKanban as KanbanIcon,
   Today as TodayIcon,
   Close as CloseIcon,
+  ExpandMore as ExpandIcon,
 } from "@mui/icons-material";
+import { Button } from "./ui/Components";
 
 /**
- * Off-canvas below `lg`, docked above it. Colours come from the CSS custom
- * properties in globals.css, so the light/dark switch happens once on the
- * shell rather than in a ternary on every element.
+ * Primary navigation.
+ *
+ * Off-canvas below `lg`, docked above it. Destinations are grouped by job —
+ * "what's on now" vs "how work is organised" vs "history" — because a flat
+ * list of eight peers gives the user no map of the product.
  */
+
+export const NAV_GROUPS = [
+  {
+    id: "work",
+    label: "Workspace",
+    items: [
+      { id: "today", label: "Today", icon: TodayIcon },
+      { id: "dashboard", label: "Dashboard", icon: DashboardIcon },
+    ],
+  },
+  {
+    id: "plan",
+    label: "Plan",
+    items: [
+      { id: "tasks", label: "All tasks", icon: ListAltIcon, countKey: "openTasks" },
+      { id: "kanban", label: "Board", icon: KanbanIcon },
+      { id: "calendar", label: "Calendar", icon: CalendarIcon },
+      { id: "timeline", label: "Timeline", icon: TimelineIcon },
+    ],
+  },
+  {
+    id: "organise",
+    label: "Organise",
+    items: [
+      { id: "projects", label: "Projects", icon: FolderIcon, countKey: "projects" },
+      { id: "archived", label: "Archived", icon: ArchiveIcon, countKey: "archived" },
+    ],
+  },
+];
+
+/** Flat lookup so the header can resolve a breadcrumb trail from a page id. */
+export const NAV_INDEX = NAV_GROUPS.flatMap((g) =>
+  g.items.map((i) => ({ ...i, group: g.label })),
+).reduce((acc, i) => ({ ...acc, [i.id]: i }), {});
+
 export default function Sidebar({
   activePage,
   setActivePage,
@@ -31,171 +70,192 @@ export default function Sidebar({
   isOpen = false,
   onClose = () => {},
 }) {
-  const openCount = tasks.filter(
-    (t) => t.status !== "completed" && t.status !== "archived",
-  ).length;
+  const [collapsed, setCollapsed] = useState({});
+  const [showAllProjects, setShowAllProjects] = useState(false);
 
-  const NAV = [
-    { id: "today", label: "Today", icon: TodayIcon },
-    { id: "dashboard", label: "Dashboard", icon: DashboardIcon },
-    { id: "tasks", label: "All tasks", icon: ListAltIcon, count: openCount },
-    { id: "kanban", label: "Board", icon: KanbanIcon },
-    { id: "calendar", label: "Calendar", icon: CalendarIcon },
-    { id: "timeline", label: "Timeline", icon: TimelineIcon },
-    {
-      id: "projects",
-      label: "Projects",
-      icon: FolderIcon,
-      count: projects.length,
-    },
-    {
-      id: "archived",
-      label: "Archived",
-      icon: ArchiveIcon,
-      count: archivedTasks.length,
-    },
-  ];
+  /* Badges must match what the destination page actually lists, or the nav
+     contradicts the page header. "All tasks" lists everything not archived. */
+  const counts = {
+    openTasks: tasks.filter((t) => t.status !== "archived").length,
+    projects: projects.length,
+    archived: tasks.filter((t) => t.status === "archived").length,
+  };
 
   const go = (page) => {
     setActivePage(page);
     onClose();
   };
 
-  const navItemClass = (isActive) =>
-    [
-      "group relative w-full flex items-center gap-3 rounded-lg pl-4 pr-3 py-2.5",
-      "text-sm transition-colors duration-150",
-      isActive
-        ? "bg-[var(--accent-soft)] text-[var(--accent)] font-medium"
-        : "text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--surface-2)]",
-    ].join(" ");
+  const visibleProjects = showAllProjects ? projects : projects.slice(0, 5);
 
   return (
     <>
-      {/* Scrim — only exists while the drawer is open on small screens */}
       <div
         onClick={onClose}
         aria-hidden="true"
-        className={`fixed inset-0 z-overlay bg-[rgb(13_17_23/0.5)] backdrop-blur-[2px] lg:hidden transition-opacity duration-200 ${
+        className={`fixed inset-0 z-overlay bg-[rgb(8_12_20/0.55)] backdrop-blur-[2px] transition-opacity duration-200 lg:hidden ${
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       />
 
       <aside
         aria-label="Main navigation"
-        className={`fixed inset-y-0 left-0 z-modal flex w-[280px] max-w-[85vw] flex-col
+        className={`fixed inset-y-0 left-0 z-modal flex w-[268px] max-w-[85vw] flex-col
           border-r border-[var(--border)] bg-[var(--surface)]
           transition-transform duration-300 ease-out
           lg:z-drawer lg:translate-x-0
           ${isOpen ? "translate-x-0 shadow-lg" : "-translate-x-full"}`}
       >
         {/* Brand */}
-        <div className="flex h-16 flex-shrink-0 items-center justify-between border-b border-[var(--border)] px-5">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--accent)] text-[var(--accent-fg)]">
-              <AssignmentIcon sx={{ fontSize: 16 }} />
+        <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-[var(--border)] px-4">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-6 w-6 flex-none items-center justify-center rounded-[5px] bg-[var(--accent)] text-[var(--accent-fg)]">
+              <AssignmentIcon sx={{ fontSize: 14 }} />
             </span>
-            <span className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--fg)]">
+            <span className="truncate text-[14px] font-semibold tracking-[-0.01em] text-[var(--fg)]">
               Work Tracker
             </span>
           </div>
           <button
             onClick={onClose}
             aria-label="Close navigation"
-            className="-mr-1 rounded-md p-1.5 text-[var(--fg-subtle)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)] lg:hidden"
+            className="-mr-1 rounded p-1.5 text-[var(--fg-subtle)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)] lg:hidden"
           >
-            <CloseIcon sx={{ fontSize: 18 }} />
+            <CloseIcon sx={{ fontSize: 17 }} />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
-          {NAV.map(({ id, label, icon: Icon, count }) => {
-            const isActive = activePage === id;
+        {/* Quick action */}
+        <div className="flex-shrink-0 px-3 pb-1 pt-3">
+          <Button
+            variant="primary"
+            size="md"
+            icon={AddIcon}
+            className="w-full"
+            onClick={() => {
+              onAddTask?.();
+              onClose();
+            }}
+          >
+            New task
+          </Button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto px-2 py-2">
+          {NAV_GROUPS.map((group) => {
+            const isCollapsed = collapsed[group.id];
             return (
-              <button
-                key={id}
-                onClick={() => go(id)}
-                aria-current={isActive ? "page" : undefined}
-                className={navItemClass(isActive)}
-              >
-                {/* Active marker: a rule, not a filled pill */}
-                <span
-                  aria-hidden="true"
-                  className={`absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-[var(--accent)] transition-opacity ${
-                    isActive ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-                <Icon sx={{ fontSize: 18 }} className="flex-shrink-0" />
-                <span className="flex-1 text-left">{label}</span>
-                {count > 0 && (
-                  <span className="tabular font-mono text-xs text-[var(--fg-subtle)]">
-                    {count}
-                  </span>
+              <div key={group.id} className="mb-1">
+                <button
+                  onClick={() =>
+                    setCollapsed((c) => ({ ...c, [group.id]: !c[group.id] }))
+                  }
+                  aria-expanded={!isCollapsed}
+                  className="flex w-full items-center gap-1 rounded px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--fg-subtle)] transition-colors hover:text-[var(--fg-muted)]"
+                >
+                  <ExpandIcon
+                    sx={{ fontSize: 14 }}
+                    className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
+                    aria-hidden="true"
+                  />
+                  {group.label}
+                </button>
+
+                {!isCollapsed && (
+                  <div className="space-y-0.5">
+                    {group.items.map(({ id, label, icon: Icon, countKey }) => {
+                      const isActive = activePage === id;
+                      const count = countKey ? counts[countKey] : 0;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => go(id)}
+                          aria-current={isActive ? "page" : undefined}
+                          className={`group relative flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] py-1.5 pl-7 pr-2 text-[13px] transition-colors duration-150 ${
+                            isActive
+                              ? "bg-[var(--accent-soft)] font-medium text-[var(--accent)]"
+                              : "text-[var(--fg-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+                          }`}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`absolute left-1.5 top-1/2 h-3.5 w-[2px] -translate-y-1/2 rounded-full bg-[var(--accent)] transition-opacity ${
+                              isActive ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          <Icon sx={{ fontSize: 16 }} className="flex-none" />
+                          <span className="flex-1 truncate text-left">{label}</span>
+                          {count > 0 && (
+                            <span className="font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]">
+                              {count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })}
 
           {projects.length > 0 && (
-            <div className="pt-6">
-              <h2 className="px-4 pb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--fg-subtle)]">
+            <div className="mt-3 border-t border-[var(--border)] pt-3">
+              <h2 className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--fg-subtle)]">
                 Projects
               </h2>
-              {projects.slice(0, 5).map((project) => {
-                const name = project.name || project;
-                const count = tasks.filter(
-                  (t) =>
-                    t.project === name &&
-                    t.status !== "completed" &&
-                    t.status !== "archived",
-                ).length;
-                return (
-                  <button
-                    key={name}
-                    onClick={() => {
-                      setFilter({ ...filter, project: name });
-                      go("tasks");
-                    }}
-                    className="group flex w-full items-center gap-3 rounded-lg px-4 py-2 text-sm text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                      style={{ background: project.color || "var(--fg-subtle)" }}
-                    />
-                    <span className="flex-1 truncate text-left">{name}</span>
-                    {count > 0 && (
-                      <span className="tabular font-mono text-xs text-[var(--fg-subtle)]">
-                        {count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+              <div className="space-y-0.5">
+                {visibleProjects.map((project) => {
+                  const name = project.name || project;
+                  const count = tasks.filter(
+                    (t) =>
+                      t.project === name &&
+                      t.status !== "completed" &&
+                      t.status !== "archived",
+                  ).length;
+                  const isActive =
+                    activePage === "tasks" && filter?.project === name;
+                  return (
+                    <button
+                      key={name}
+                      onClick={() => {
+                        setFilter({ ...filter, project: name });
+                        go("tasks");
+                      }}
+                      className={`flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-2 py-1.5 text-[13px] transition-colors ${
+                        isActive
+                          ? "bg-[var(--surface-2)] text-[var(--fg)]"
+                          : "text-[var(--fg-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="h-1.5 w-1.5 flex-none rounded-full"
+                        style={{ background: project.color || "var(--fg-subtle)" }}
+                      />
+                      <span className="flex-1 truncate text-left">{name}</span>
+                      {count > 0 && (
+                        <span className="font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]">
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
               {projects.length > 5 && (
                 <button
-                  onClick={() => go("projects")}
-                  className="w-full px-4 py-2 text-left text-xs text-[var(--accent)] hover:underline"
+                  onClick={() => setShowAllProjects((v) => !v)}
+                  className="mt-0.5 w-full rounded px-2 py-1.5 text-left text-[12px] text-[var(--accent)] hover:underline"
                 >
-                  {projects.length - 5} more
+                  {showAllProjects
+                    ? "Show less"
+                    : `Show ${projects.length - 5} more`}
                 </button>
               )}
             </div>
           )}
         </nav>
-
-        <div className="flex-shrink-0 border-t border-[var(--border)] p-3">
-          <button
-            onClick={() => {
-              onAddTask?.();
-              onClose();
-            }}
-            className="btn-primary flex w-full items-center justify-center gap-2 text-sm"
-          >
-            <AddIcon sx={{ fontSize: 18 }} />
-            New task
-          </button>
-        </div>
       </aside>
     </>
   );

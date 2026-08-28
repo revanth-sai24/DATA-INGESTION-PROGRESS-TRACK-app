@@ -25,7 +25,8 @@ import {
   Menu as MenuIcon,
 } from "@mui/icons-material";
 
-import Sidebar from "./Sidebar";
+import Sidebar, { NAV_INDEX } from "./Sidebar";
+import { Breadcrumbs, IconButton } from "./ui/Components";
 import TodayView from "./TodayView";
 import Filters from "./Filters";
 import TaskList from "./TaskList";
@@ -124,11 +125,24 @@ export default function Layout({ children }) {
 
   useKeyboardShortcuts(shortcutHandlers());
 
-  // Load data from CSV files on mount
+  // Initial load, then revalidate whenever the tab regains focus so a change
+  // made in another tab (or by a background job) shows up without a reload.
   useEffect(() => {
     setIsClient(true);
-    dispatch(loadTasksFromCSV());
-    dispatch(loadProjectsFromCSV());
+    const refresh = () => {
+      dispatch(loadTasksFromCSV());
+      dispatch(loadProjectsFromCSV());
+    };
+    refresh();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [dispatch]);
 
   // Context menu handlers
@@ -258,9 +272,19 @@ export default function Layout({ children }) {
             <MenuIcon fontSize="small" />
           </button>
 
-          <h1 className="flex-1 truncate text-[15px] font-semibold capitalize tracking-[-0.01em] text-[var(--fg)]">
-            {activePage === "today" ? "Today" : activePage}
-          </h1>
+          <div className="flex-1 min-w-0">
+            <Breadcrumbs
+              items={[
+                { label: "Work Tracker", onClick: () => setActivePage("today") },
+                ...(NAV_INDEX[activePage]
+                  ? [
+                      { label: NAV_INDEX[activePage].group },
+                      { label: NAV_INDEX[activePage].label },
+                    ]
+                  : [{ label: activePage }]),
+              ]}
+            />
+          </div>
 
           <div className="flex items-center gap-0.5">
             {/* Undo/redo are desktop-only — they need a pointer to be useful */}

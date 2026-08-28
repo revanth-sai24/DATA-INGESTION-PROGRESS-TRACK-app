@@ -213,7 +213,9 @@ export default function TaskList({
 
   const handleBulkArchive = () => {
     if (
-      confirm(`Are you sure you want to archive ${selectedTasks.length} tasks?`)
+      confirm(
+        `Move ${selectedTasks.length} task${selectedTasks.length === 1 ? "" : "s"} to Archived? You can restore them later.`,
+      )
     ) {
       dispatch(bulkArchive(selectedTasks));
       setSelectedTasks([]);
@@ -221,9 +223,13 @@ export default function TaskList({
   };
 
   const handleBulkDelete = () => {
+    const n = selectedTasks.length;
+    if (n === 0) return;
+    const all = n === filteredTasks.length && n > 1;
     if (
       confirm(
-        `Are you sure you want to delete ${selectedTasks.length} tasks? This cannot be undone.`,
+        `Permanently delete ${n} task${n === 1 ? "" : "s"}${all ? " — every task in this view" : ""}?\n\n` +
+          `This cannot be undone. To keep them recoverable, use Archive instead.`,
       )
     ) {
       dispatch(bulkDelete(selectedTasks));

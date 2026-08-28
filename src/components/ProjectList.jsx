@@ -70,7 +70,13 @@ export default function ProjectList({ setActivePage, setFilter, darkMode }) {
   };
 
   const handleDelete = (projectName) => {
-    if (confirm(`Are you sure you want to delete the project "${projectName}"? This will remove the project from all tasks.`)) {
+    const open = tasks.filter(
+      (t) => t.project === projectName && t.status !== "archived",
+    ).length;
+    const detail = open
+      ? `\n\n${open} task${open === 1 ? "" : "s"} will move to Archived with it. Nothing is deleted \u2014 you can restore it later.`
+      : "\n\nNothing is deleted \u2014 you can restore it later.";
+    if (confirm(`Archive the project "${projectName}"?${detail}`)) {
       dispatch(deleteProject(projectName));
     }
   };
