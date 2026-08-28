@@ -329,6 +329,46 @@ export async function updateTask(input) {
             VALUES ('task', ?, 'updated', 'status', ?, ?, '', ?)`,
       args: [id, prev.status, status, ts],
     });
+
+    /* The daily log line is written here rather than in the Today screen, so
+       completing a task from the task list, the board or a context menu logs
+       it too. Previously only Today wrote the line, which is why "Done today"
+       and the log could disagree with no way to tell why.
+
+       `logDate` comes from the client's local calendar day — the server runs in
+       UTC, and after 18:30 UTC the user's day has already rolled over. */
+    const logDate =
+      typeof input.logDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input.logDate)
+        ? input.logDate
+        : ts.slice(0, 10);
+
+    if (status === "completed") {
+      stmts.push({
+        sql: `INSERT INTO work_log (id, log_date, entry, project, task_id, minutes, source, created_at, updated_at)
+              SELECT ?, ?, ?, ?, ?, NULL, 'auto', ?, ?
+               WHERE NOT EXISTS (
+                 SELECT 1 FROM work_log
+                  WHERE task_id = ? AND source = 'auto' AND log_date = ?
+               )`,
+        args: [
+          `wl-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          logDate,
+          `Completed: ${input.title ?? prev.title}`,
+          input.project !== undefined ? String(input.project ?? "") : "",
+          id,
+          ts,
+          ts,
+          id,
+          logDate,
+        ],
+      });
+    } else if (prev.status === "completed") {
+      // Un-completing removes the line the completion generated.
+      stmts.push({
+        sql: `DELETE FROM work_log WHERE task_id = ? AND source = 'auto' AND log_date = ?`,
+        args: [id, logDate],
+      });
+    }
   }
 
   await transaction(stmts);
@@ -342,8 +382,12 @@ export async function deleteTask(id) {
   const owner = await query(`SELECT project_id FROM tasks WHERE id = ? LIMIT 1`, [id]);
   const projectId = owner[0]?.project_id ?? null;
 
-  // Children cascade via foreign keys.
+  // Children cascade via foreign keys. work_log does not — it has no key, by
+  // design — so it is handled explicitly: lines the app wrote go with the task,
+  // lines the user typed keep their text and lose the dead link.
   await transaction([
+    { sql: `DELETE FROM work_log WHERE task_id = ? AND source = 'auto'`, args: [id] },
+    { sql: `UPDATE work_log SET task_id = NULL WHERE task_id = ?`, args: [id] },
     { sql: `DELETE FROM tasks WHERE id = ?`, args: [id] },
     {
       sql: `INSERT INTO activity_log (entity_type, entity_id, action, actor, created_at)

@@ -70,13 +70,14 @@ export async function POST(request) {
       project: String(body.project ?? "").trim(),
       task_id: body.task_id || null,
       minutes: Number.isFinite(minutes) && minutes > 0 ? Math.round(minutes) : null,
+      source: body.source === "auto" ? "auto" : "manual",
       created_at: now(),
       updated_at: now(),
     };
 
     await execute(
-      `INSERT INTO work_log (id, log_date, entry, project, task_id, minutes, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO work_log (id, log_date, entry, project, task_id, minutes, source, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       Object.values(row),
     );
 

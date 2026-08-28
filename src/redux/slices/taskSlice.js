@@ -44,10 +44,17 @@ export const addTask = createAsyncThunk("tasks/add", async (task) => {
   return tasks;
 });
 
+/** The user's local calendar day — the server runs in UTC and would file a
+    late-evening completion under the wrong date. */
+const localDay = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 export const updateTask = createAsyncThunk("tasks/update", async (task) => {
   const { tasks } = await jsonFetch("/api/tasks", {
     method: "PATCH",
-    body: JSON.stringify(task),
+    body: JSON.stringify({ ...task, logDate: localDay() }),
   });
   return tasks;
 });

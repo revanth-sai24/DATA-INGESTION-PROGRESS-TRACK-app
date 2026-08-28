@@ -260,7 +260,7 @@ export default function Layout({ children }) {
 
       {/* Everything right of the drawer. The drawer is docked from lg up. */}
       <div className="lg:pl-[280px]">
-        <header className="sticky top-0 z-sticky flex h-16 items-center gap-2 border-b border-[var(--border)] bg-[var(--surface)]/85 px-4 backdrop-blur-md sm:px-6">
+        <header className="glass sticky top-0 z-sticky flex h-16 items-center gap-2 border-b px-4 sm:px-6">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -284,6 +284,38 @@ export default function Layout({ children }) {
                   : [{ label: activePage }]),
               ]}
             />
+          </div>
+
+          <div className="mr-2 hidden items-center gap-1.5 md:flex">
+            <span className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 font-mono text-[10px] tabular-nums text-[var(--fg-muted)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+              {tasks.filter((t) => t.status !== "archived").length} active
+            </span>
+            {tasks.filter(
+              (t) =>
+                t.dueDate &&
+                t.status !== "completed" &&
+                t.status !== "archived" &&
+                String(t.dueDate).slice(0, 10) <
+                  new Date().toISOString().slice(0, 10),
+            ).length > 0 && (
+              <span
+                className="rounded-full px-2 py-0.5 font-mono text-[10px] tabular-nums"
+                style={{ background: "var(--danger-soft)", color: "var(--danger)" }}
+              >
+                {
+                  tasks.filter(
+                    (t) =>
+                      t.dueDate &&
+                      t.status !== "completed" &&
+                      t.status !== "archived" &&
+                      String(t.dueDate).slice(0, 10) <
+                        new Date().toISOString().slice(0, 10),
+                  ).length
+                }{" "}
+                overdue
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-0.5">
@@ -343,7 +375,7 @@ export default function Layout({ children }) {
 
         <main
           id="main-content"
-          className="mx-auto w-full max-w-[1400px] animate-fade-in-up px-4 py-6 sm:px-6 sm:py-8"
+          className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8"
         >
         {/* Pinned/Favorites Tasks - Show on Tasks and Kanban pages */}
         {(activePage === "tasks" || activePage === "kanban") && (

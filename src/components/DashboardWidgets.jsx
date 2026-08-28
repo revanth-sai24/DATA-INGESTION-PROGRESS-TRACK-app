@@ -378,7 +378,11 @@ export default function DashboardWidgets({ darkMode }) {
           const colSpan = widget.size === "medium" ? "col-span-2" : "";
 
           return (
-            <div key={widget.id} className={`kpi group relative ${colSpan}`}>
+            <div
+              key={widget.id}
+              style={{ animationDelay: `${activeWidgets.indexOf(widget.id) * 45}ms` }}
+              className={`kpi rise group relative ${colSpan}`}
+            >
               {/* Widget Header */}
               <div className="flex items-center justify-between">
                 <div className="flex min-w-0 items-center gap-1.5">

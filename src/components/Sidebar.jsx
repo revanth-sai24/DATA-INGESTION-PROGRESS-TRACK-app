@@ -29,26 +29,26 @@ export const NAV_GROUPS = [
     id: "work",
     label: "Workspace",
     items: [
-      { id: "today", label: "Today", icon: TodayIcon },
-      { id: "dashboard", label: "Dashboard", icon: DashboardIcon },
+      { id: "today", label: "Today", icon: TodayIcon, hint: "What you did and what's on" },
+      { id: "dashboard", label: "Dashboard", icon: DashboardIcon, hint: "Metrics and trends" },
     ],
   },
   {
     id: "plan",
     label: "Plan",
     items: [
-      { id: "tasks", label: "All tasks", icon: ListAltIcon, countKey: "openTasks" },
-      { id: "kanban", label: "Board", icon: KanbanIcon },
-      { id: "calendar", label: "Calendar", icon: CalendarIcon },
-      { id: "timeline", label: "Timeline", icon: TimelineIcon },
+      { id: "tasks", label: "All tasks", icon: ListAltIcon, countKey: "openTasks", hint: "Table and filters" },
+      { id: "kanban", label: "Board", icon: KanbanIcon, hint: "Drag between columns" },
+      { id: "calendar", label: "Calendar", icon: CalendarIcon, hint: "By due date" },
+      { id: "timeline", label: "Timeline", icon: TimelineIcon, hint: "Schedule across projects" },
     ],
   },
   {
     id: "organise",
     label: "Organise",
     items: [
-      { id: "projects", label: "Projects", icon: FolderIcon, countKey: "projects" },
-      { id: "archived", label: "Archived", icon: ArchiveIcon, countKey: "archived" },
+      { id: "projects", label: "Projects", icon: FolderIcon, countKey: "projects", hint: "Clients and workstreams" },
+      { id: "archived", label: "Archived", icon: ArchiveIcon, countKey: "archived", hint: "Restore or remove" },
     ],
   },
 ];
@@ -100,8 +100,8 @@ export default function Sidebar({
 
       <aside
         aria-label="Main navigation"
-        className={`fixed inset-y-0 left-0 z-modal flex w-[268px] max-w-[85vw] flex-col
-          border-r border-[var(--border)] bg-[var(--surface)]
+        className={`glass fixed inset-y-0 left-0 z-modal flex w-[268px] max-w-[85vw] flex-col
+          border-r
           transition-transform duration-300 ease-out
           lg:z-drawer lg:translate-x-0
           ${isOpen ? "translate-x-0 shadow-lg" : "-translate-x-full"}`}
@@ -163,7 +163,7 @@ export default function Sidebar({
 
                 {!isCollapsed && (
                   <div className="space-y-0.5">
-                    {group.items.map(({ id, label, icon: Icon, countKey }) => {
+                    {group.items.map(({ id, label, icon: Icon, countKey, hint }) => {
                       const isActive = activePage === id;
                       const count = countKey ? counts[countKey] : 0;
                       return (
@@ -171,25 +171,48 @@ export default function Sidebar({
                           key={id}
                           onClick={() => go(id)}
                           aria-current={isActive ? "page" : undefined}
-                          className={`group relative flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] py-1.5 pl-7 pr-2 text-[13px] transition-colors duration-150 ${
+                          className={`group relative flex w-full items-start gap-2.5 rounded-[var(--radius)] py-2 pl-6 pr-2.5 text-left transition-colors duration-150 ${
                             isActive
-                              ? "bg-[var(--accent-soft)] font-medium text-[var(--accent)]"
-                              : "text-[var(--fg-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+                              ? "bg-[var(--accent-soft)]"
+                              : "hover:bg-[var(--surface-2)]"
                           }`}
                         >
                           <span
                             aria-hidden="true"
-                            className={`absolute left-1.5 top-1/2 h-3.5 w-[2px] -translate-y-1/2 rounded-full bg-[var(--accent)] transition-opacity ${
+                            className={`absolute left-1 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-full bg-[var(--accent)] transition-opacity ${
                               isActive ? "opacity-100" : "opacity-0"
                             }`}
                           />
-                          <Icon sx={{ fontSize: 16 }} className="flex-none" />
-                          <span className="flex-1 truncate text-left">{label}</span>
-                          {count > 0 && (
-                            <span className="font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]">
-                              {count}
+                          <span
+                            className={`mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-[6px] transition-colors ${
+                              isActive
+                                ? "bg-[var(--accent)] text-[var(--accent-fg)]"
+                                : "bg-[var(--surface-2)] text-[var(--fg-subtle)] group-hover:text-[var(--fg-muted)]"
+                            }`}
+                          >
+                            <Icon sx={{ fontSize: 14 }} />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span
+                              className={`flex items-center gap-2 text-[13px] leading-tight ${
+                                isActive
+                                  ? "font-medium text-[var(--accent)]"
+                                  : "text-[var(--fg)]"
+                              }`}
+                            >
+                              <span className="truncate">{label}</span>
+                              {count > 0 && (
+                                <span className="ml-auto flex-none rounded-full bg-[var(--surface-2)] px-1.5 font-mono text-[10px] tabular-nums text-[var(--fg-subtle)]">
+                                  {count}
+                                </span>
+                              )}
                             </span>
-                          )}
+                            {hint && (
+                              <span className="mt-0.5 block truncate text-[11px] leading-tight text-[var(--fg-subtle)]">
+                                {hint}
+                              </span>
+                            )}
+                          </span>
                         </button>
                       );
                     })}
@@ -256,6 +279,21 @@ export default function Sidebar({
             </div>
           )}
         </nav>
+
+        <div className="flex-shrink-0 border-t border-[var(--border)] px-3 py-2.5">
+          <div className="flex items-center gap-2 text-[11px] text-[var(--fg-subtle)]">
+            <span className="relative flex h-1.5 w-1.5 flex-none">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--success)] opacity-60" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+            </span>
+            <span className="font-mono tabular-nums">
+              {counts.openTasks} active · {counts.projects} projects
+            </span>
+          </div>
+          <div className="mt-1 font-mono text-[10px] text-[var(--fg-subtle)]">
+            Turso · local
+          </div>
+        </div>
       </aside>
     </>
   );

@@ -195,6 +195,18 @@ export default function TaskList({
   };
 
   const handleBulkComplete = () => {
+    const n = selectedTasks.length;
+    if (n === 0) return;
+    /* Complete was the only bulk action without a confirmation, and one click
+       with everything selected silently marked 13 real tasks done. */
+    const all = n === filteredTasks.length && n > 1;
+    if (
+      n > 1 &&
+      !confirm(
+        `Mark ${n} task${n === 1 ? "" : "s"} complete${all ? " — every task in this view" : ""}?`,
+      )
+    )
+      return;
     selectedTasks.forEach((taskId) => {
       const task = tasks.find((t) => t.id === taskId);
       if (task && task.status !== "completed") {
@@ -238,6 +250,9 @@ export default function TaskList({
   };
 
   const handleBulkPriorityChange = (priority) => {
+    const n = selectedTasks.length;
+    if (n === 0) return;
+    if (n > 1 && !confirm(`Set ${n} tasks to ${priority} priority?`)) return;
     selectedTasks.forEach((taskId) => {
       const task = tasks.find((t) => t.id === taskId);
       if (task) {

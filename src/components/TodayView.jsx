@@ -144,6 +144,23 @@ export default function TodayView({ darkMode, onEditTask }) {
     }
   };
 
+  /* An auto line mirrors a task's completion — it is not an independent note.
+     Removing it on its own left "Done today" counting a task whose line had
+     vanished, which is exactly the confusion this replaces: undo the completion
+     and the line goes with it. */
+  const undoCompletion = async (entry) => {
+    const task = tasks.find((t) => t.id === entry.task_id);
+    if (!task) {
+      // Task is gone; the line is a leftover, so just clear it.
+      await handleDeleteEntry(entry.id);
+      return;
+    }
+    await dispatch(
+      updateTask({ ...task, status: "todo", completedAt: null }),
+    );
+    await loadDay();
+  };
+
   const handleDeleteEntry = async (id) => {
     try {
       await fetch(`/api/work-log?id=${encodeURIComponent(id)}`, { method: "DELETE" });
@@ -175,7 +192,9 @@ export default function TodayView({ darkMode, onEditTask }) {
   /* Completing a task from here also writes the log line, so the day fills in
      as you work instead of needing to be reconstructed at 6pm. */
   const completeTask = async (task) => {
-    dispatch(
+    /* The log line is written by the server on the status transition, so it
+       happens identically wherever the task is completed from. */
+    await dispatch(
       updateTask({
         ...task,
         status: "completed",
@@ -183,12 +202,7 @@ export default function TodayView({ darkMode, onEditTask }) {
         updatedAt: new Date().toISOString(),
       }),
     );
-    await saveEntry({
-      log_date: dayKey,
-      entry: `Completed: ${task.title}`,
-      project: task.project || "",
-      task_id: task.id,
-    });
+    await loadDay();
   };
 
   const startLoggingFor = (task) => {
@@ -291,8 +305,8 @@ export default function TodayView({ darkMode, onEditTask }) {
   /* ── render ───────────────────────────────────────────────────────────── */
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="space-y-5">
+      <div className="rise rise-1"><PageHeader
         title={isToday ? "Today" : prettyDate(dayKey)}
         description={
           isToday
@@ -334,16 +348,16 @@ export default function TodayView({ darkMode, onEditTask }) {
             </button>
           </div>
         }
-      />
+      /></div>
 
-      <StatStrip
+      <div className="rise rise-2"><StatStrip
         items={[
           { label: "Overdue", value: overdue.length, tone: overdue.length ? "var(--danger)" : undefined },
           { label: "Due today", value: dueToday.length, tone: dueToday.length ? "var(--accent-2)" : undefined },
           { label: "In progress", value: inProgress.length, tone: inProgress.length ? "var(--accent)" : undefined },
           { label: "Done today", value: completedToday.length, tone: completedToday.length ? "var(--success)" : undefined },
         ]}
-      />
+      /></div>
 
       {/* Last 7 days */}
       <div className="flex items-center gap-1.5">
@@ -372,7 +386,7 @@ export default function TodayView({ darkMode, onEditTask }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="rise rise-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* ── What I did ──────────────────────────────────────────────── */}
         <div className={`rounded-xl border ${card} p-5`}>
           <h2 className={`text-lg font-semibold ${text} mb-1`}>What I did</h2>
@@ -482,13 +496,23 @@ export default function TodayView({ darkMode, onEditTask }) {
                       </span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleDeleteEntry(e.id)}
-                    className={`opacity-0 group-hover:opacity-100 transition-opacity ${muted} hover:text-red-500`}
-                    title="Delete entry"
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </button>
+                  {e.source === "auto" && e.task_id ? (
+                    <button
+                      onClick={() => undoCompletion(e)}
+                      className="flex-none rounded-[var(--radius-sm)] border border-[var(--border)] px-2 py-1 text-[11px] font-medium text-[var(--fg-muted)] opacity-0 transition-opacity hover:bg-[var(--surface-2)] hover:text-[var(--fg)] group-hover:opacity-100 focus:opacity-100"
+                      title="Mark this task not done again"
+                    >
+                      Undo
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleDeleteEntry(e.id)}
+                      className={`opacity-0 group-hover:opacity-100 transition-opacity ${muted} hover:text-red-500`}
+                      title="Delete entry"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </button>
+                  )}
                 </div>
               ))
             )}

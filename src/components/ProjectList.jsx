@@ -237,102 +237,134 @@ export default function ProjectList({ setActivePage, setFilter, darkMode }) {
       {/* Projects Content */}
       {viewMode === 'card' ? (
         /* Card View */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {projects.map((project, index) => {
             const projectName = typeof project === 'string' ? project : project.name;
             const projectData = typeof project === 'string' ? { name: project, color: '#3B82F6', status: 'active' } : project;
             const stats = getProjectStats(projectName);
             
+            const pct = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+            const overdue = tasks.filter(
+              (t) =>
+                t.project === projectName &&
+                t.dueDate &&
+                t.status !== 'completed' &&
+                t.status !== 'archived' &&
+                String(t.dueDate).slice(0, 10) < new Date().toISOString().slice(0, 10),
+            ).length;
+
             return (
-              <div key={index} className="premium-card hover:shadow-lg transition-all duration-200">
-                {/* Project Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: projectData.color }}
-                    ></div>
-                    <div>
-                      <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{projectName}</h3>
-                      <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} capitalize`}>
-                        {projectData.status}
+              <div
+                key={index}
+                style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
+                className="premium-card rise group relative flex flex-col overflow-hidden !p-5"
+              >
+                {/* the project's own colour, as a hairline at the top edge */}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-[2px]"
+                  style={{ background: projectData.color }}
+                />
+
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span
+                      className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px]"
+                      style={{ background: `${projectData.color}1f`, color: projectData.color }}
+                    >
+                      <ProjectIcon sx={{ fontSize: 18 }} />
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-[15px] font-semibold tracking-[-0.01em] text-[var(--fg)]">
+                        {projectName}
+                      </h3>
+                      <span className="text-[11px] capitalize text-[var(--fg-subtle)]">
+                        {String(projectData.status || 'active').replace('-', ' ')}
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-none gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                     <button
                       onClick={() => handleEdit(projectData)}
-                      className={`p-1.5 rounded-lg transition-colors ${
-                        darkMode 
-                          ? 'text-gray-400 hover:text-blue-400 hover:bg-blue-900/20' 
-                          : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
-                      }`}
+                      aria-label={`Edit ${projectName}`}
+                      className="rounded p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
                     >
-                      <EditIcon fontSize="small" />
+                      <EditIcon sx={{ fontSize: 16 }} />
                     </button>
                     <button
                       onClick={() => handleDelete(projectName)}
-                      className={`p-1.5 rounded-lg transition-colors ${
-                        darkMode 
-                          ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/20' 
-                          : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
-                      }`}
+                      aria-label={`Archive ${projectName}`}
+                      className="rounded p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--danger-soft)]"
+                      style={{ ['--tw-text-opacity']: 1 }}
                     >
-                      <DeleteIcon fontSize="small" />
+                      <DeleteIcon sx={{ fontSize: 16 }} />
                     </button>
                   </div>
                 </div>
 
-                {/* Project Description */}
                 {projectData.description && (
-                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-4 line-clamp-2`}>
+                  <p className="mb-4 line-clamp-2 text-[13px] leading-relaxed text-[var(--fg-muted)]">
                     {projectData.description}
                   </p>
                 )}
 
-                {/* Task Statistics */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <TaskIcon fontSize="small" className={darkMode ? 'text-gray-500' : 'text-gray-400'} />
-                    <span className={darkMode ? 'text-gray-300' : 'text-gray-600'}>
-                      {stats.total} tasks total
+                {/* the number is the object of interest, the way the reference
+                    cards lead with their technique count */}
+                <div className="mb-3 flex items-baseline gap-2">
+                  <span className="font-mono text-[26px] font-medium leading-none tabular-nums text-[var(--accent)]">
+                    {stats.total}
+                  </span>
+                  <span className="text-[12px] text-[var(--fg-muted)]">
+                    task{stats.total === 1 ? '' : 's'} · {pct}% done
+                  </span>
+                </div>
+
+                <div className="mb-4 h-1 w-full overflow-hidden rounded-full bg-[var(--surface-2)]">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${pct}%`, background: projectData.color }}
+                  />
+                </div>
+
+                <div className="mb-4 flex flex-wrap gap-1.5">
+                  {stats.completed > 0 && (
+                    <span className="pill" style={{ color: 'var(--success)', background: 'var(--success-soft)' }}>
+                      {stats.completed} done
                     </span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className={`w-full ${darkMode ? 'bg-gray-600' : 'bg-gray-200'} rounded-full h-2`}>
-                    <div
-                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                      style={{ 
-                        width: stats.total > 0 ? `${(stats.completed / stats.total) * 100}%` : '0%' 
-                      }}
-                    ></div>
-                  </div>
-
-                  {/* Status Breakdown */}
-                  <div className={`flex justify-between text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <span>✅ {stats.completed}</span>
-                    <span>⚡ {stats.inProgress}</span>
-                    <span>📋 {stats.todo}</span>
-                  </div>
+                  )}
+                  {stats.inProgress > 0 && (
+                    <span className="pill" style={{ color: 'var(--accent)', background: 'var(--accent-soft)' }}>
+                      {stats.inProgress} in progress
+                    </span>
+                  )}
+                  {stats.todo > 0 && (
+                    <span className="pill" style={{ color: 'var(--fg-muted)', background: 'var(--surface-2)' }}>
+                      {stats.todo} to do
+                    </span>
+                  )}
+                  {overdue > 0 && (
+                    <span className="pill" style={{ color: 'var(--danger)', background: 'var(--danger-soft)' }}>
+                      {overdue} overdue
+                    </span>
+                  )}
+                  {stats.total === 0 && (
+                    <span className="pill" style={{ color: 'var(--fg-subtle)', background: 'var(--surface-2)' }}>
+                      no tasks yet
+                    </span>
+                  )}
                 </div>
 
-                {/* Project Actions */}
-                <div className={`mt-4 pt-4 border-t ${darkMode ? 'border-gray-600' : 'border-gray-100'}`}>
-                  <button 
-                    onClick={() => {
-                      if (setFilter && setActivePage) {
-                        setFilter({ project: projectName });
-                        setActivePage('tasks');
-                      }
-                    }}
-                    className={`w-full text-sm font-medium transition-colors ${
-                      darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                    }`}
-                  >
-                    View Project Tasks →
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    if (setFilter && setActivePage) {
+                      setFilter({ project: projectName });
+                      setActivePage('tasks');
+                    }
+                  }}
+                  className="mt-auto flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] py-2 text-[12px] font-medium text-[var(--fg-muted)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+                >
+                  Open tasks
+                </button>
               </div>
             );
           })}
