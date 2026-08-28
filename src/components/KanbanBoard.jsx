@@ -2,11 +2,13 @@
 import React, { useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
+  reorderTasks,
   updateTask,
   deleteTask,
   duplicateTask,
   togglePinned,
 } from "../redux/slices/taskSlice";
+import { useFeedback } from "./ui/Feedback";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
   Edit as EditIcon,
@@ -68,6 +70,7 @@ const COLOR_LABELS = [
 
 export default function KanbanBoard({ onEditTask, darkMode, filter }) {
   const dispatch = useDispatch();
+  const { confirm, toast } = useFeedback();
   const { tasks } = useSelector((state) => state.tasks);
   const [contextMenu, setContextMenu] = useState({
     visible: false,
@@ -108,12 +111,16 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
   // Group tasks by status
   const tasksByStatus = useMemo(() => {
     const grouped = {};
-    KANBAN_COLUMNS.forEach((col) => {
-      grouped[col.id] = filteredTasks.filter((task) => {
-        const status = task.status?.toLowerCase().replace(" ", "-") || "todo";
-        return status === col.id;
-      });
-    });
+    const known = new Set(KANBAN_COLUMNS.map((c) => c.id));
+    KANBAN_COLUMNS.forEach((col) => (grouped[col.id] = []));
+
+    /* Anything with an unrecognised status used to be dropped silently — the
+       task simply did not appear on the board. It now falls into the first
+       column so nothing can go missing. */
+    for (const task of filteredTasks) {
+      const status = task.status?.toLowerCase().replace(/\s+/g, "-") || "todo";
+      grouped[known.has(status) ? status : KANBAN_COLUMNS[0].id].push(task);
+    }
     return grouped;
   }, [filteredTasks]);
 
@@ -139,7 +146,6 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
 
   const handleDragEnd = (result) => {
     const { destination, source, draggableId } = result;
-
     if (!destination) return;
     if (
       destination.droppableId === source.droppableId &&
@@ -150,27 +156,26 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
     const task = tasks.find((t) => t.id === draggableId);
     if (!task) return;
 
-    // Map column id to status
-    const statusMap = {
-      todo: "todo",
-      "in-progress": "in-progress",
-      completed: "completed",
-      "on-hold": "on-hold",
-    };
+    const newStatus = destination.droppableId;
 
-    const newStatus =
-      statusMap[destination.droppableId] || destination.droppableId;
+    /* Card order is persisted to tasks.sort_order. Previously only the status
+       was saved, so a board you had arranged reverted on the next load. */
+    const target = [...(tasksByStatus[newStatus] ?? [])].filter(
+      (t) => t.id !== draggableId,
+    );
+    target.splice(destination.index, 0, { ...task, status: newStatus });
+
+    /* The status change goes through updateTask, not the reorder. Carrying it
+       on the reorder wrote the column straight to the row and skipped
+       everything a transition implies: dragging a card out of Done left
+       completed_at set and its work-log line in place, so Today went on
+       reporting the task as finished. */
+    if (newStatus !== task.status) {
+      dispatch(updateTask({ ...task, status: newStatus }));
+    }
 
     dispatch(
-      updateTask({
-        ...task,
-        status: newStatus,
-        updatedAt: new Date().toISOString(),
-        completedAt:
-          newStatus === "completed"
-            ? new Date().toISOString()
-            : task.completedAt,
-      }),
+      reorderTasks(target.map((t, i) => ({ id: t.id, sortOrder: i }))),
     );
   };
 
@@ -198,8 +203,15 @@ export default function KanbanBoard({ onEditTask, darkMode, filter }) {
     closeContextMenu();
   };
 
-  const handleDelete = (taskId) => {
-    if (confirm("Are you sure you want to delete this task?")) {
+  const handleDelete = async (taskId) => {
+    if (
+      await confirm({
+        title: "Delete this task?",
+        description: "Undo can bring it back this session; Archive keeps it permanently recoverable.",
+        confirmLabel: "Delete",
+        danger: true,
+      })
+    ) {
       dispatch(deleteTask(taskId));
     }
     closeContextMenu();

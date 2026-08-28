@@ -4,8 +4,43 @@ import { useDispatch } from 'react-redux';
 import { addTask, updateTask } from '../redux/slices/taskSlice';
 import { Close as CloseIcon, Add as PlusIcon } from '@mui/icons-material';
 import DocumentManager from './DocumentManager';
+import { useFeedback } from './ui/Feedback';
+import { uploadPendingDocuments } from '../lib/uploadPending.mjs';
+
+/**
+ * A labelled group of fields.
+ *
+ * The form was ten field groups in a flat column, so the eye had to re-read
+ * every label to find anything. Sections give it a shape you can scan.
+ */
+function Section({ title, hint, children }) {
+  return (
+    <section className="space-y-3">
+      <div className="flex items-baseline gap-2 border-b border-[var(--border)] pb-1.5">
+        <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
+          {title}
+        </h3>
+        {hint && <span className="text-[11px] text-[var(--fg-subtle)]">{hint}</span>}
+      </div>
+      {children}
+    </section>
+  );
+}
 
 export default function TaskForm({ editingTask, onClose, projects }) {
+  const { confirm } = useFeedback();
+  const titleRef = React.useRef(null);
+  const [touched, setTouched] = React.useState(false);
+  const [dirty, setDirty] = React.useState(false);
+  const [creatingProject, setCreatingProject] = React.useState(false);
+
+  /* Every edit goes through here, so "are there unsaved changes?" has a single
+     honest answer rather than a guess based on comparing objects. */
+  const update = (patch) => {
+    setDirty(true);
+    setFormData((prev) => ({ ...prev, ...patch }));
+  };
+
   const dispatch = useDispatch();
   
   // Helper function to format date for input
@@ -41,6 +76,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
     priority: 'medium',
     status: 'todo',
     dueDate: '',
+    recurrence: '',
     tags: [],
     workingFor: '',
     workingWith: '',
@@ -50,8 +86,12 @@ export default function TaskForm({ editingTask, onClose, projects }) {
 
   // Update form data when editingTask changes
   useEffect(() => {
+    /* Loading a task into the form is not a user edit, so the unsaved-changes
+       guard stays quiet until they actually touch something. */
+    setDirty(false);
+    setTouched(false);
+    setCreatingProject(false);
     if (editingTask) {
-      console.log('📝 Updating form with task data:', editingTask);
       setFormData({
         title: editingTask.title || '',
         description: editingTask.description || '',
@@ -59,6 +99,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
         priority: editingTask.priority || 'medium',
         status: editingTask.status || 'todo',
         dueDate: formatDateForInput(editingTask.dueDate),
+        recurrence: editingTask.recurrence || '',
         tags: safeParseArray(editingTask.tags),
         workingFor: editingTask.workingFor || '',
         workingWith: editingTask.workingWith || '',
@@ -74,6 +115,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
         priority: 'medium',
         status: 'todo',
         dueDate: '',
+        recurrence: '',
         tags: [],
         workingFor: '',
         workingWith: '',
@@ -83,13 +125,15 @@ export default function TaskForm({ editingTask, onClose, projects }) {
     }
   }, [editingTask]);
 
+  const titleError =
+    touched && !String(formData?.title ?? '').trim() ? 'A task needs a title.' : null;
+
   const [newTag, setNewTag] = useState('');
   const [newCheckpoint, setNewCheckpoint] = useState('');
 
   const addCheckpoint = () => {
     if (newCheckpoint.trim()) {
-      setFormData({
-        ...formData,
+      update({
         checkpoints: [...formData.checkpoints, {
           id: Date.now(),
           text: newCheckpoint.trim(),
@@ -102,31 +146,30 @@ export default function TaskForm({ editingTask, onClose, projects }) {
   };
 
   const removeCheckpoint = (checkpointId) => {
-    setFormData({
-      ...formData,
-      checkpoints: formData.checkpoints.filter(cp => cp.id !== checkpointId)
-    });
+    update({ checkpoints: formData.checkpoints.filter(cp => cp.id !== checkpointId) });
   };
 
   const toggleCheckpoint = (checkpointId) => {
-    setFormData({
-      ...formData,
-      checkpoints: formData.checkpoints.map(cp => 
+    update({
+      checkpoints: formData.checkpoints.map(cp =>
         cp.id === checkpointId ? { ...cp, completed: !cp.completed } : cp
       )
     });
   };
 
   const handleDocumentsChange = (documents) => {
-    setFormData({
-      ...formData,
-      documents: documents
-    });
+    update({ documents: documents });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title.trim()) return;
+    if (!formData.title.trim()) {
+      /* `required` only shows a browser bubble, which vanishes on the next
+         click and says nothing about which field. */
+      setTouched(true);
+      titleRef.current?.focus();
+      return;
+    }
 
     // Properly format the due date
     const formattedDueDate = formData.dueDate 
@@ -143,33 +186,47 @@ export default function TaskForm({ editingTask, onClose, projects }) {
       // Ensure arrays are properly formatted
       tags: Array.isArray(formData.tags) ? formData.tags : [],
       checkpoints: Array.isArray(formData.checkpoints) ? formData.checkpoints : [],
-      documents: Array.isArray(formData.documents) ? formData.documents : []
+      documents: Array.isArray(formData.documents) ? formData.documents : [],
+      recurrence: formData.recurrence || '',
+      /* The server refuses to invent a project unless it is asked to. */
+      allowNewProject: creatingProject
     };
 
     if (editingTask) {
-      dispatch(updateTask(taskData));
+      await dispatch(updateTask(taskData));
     } else {
-      dispatch(addTask(taskData));
+      /* Create first: files can only be attached to a task that exists. */
+      await dispatch(addTask(taskData));
+      const stored = await uploadPendingDocuments(taskData.documents, taskData.id);
+      if (stored.some((d, i) => d !== taskData.documents[i])) {
+        await dispatch(updateTask({ ...taskData, documents: stored }));
+      }
     }
-    
+
     onClose();
   };
 
   const handleAddTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData({ 
-        ...formData, 
-        tags: [...formData.tags, newTag.trim()] 
-      });
+      update({ tags: [...formData.tags, newTag.trim()] });
       setNewTag('');
     }
   };
 
-  const removeTag = (tagToRemove) => {
-    setFormData({
-      ...formData,
-      tags: formData.tags.filter(tag => tag !== tagToRemove)
+  /* Closing with unsaved edits used to discard them without a word. */
+  const requestClose = async () => {
+    if (!dirty) return onClose();
+    const ok = await confirm({
+      title: 'Discard your changes?',
+      description: 'This task has edits that have not been saved.',
+      confirmLabel: 'Discard',
+      danger: true,
     });
+    if (ok) onClose();
+  };
+
+  const removeTag = (tagToRemove) => {
+    update({ tags: formData.tags.filter(tag => tag !== tagToRemove) });
   };
 
   return (
@@ -180,29 +237,48 @@ export default function TaskForm({ editingTask, onClose, projects }) {
           <h2 className="text-lg font-semibold tracking-[-0.01em] text-[var(--fg)]">
             {editingTask ? 'Edit Task' : 'Create New Task'}
           </h2>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <CloseIcon className="text-gray-500" />
-          </button>
+          <div className="flex items-center gap-2">
+            {dirty && (
+              <span className="font-mono text-[11px] text-[var(--accent-2)]">Unsaved</span>
+            )}
+            <button
+              type="button"
+              onClick={requestClose}
+              aria-label="Close"
+              className="rounded-lg p-2 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+            >
+              <CloseIcon fontSize="small" />
+            </button>
+          </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
-          {/* Title */}
+        <form onSubmit={handleSubmit} className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+          <Section title="Basics">
           <div>
             <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
               Task Title *
             </label>
             <input
+              ref={titleRef}
               type="text"
-              required
               value={formData.title || ''}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-              placeholder="Enter task title..."
+              onChange={(e) => update({ title: e.target.value })}
+              onBlur={() => setTouched(true)}
+              aria-invalid={titleError ? 'true' : undefined}
+              aria-describedby={titleError ? 'task-title-error' : undefined}
+              className={`w-full rounded-lg border bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] ${
+                titleError
+                  ? 'border-[var(--danger)] focus:border-[var(--danger)]'
+                  : 'border-[var(--border-strong)] focus:border-[var(--accent)]'
+              }`}
+              placeholder="What needs doing?"
             />
+            {titleError && (
+              <p id="task-title-error" role="alert" className="mt-1.5 text-[12px] text-[var(--danger)]">
+                {titleError}
+              </p>
+            )}
           </div>
 
           {/* Description */}
@@ -212,36 +288,81 @@ export default function TaskForm({ editingTask, onClose, projects }) {
             </label>
             <textarea
               value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => update({ description: e.target.value })}
               rows={3}
               className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               placeholder="Describe the task..."
             />
           </div>
 
-          {/* Project and Priority */}
+          </Section>
+
+          <Section title="Where it sits">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
                 Project
               </label>
-              <div className="relative">
-                <input
-                  type="text"
+              {/* Free text here meant a one-character typo silently created a
+                  whole new project. Picking from the list cannot misfire, and
+                  a new project is now something you choose to do. */}
+              {creatingProject ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={formData.project}
+                    onChange={(e) => update({ project: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        setCreatingProject(false);
+                        update({ project: editingTask?.project || "" });
+                      }
+                    }}
+                    className="w-full rounded-lg border border-[var(--accent)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                    placeholder="New project name"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreatingProject(false);
+                      update({ project: editingTask?.project || "" });
+                    }}
+                    className="flex-shrink-0 rounded-lg px-3 text-[13px] text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <select
                   value={formData.project}
-                  onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                  className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
-                  placeholder="Type project name or select from existing..."
-                  list="project-options"
-                />
-                <datalist id="project-options">
-                  {projects.map((project) => (
-                    <option key={project.id || project.name || project} value={project.name || project} />
-                  ))}
-                </datalist>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                You can type any project name or select from existing projects
+                  onChange={(e) => {
+                    if (e.target.value === "__new__") {
+                      setCreatingProject(true);
+                      update({ project: "" });
+                    } else {
+                      update({ project: e.target.value });
+                    }
+                  }}
+                  className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                >
+                  <option value="">No project</option>
+                  {projects.map((project) => {
+                    const name = project.name || project;
+                    return (
+                      <option key={project.id || name} value={name}>
+                        {name}
+                      </option>
+                    );
+                  })}
+                  <option value="__new__">+ New project…</option>
+                </select>
+              )}
+              <p className="mt-1 text-[11px] text-[var(--fg-subtle)]">
+                {creatingProject
+                  ? "This project is created when you save the task."
+                  : "Pick one, or create a new project deliberately."}
               </p>
             </div>
 
@@ -251,7 +372,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               </label>
               <select
                 value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                onChange={(e) => update({ priority: e.target.value })}
                 className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               >
                 <option value="low">Low</option>
@@ -261,7 +382,9 @@ export default function TaskForm({ editingTask, onClose, projects }) {
             </div>
           </div>
 
-          {/* Status and Due Date */}
+          </Section>
+
+          <Section title="Schedule">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
@@ -269,7 +392,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               </label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                onChange={(e) => update({ status: e.target.value })}
                 className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               >
                 <option value="todo">To do</option>
@@ -286,13 +409,41 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               <input
                 type="date"
                 value={formData.dueDate || ''}
-                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                onChange={(e) => update({ dueDate: e.target.value })}
                 className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
           </div>
 
-          {/* Tags */}
+          {/* Repeats — completing the task schedules the next occurrence, so
+              standing work no longer has to be duplicated and re-dated. */}
+          <div>
+            <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
+              Repeats
+            </label>
+            <select
+              value={formData.recurrence || ''}
+              onChange={(e) => update({ recurrence: e.target.value })}
+              className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] md:w-1/2"
+            >
+              <option value="">Does not repeat</option>
+              <option value="daily">Daily</option>
+              <option value="weekdays">Every weekday</option>
+              <option value="weekly">Weekly</option>
+              <option value="fortnightly">Every two weeks</option>
+              <option value="monthly">Monthly</option>
+            </select>
+            {formData.recurrence && (
+              <p className="mt-1.5 text-[12px] text-[var(--fg-subtle)]">
+                Completing this task creates the next one automatically
+                {formData.dueDate ? ", dated from this one's due date" : ""}.
+              </p>
+            )}
+          </div>
+
+          </Section>
+
+          <Section title="Detail" hint="Optional">
           <div>
             <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
               Tags
@@ -333,7 +484,6 @@ export default function TaskForm({ editingTask, onClose, projects }) {
             </div>
           </div>
 
-          {/* Working For and Working With */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 block text-[13px] font-medium text-[var(--fg-muted)]">
@@ -342,7 +492,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               <input
                 type="text"
                 value={formData.workingFor || ''}
-                onChange={(e) => setFormData({ ...formData, workingFor: e.target.value })}
+                onChange={(e) => update({ workingFor: e.target.value })}
                 className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 placeholder="Who is this task for?"
               />
@@ -355,7 +505,7 @@ export default function TaskForm({ editingTask, onClose, projects }) {
               <input
                 type="text"
                 value={formData.workingWith || ''}
-                onChange={(e) => setFormData({ ...formData, workingWith: e.target.value })}
+                onChange={(e) => update({ workingWith: e.target.value })}
                 className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--fg)] transition-colors placeholder:text-[var(--fg-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 placeholder="Who are you working with?"
               />
@@ -438,14 +588,9 @@ export default function TaskForm({ editingTask, onClose, projects }) {
 
           {/* Documents Section */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-              Documents
-            </h4>
-            <p className="text-xs text-gray-600">
-              Attach files or add links for additional context and resources
-            </p>
-            
+
             <DocumentManager
+              taskId={editingTask?.id || null}
               documents={formData.documents || []}
               onDocumentsChange={handleDocumentsChange}
               darkMode={false}
@@ -453,11 +598,12 @@ export default function TaskForm({ editingTask, onClose, projects }) {
             />
           </div>
 
-          {/* Form Actions */}
+          </Section>
+
           <div className="flex flex-shrink-0 justify-end gap-2 border-t border-[var(--border)] pt-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               className="btn-secondary text-sm"
             >
               Cancel

@@ -7,6 +7,12 @@ import {
   reorderTasks,
 } from "@/lib/db/repositories/tasks.mjs";
 
+/* A missing task or an unknown project is the caller getting it wrong, not the
+   server falling over. They used to be answered with a 500 — or worse, with a
+   silently invented row. */
+const statusFor = (error) =>
+  error?.code === "TASK_NOT_FOUND" ? 404 : error?.code === "UNKNOWN_PROJECT" ? 400 : 500;
+
 /**
  * GET    /api/tasks            every task, in app shape
  * POST   /api/tasks            create
@@ -33,7 +39,7 @@ export async function POST(request) {
     return NextResponse.json({ id, tasks: await listTasks() });
   } catch (error) {
     console.error("POST /api/tasks:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: statusFor(error) });
   }
 }
 
@@ -51,7 +57,7 @@ export async function PATCH(request) {
     return NextResponse.json({ tasks: await listTasks() });
   } catch (error) {
     console.error("PATCH /api/tasks:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: statusFor(error) });
   }
 }
 

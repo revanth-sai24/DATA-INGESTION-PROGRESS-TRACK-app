@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import {
+  SummarizeOutlined as ReportIcon,
   ListAlt as ListAltIcon,
   Archive as ArchiveIcon,
   Add as AddIcon,
@@ -31,6 +32,7 @@ export const NAV_GROUPS = [
     items: [
       { id: "today", label: "Today", icon: TodayIcon, hint: "What you did and what's on" },
       { id: "dashboard", label: "Dashboard", icon: DashboardIcon, hint: "Metrics and trends" },
+      { id: "report", label: "Weekly report", icon: ReportIcon, hint: "Status you can paste" },
     ],
   },
   {
@@ -100,8 +102,8 @@ export default function Sidebar({
 
       <aside
         aria-label="Main navigation"
-        className={`glass fixed inset-y-0 left-0 z-modal flex w-[268px] max-w-[85vw] flex-col
-          border-r
+        className={`fixed inset-y-0 left-0 z-modal flex w-[268px] max-w-[85vw] flex-col
+          bg-[var(--app-bg)] border-r border-[var(--border)]
           transition-transform duration-300 ease-out
           lg:z-drawer lg:translate-x-0
           ${isOpen ? "translate-x-0 shadow-lg" : "-translate-x-full"}`}

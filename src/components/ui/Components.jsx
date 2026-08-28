@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
+  MoreHoriz as MoreHorizIcon,
   Close as CloseIcon,
   ChevronRight as ChevronRightIcon,
   Search as SearchIcon,
@@ -246,7 +247,11 @@ export function Modal({ open, onClose, title, description, footer, size = "md", 
           <IconButton icon={CloseIcon} label="Close" onClick={onClose} size="sm" />
         </header>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        {/* A confirmation carries all its text in the header, so the body
+            region is skipped rather than rendered as an empty strip. */}
+        {children != null && children !== false && (
+          <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        )}
 
         {footer && (
           <footer className="flex flex-shrink-0 items-center justify-end gap-2 border-t border-[var(--border)] px-4 py-3">
@@ -446,5 +451,96 @@ export function ToastViewport({ toasts = [], onDismiss }) {
         </div>
       ))}
     </div>
+  );
+}
+
+/* ── overflow menu ──────────────────────────────────────────────────────── */
+
+/**
+ * A "⋯" button revealing secondary actions.
+ *
+ * Task rows had eight icon buttons competing on one line, which overflowed the
+ * column and printed the edit pencil on top of the due date. Three primary
+ * actions stay inline; the rest live here, where they are labelled rather than
+ * guessed at from an icon.
+ *
+ * `items`: [{ label, icon, onClick, danger, hidden }]
+ */
+export function OverflowMenu({ items = [], label = "More actions" }) {
+  const [open, setOpen] = useState(false);
+  const [up, setUp] = useState(false);
+  const wrap = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => !wrap.current?.contains(e.target) && setOpen(false);
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const visible = items.filter((i) => !i.hidden);
+  if (visible.length === 0) return null;
+
+  const toggle = (e) => {
+    e.stopPropagation();
+    /* Flip upward near the viewport bottom so the last rows stay usable. */
+    const box = wrap.current?.getBoundingClientRect();
+    if (box) setUp(window.innerHeight - box.bottom < 40 + visible.length * 34);
+    setOpen((v) => !v);
+  };
+
+  return (
+    <span ref={wrap} className="relative inline-flex">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={label}
+        title={label}
+        className={`rounded p-1 transition-colors ${
+          open
+            ? "bg-[var(--surface-3)] text-[var(--fg)]"
+            : "text-[var(--fg-subtle)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+        }`}
+      >
+        <MoreHorizIcon fontSize="small" />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className={`absolute right-0 z-popover min-w-[172px] overflow-hidden rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-2)] py-1 shadow-2xl ${
+            up ? "bottom-full mb-1" : "top-full mt-1"
+          }`}
+          style={{ animation: "menu-in 140ms var(--ease-out-expo) both" }}
+        >
+          {visible.map(({ label: text, icon: Icon, onClick, danger }) => (
+            <button
+              key={text}
+              role="menuitem"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+                onClick?.();
+              }}
+              className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-[13px] transition-colors ${
+                danger
+                  ? "text-[var(--danger)] hover:bg-[var(--danger-soft)]"
+                  : "text-[var(--fg-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--fg)]"
+              }`}
+            >
+              {Icon && <Icon sx={{ fontSize: 15 }} />}
+              {text}
+            </button>
+          ))}
+        </div>
+      )}
+    </span>
   );
 }

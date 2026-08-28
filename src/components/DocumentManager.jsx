@@ -13,9 +13,10 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 
-const DocumentManager = ({ documents = [], onDocumentsChange, darkMode, maxFiles = 10 }) => {
+const DocumentManager = ({ documents = [], onDocumentsChange, darkMode, maxFiles = 10, taskId = null }) => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newDocument, setNewDocument] = useState({ name: '', url: '', type: 'link' });
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
   // Ensure documents is always an array
@@ -49,9 +50,18 @@ const DocumentManager = ({ documents = [], onDocumentsChange, darkMode, maxFiles
     }
   };
 
-  // Handle file upload
-  const handleFileUpload = (event) => {
+  /**
+   * Attach files.
+   *
+   * These used to be kept as `URL.createObjectURL(file)` — a URL valid only
+   * for the current page, so every "attached" file vanished on reload. Files
+   * now go to the server straight away when the task already exists. For a
+   * task still being created there is no id to attach to yet, so the real
+   * File object is held and uploaded by the form once the task is saved.
+   */
+  const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     if (files.length === 0) return;
 
     if (safeDocuments.length + files.length > maxFiles) {
@@ -59,19 +69,39 @@ const DocumentManager = ({ documents = [], onDocumentsChange, darkMode, maxFiles
       return;
     }
 
-    const newDocuments = files.map(file => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      type: 'file',
-      size: file.size,
-      file: file,
-      url: URL.createObjectURL(file),
-      uploadedAt: new Date().toISOString()
-    }));
+    if (!taskId) {
+      onDocumentsChange([
+        ...safeDocuments,
+        ...files.map((file) => ({
+          id: `pending-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          name: file.name,
+          type: 'file',
+          size: file.size,
+          file,
+          pending: true,
+          addedAt: new Date().toISOString(),
+        })),
+      ]);
+      return;
+    }
 
-    onDocumentsChange([...safeDocuments, ...newDocuments]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    setUploading(true);
+    try {
+      const saved = [];
+      for (const file of files) {
+        const body = new FormData();
+        body.append('file', file);
+        body.append('task_id', taskId);
+        const res = await fetch('/api/files', { method: 'POST', body });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Could not upload ${file.name}`);
+        saved.push(data.document);
+      }
+      onDocumentsChange([...safeDocuments, ...saved]);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -97,13 +127,21 @@ const DocumentManager = ({ documents = [], onDocumentsChange, darkMode, maxFiles
 
   // Remove document
   const handleRemove = (id) => {
-    const updatedDocuments = safeDocuments.filter(doc => doc.id !== id);
-    onDocumentsChange(updatedDocuments);
+    const doc = safeDocuments.find((d) => d.id === id);
+    onDocumentsChange(safeDocuments.filter((d) => d.id !== id));
+    /* A stored file outlives the list entry unless it is deleted too. */
+    if (doc?.type === 'file' && !doc.pending) {
+      fetch(`/api/files?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => {});
+    }
   };
 
   // Download file
   const handleDownload = (docItem) => {
     try {
+      if (docItem.pending) {
+        alert('Save the task first — this file uploads when the task is created.');
+        return;
+      }
       if (docItem.type === 'file' && docItem.url) {
         // Create download link for uploaded files
         const linkElement = window.document.createElement('a');
@@ -166,10 +204,10 @@ const DocumentManager = ({ documents = [], onDocumentsChange, darkMode, maxFiles
                 ? 'bg-gray-600 hover:bg-gray-700 text-white' 
                 : 'bg-gray-600 hover:bg-gray-700 text-white'
             }`}
-            disabled={safeDocuments.length >= maxFiles}
+            disabled={uploading || safeDocuments.length >= maxFiles}
           >
             <AttachFileIcon fontSize="small" />
-            Upload File
+            {uploading ? 'Uploading…' : 'Upload File'}
           </button>
           
           <input

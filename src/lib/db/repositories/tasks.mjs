@@ -96,6 +96,7 @@ export async function listTasks() {
       workingWith: t.working_with ?? "",
       pinned: Boolean(t.pinned),
       colorLabel: t.color_label ?? null,
+      recurrence: t.recurrence ?? "",
       sortOrder: t.sort_order ?? 0,
       tags: (byTag[t.id] ?? []).map((r) => r.tag),
       checkpoints: (byCp[t.id] ?? []).map((c) => ({
@@ -130,14 +131,30 @@ export async function listTasks() {
 /* ── write ──────────────────────────────────────────────────────────────── */
 
 /** Resolves a project *name* to an id, creating the project if it is new. */
-async function resolveProjectId(name) {
+/**
+ * Look up a project by name.
+ *
+ * This used to create the project whenever the name was not recognised, which
+ * meant a one-character typo in a task's project field silently produced a
+ * whole new project — indistinguishable from a real one, and only noticeable
+ * later on the Projects screen. Creation is now something the caller has to
+ * ask for, so it can only happen where the user actually meant it.
+ */
+async function resolveProjectId(name, { allowCreate = false } = {}) {
   const trimmed = String(name ?? "").trim();
   if (!trimmed) return null;
+
   const found = await query(
     `SELECT id FROM projects WHERE lower(name) = lower(?) LIMIT 1`,
     [trimmed],
   );
   if (found[0]) return found[0].id;
+
+  if (!allowCreate) {
+    const err = new Error(`There is no project called "${trimmed}".`);
+    err.code = "UNKNOWN_PROJECT";
+    throw err;
+  }
 
   const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   await execute(
@@ -202,13 +219,88 @@ function childStatements(taskId, input) {
   return stmts;
 }
 
+/** Cadences a task can repeat on. Anything else means "does not repeat". */
+export const RECURRENCES = ["daily", "weekdays", "weekly", "fortnightly", "monthly"];
+
+const normaliseRecurrence = (v) => {
+  const r = String(v ?? "").trim().toLowerCase();
+  return RECURRENCES.includes(r) ? r : null;
+};
+
+/**
+ * The next due date for a cadence, as YYYY-MM-DD.
+ *
+ * Rolls forward from the completed occurrence's own due date so a series does
+ * not drift when you finish something late; if it had no due date, from today.
+ * "weekdays" skips the weekend rather than landing on a Saturday.
+ */
+export function nextDueDate(recurrence, from) {
+  const base = from ? new Date(from) : new Date();
+  if (Number.isNaN(base.getTime())) return null;
+  if (!RECURRENCES.includes(recurrence)) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  /* Monthly keeps the original day of the month as its anchor. Stepping one
+     month at a time from the last result loses it: a task due the 31st gets
+     clamped to the 28th by February and stays on the 28th forever. */
+  if (recurrence === "monthly") {
+    const anchor = base.getDate();
+    for (let n = 1; n <= 400; n += 1) {
+      const d = new Date(base.getFullYear(), base.getMonth() + n, 1);
+      const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      d.setDate(Math.min(anchor, last));
+      if (d >= today) return toKey(d);
+    }
+    return null;
+  }
+
+  const step = (d) => {
+    switch (recurrence) {
+      case "daily":
+        d.setDate(d.getDate() + 1);
+        break;
+      case "weekdays":
+        do {
+          d.setDate(d.getDate() + 1);
+        } while (d.getDay() === 0 || d.getDay() === 6);
+        break;
+      case "weekly":
+        d.setDate(d.getDate() + 7);
+        break;
+      case "fortnightly":
+        d.setDate(d.getDate() + 14);
+        break;
+      default:
+        break;
+    }
+    return d;
+  };
+
+  /* A cadence shorter than how late you are would schedule the next occurrence
+     in the past, so keep stepping until it lands ahead of today. */
+  const d = step(new Date(base));
+  for (let guard = 0; d < today && guard < 400; guard += 1) step(d);
+  return toKey(d);
+}
+
+/** Local YYYY-MM-DD — toISOString would shift the day for anyone east of UTC. */
+function toKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
+}
+
 export async function createTask(input) {
   const db = getDb();
   await applyPragmas(db);
 
   const id = input.id || `task-${Date.now()}`;
   const status = toDbStatus(input.status);
-  const projectId = await resolveProjectId(input.project);
+  const projectId = await resolveProjectId(input.project, {
+    allowCreate: input.allowNewProject === true,
+  });
   const ts = now();
 
   const maxOrder = await query(`SELECT COALESCE(MAX(sort_order), 0) AS m FROM tasks`);
@@ -218,8 +310,9 @@ export async function createTask(input) {
       sql: `INSERT INTO tasks
             (id, title, description, status, priority, project_id, due_date,
              estimated_minutes, working_for, working_with, pinned, color_label,
-             sort_order, created_at, updated_at, completed_at, archived_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+             sort_order, created_at, updated_at, completed_at, archived_at,
+             recurrence, recurrence_parent)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       args: [
         id,
         String(input.title ?? "").trim(),
@@ -238,6 +331,8 @@ export async function createTask(input) {
         ts,
         status === "completed" ? (iso(input.completedAt) ?? ts) : null,
         status === "archived" ? (iso(input.archivedAt) ?? ts) : null,
+        normaliseRecurrence(input.recurrence),
+        input.recurrenceParent ?? null,
       ],
     },
     ...childStatements(id, input),
@@ -259,13 +354,22 @@ export async function updateTask(input) {
   if (!id) throw new Error("updateTask requires an id");
 
   const existing = await query(`SELECT * FROM tasks WHERE id = ? LIMIT 1`, [id]);
-  if (!existing[0]) return createTask(input);
+  if (!existing[0]) {
+    /* This used to fall through to createTask, so an edit aimed at a task that
+       no longer existed quietly produced a second one — with its own project
+       to match. */
+    const err = new Error(`Task ${id} no longer exists.`);
+    err.code = "TASK_NOT_FOUND";
+    throw err;
+  }
   const prev = existing[0];
 
   const status = toDbStatus(input.status ?? toAppStatus(prev.status));
   const projectId =
     input.project !== undefined
-      ? await resolveProjectId(input.project)
+      ? await resolveProjectId(input.project, {
+          allowCreate: input.allowNewProject === true,
+        })
       : prev.project_id;
   const ts = now();
 
@@ -281,7 +385,8 @@ export async function updateTask(input) {
       sql: `UPDATE tasks SET
               title = ?, description = ?, status = ?, priority = ?, project_id = ?,
               due_date = ?, estimated_minutes = ?, working_for = ?, working_with = ?,
-              pinned = ?, color_label = ?, updated_at = ?, completed_at = ?, archived_at = ?
+              pinned = ?, color_label = ?, updated_at = ?, completed_at = ?, archived_at = ?,
+              recurrence = ?
             WHERE id = ?`,
       args: [
         input.title !== undefined ? String(input.title).trim() : prev.title,
@@ -300,6 +405,9 @@ export async function updateTask(input) {
         ts,
         completedAt,
         archivedAt,
+        input.recurrence !== undefined
+          ? normaliseRecurrence(input.recurrence)
+          : prev.recurrence,
         id,
       ],
     },
@@ -371,6 +479,40 @@ export async function updateTask(input) {
     }
   }
 
+  /* A recurring task that has just been completed spawns its next occurrence.
+     The completed one stays as it is, so the series reads as history rather
+     than one row whose due date keeps moving. */
+  const cadence = normaliseRecurrence(
+    input.recurrence !== undefined ? input.recurrence : prev.recurrence,
+  );
+  if (cadence && status === "completed" && prev.status !== "completed") {
+    const due = nextDueDate(cadence, prev.due_date || ts);
+    const nextId = `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    stmts.push({
+      sql: `INSERT INTO tasks
+              (id, title, description, status, priority, project_id, due_date,
+               estimated_minutes, working_for, working_with, pinned, color_label,
+               sort_order, created_at, updated_at, completed_at, archived_at,
+               recurrence, recurrence_parent)
+            SELECT ?, title, description, 'todo', priority, project_id, ?,
+                   estimated_minutes, working_for, working_with, 0, color_label,
+                   sort_order, ?, ?, NULL, NULL, recurrence, ?
+              FROM tasks WHERE id = ?`,
+      args: [nextId, due, ts, ts, id, id],
+    });
+    /* Tags carry over; checkpoints and notes belong to the occurrence that
+       had them. */
+    stmts.push({
+      sql: `INSERT INTO task_tags (task_id, tag) SELECT ?, tag FROM task_tags WHERE task_id = ?`,
+      args: [nextId, id],
+    });
+    stmts.push({
+      sql: `INSERT INTO activity_log (entity_type, entity_id, action, field, new_value, actor, created_at)
+            VALUES ('task', ?, 'created', 'recurrence', ?, ?, ?)`,
+      args: [nextId, cadence, id, ts],
+    });
+  }
+
   await transaction(stmts);
   return id;
 }
@@ -419,14 +561,21 @@ export async function deleteTask(id) {
 }
 
 /** Board ordering — persists what drag-and-drop previously threw away. */
+/**
+ * Persist card order.
+ *
+ * This used to accept a `status` alongside the order and write it straight to
+ * the row, which let the board move a card out of Done without clearing
+ * completed_at or the work-log line the completion had written. Ordering is all
+ * this does now; a status change has to go through updateTask, where the
+ * transition is handled once for every screen.
+ */
 export async function reorderTasks(ordered = []) {
   if (ordered.length === 0) return;
   await transaction(
-    ordered.map(({ id, sortOrder, status }, i) => ({
-      sql: `UPDATE tasks SET sort_order = ?${status ? ", status = ?" : ""} WHERE id = ?`,
-      args: status
-        ? [sortOrder ?? i, toDbStatus(status), id]
-        : [sortOrder ?? i, id],
+    ordered.map(({ id, sortOrder }, i) => ({
+      sql: `UPDATE tasks SET sort_order = ? WHERE id = ?`,
+      args: [sortOrder ?? i, id],
     })),
   );
 }

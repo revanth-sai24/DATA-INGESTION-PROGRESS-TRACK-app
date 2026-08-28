@@ -70,17 +70,17 @@
 .dark {
   /* Blue-tinted near-black. Dark mode uses lighter tonal variants of the same
      hues — not inverted light-mode values, which go muddy. */
-  --app-bg: #06080f;
-  --surface: #0d1220;
-  --surface-2: #141b2c;
-  --surface-3: #1b2438;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --app-bg: #05070d;
+  --surface: #131926;
+  --surface-2: #1b2231;
+  --surface-3: #252d3e;
+  --border: rgba(255, 255, 255, 0.11);
+  --border-strong: rgba(255, 255, 255, 0.2);
 
   /* glass + depth */
   --glass: rgba(16, 22, 38, 0.72);
-  --hairline: rgba(255, 255, 255, 0.08);
-  --inset-hi: rgba(255, 255, 255, 0.07);
+  --hairline: rgba(255, 255, 255, 0.11);
+  --inset-hi: rgba(255, 255, 255, 0.055);
   --glow-a: rgba(56, 116, 255, 0.16);
   --glow-b: rgba(180, 83, 9, 0.10);
 
@@ -166,12 +166,38 @@ table th {
   font-variant-numeric: tabular-nums;
 }
 
-/* Headings get tighter tracking as they get larger. */
+/* A real scale. Every level was landing within 2px of the last, which is why
+   nothing on the page announced itself as a heading. */
 h1,
 h2,
 h3 {
-  letter-spacing: -0.018em;
   text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+  font-weight: 650;
+  letter-spacing: -0.028em;
+  line-height: 1.12;
+}
+
+h2 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.016em;
+}
+
+h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.panel-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--fg);
 }
 
 p {
@@ -374,10 +400,10 @@ p {
 
 .kpi-value {
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 1.75rem;
+  font-size: 2.25rem;
   font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
   color: var(--fg);
 }
@@ -1011,4 +1037,17 @@ p {
 
 .pin-animation {
   animation: star-pulse 0.3s ease-out;
+}
+
+/* Right-hand drawer entrance (task detail). Transform-only, so it stays on
+   the compositor. */
+@keyframes drawer-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* Overflow-menu entrance. Transform + opacity only. */
+@keyframes menu-in {
+  from { transform: translateY(-4px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0) scale(1);       opacity: 1; }
 }

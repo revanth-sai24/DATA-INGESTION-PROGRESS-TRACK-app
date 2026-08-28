@@ -208,7 +208,7 @@ export default function AdvancedAnalytics({ darkMode }) {
         value: tasks.filter(
           (t) => t.status === "todo" && t.status !== "archived",
         ).length,
-        color: "#6B7280",
+        color: "var(--fg-subtle)",
       },
       {
         name: "In Progress",
@@ -412,21 +412,21 @@ export default function AdvancedAnalytics({ darkMode }) {
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke={darkMode ? "#374151" : "#e5e7eb"}
+              stroke={darkMode ? "var(--border)" : "var(--border)"}
             />
             <XAxis
               dataKey="date"
-              tick={{ fill: darkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }}
+              tick={{ fill: darkMode ? "var(--fg-subtle)" : "var(--fg-subtle)", fontSize: 12 }}
             />
             <YAxis
-              tick={{ fill: darkMode ? "#9CA3AF" : "#6B7280", fontSize: 12 }}
+              tick={{ fill: darkMode ? "var(--fg-subtle)" : "var(--fg-subtle)", fontSize: 12 }}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: darkMode ? "#1F2937" : "white",
-                border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
+                border: `1px solid ${darkMode ? "var(--border)" : "var(--border)"}`,
                 borderRadius: "8px",
-                color: darkMode ? "white" : "#374151",
+                color: darkMode ? "white" : "var(--border)",
               }}
             />
             <Legend />
@@ -802,7 +802,7 @@ export default function AdvancedAnalytics({ darkMode }) {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: darkMode ? "#1F2937" : "white",
-                    border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
+                    border: `1px solid ${darkMode ? "var(--border)" : "var(--border)"}`,
                     borderRadius: "8px",
                   }}
                 />

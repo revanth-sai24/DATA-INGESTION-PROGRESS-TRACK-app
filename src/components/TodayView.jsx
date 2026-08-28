@@ -40,6 +40,14 @@ const prettyDate = (key) =>
     day: "numeric",
   });
 
+/* The week strip labelled each bar with its entry count — and a "\u00b7" when the
+   count was zero — so six of the seven columns read as dots and no day was ever
+   named. The bar height already carries the volume; the label should say which
+   day you are looking at. */
+const weekdayShort = (key) =>
+  fromKey(key).toLocaleDateString("en-US", { weekday: "short" });
+const dayOfMonth = (key) => fromKey(key).getDate();
+
 const ACTIVE_STATUSES = ["todo", "in-progress", "on-hold"];
 
 export default function TodayView({ darkMode, onEditTask }) {
@@ -63,6 +71,8 @@ export default function TodayView({ darkMode, onEditTask }) {
   const logInputRef = useRef(null);
 
   const isToday = dayKey === todayKey;
+  const projectColor = (name) =>
+    projects.find((p) => (p.name ?? p) === name)?.color || "var(--fg-subtle)";
   const projectNames = useMemo(
     () => projects.map((p) => (typeof p === "string" ? p : p.name)).filter(Boolean),
     [projects],
@@ -215,12 +225,16 @@ export default function TodayView({ darkMode, onEditTask }) {
   const handleQuickAdd = () => {
     const title = quickTitle.trim();
     if (!title) return;
+    /* No project. This used to borrow `logProject` — the project selected in
+       the "What I did" form on the other side of the screen — so a task added
+       here quietly landed in whichever project that unrelated control happened
+       to be showing. */
     dispatch(
       addTask({
         title,
         status: "todo",
         priority: "medium",
-        project: logProject || "",
+        project: "",
         dueDate: dayKey,
       }),
     );
@@ -264,14 +278,35 @@ export default function TodayView({ darkMode, onEditTask }) {
 
       <button
         onClick={() => onEditTask?.(task)}
-        className={`flex-1 text-left min-w-0 ${text}`}
+        className="min-w-0 flex-1 text-left"
       >
-        <div className="text-sm font-medium truncate">{task.title}</div>
-        <div className={`text-xs ${muted} flex items-center gap-2 mt-0.5`}>
-          {task.project && <span className="truncate">{task.project}</span>}
+        <div className="truncate text-[13.5px] font-medium leading-snug text-[var(--fg)]">
+          {task.title}
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          {task.project && (
+            <span className="flex items-center gap-1.5 text-[11px] text-[var(--fg-subtle)]">
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 flex-none rounded-full"
+                style={{ background: projectColor(task.project) }}
+              />
+              {task.project}
+            </span>
+          )}
           <PriorityPill priority={task.priority} />
-          {tone === "overdue" && task.dueDate && (
-            <span className="text-red-500">due {dayKeyOf(task.dueDate)}</span>
+          {task.dueDate && (
+            <span
+              className="font-mono text-[11px] tabular-nums"
+              style={{
+                color: tone === "overdue" ? "var(--danger)" : "var(--fg-subtle)",
+              }}
+            >
+              {new Date(task.dueDate).toLocaleDateString("en-US", {
+                day: "numeric",
+                month: "short",
+              })}
+            </span>
           )}
         </div>
       </button>
@@ -359,34 +394,72 @@ export default function TodayView({ darkMode, onEditTask }) {
         ]}
       /></div>
 
-      {/* Last 7 days */}
-      <div className="flex items-center gap-1.5">
-        {recentByDay.map(({ key, count }) => (
-          <button
-            key={key}
-            onClick={() => setDayKey(key)}
-            title={`${prettyDate(key)} — ${count} ${count === 1 ? "entry" : "entries"}`}
-            className={`flex-1 rounded-lg px-2 py-2 border transition-colors ${
-              key === dayKey
-                ? "border-blue-500 bg-blue-500/10"
-                : darkMode
-                  ? "border-gray-700 hover:border-gray-600"
-                  : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <div className={`text-[10px] uppercase tracking-wide ${muted}`}>
-              {fromKey(key).toLocaleDateString("en-US", { weekday: "short" })}
+      {/* Last 7 days. Collapses to a single line when the week is empty rather
+          than reserving a band to display nothing. */}
+      {(() => {
+        const max = Math.max(...recentByDay.map((d) => d.count));
+        if (max === 0) {
+          return (
+            <div className="rise rise-2 flex items-center justify-between rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--surface)] px-3.5 py-2 text-[12px]">
+              <span className="text-[var(--fg-subtle)]">
+                Nothing logged in the last 7 days
+              </span>
+              <button
+                onClick={() => logInputRef.current?.focus()}
+                className="font-medium text-[var(--accent)] hover:underline"
+              >
+                Log something
+              </button>
             </div>
-            <div
-              className={`text-sm font-semibold ${count > 0 ? "text-blue-500" : muted}`}
-            >
-              {count || "·"}
-            </div>
-          </button>
-        ))}
-      </div>
+          );
+        }
+        return (
+          <div className="rise rise-2 flex items-end gap-1.5 rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--surface)] px-3 py-2.5">
+            {recentByDay.map(({ key, count }) => {
+              const isSel = key === dayKey;
+              const isTodayCol = key === todayKey;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setDayKey(key)}
+                  title={`${prettyDate(key)} \u2014 ${count} ${count === 1 ? "entry" : "entries"}`}
+                  className="group flex flex-1 flex-col items-center gap-1.5"
+                >
+                  <span className="flex h-9 w-full items-end justify-center">
+                    <span
+                      className="w-full rounded-[3px] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                      style={{
+                        height: count ? `${Math.max(20, (count / max) * 100)}%` : "3px",
+                        background: isSel
+                          ? "var(--accent)"
+                          : count
+                            ? "color-mix(in srgb, var(--accent) 45%, transparent)"
+                            : "var(--surface-3)",
+                      }}
+                    />
+                  </span>
+                  <span
+                    className={`flex flex-col items-center leading-tight transition-colors ${
+                      isSel
+                        ? "text-[var(--accent)]"
+                        : isTodayCol
+                          ? "text-[var(--fg-muted)]"
+                          : "text-[var(--fg-subtle)]"
+                    }`}
+                  >
+                    <span className="text-[10px] font-medium">{weekdayShort(key)}</span>
+                    <span className="font-mono text-[10px] tabular-nums">
+                      {dayOfMonth(key)}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        );
+      })()}
 
-      <div className="rise rise-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="rise rise-3 grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
         {/* ── What I did ──────────────────────────────────────────────── */}
         <div className={`rounded-xl border ${card} p-5`}>
           <h2 className={`text-lg font-semibold ${text} mb-1`}>What I did</h2>

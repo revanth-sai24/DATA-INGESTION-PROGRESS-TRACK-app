@@ -1,7 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
+  exportToCSV,
+  startTimer,
+  stopTimer,
   updateTask,
   deleteTask,
   duplicateTask,
@@ -32,7 +35,19 @@ import {
   CheckCircle as CompleteIcon,
   Close as CloseIcon,
   CenterFocusStrong as FocusIcon,
+  ChatBubbleOutline as NotesIcon,
+  AttachFile as AttachmentIcon,
+  ArrowUpward as ArrowUpIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  FileDownloadOutlined as DownloadIcon,
+  Repeat as RepeatIcon,
 } from "@mui/icons-material";
+import { StatStrip, EmptyState, StatusPill, PriorityPill } from "./ui/Primitives";
+import { OverflowMenu } from "./ui/Components";
+import { useFeedback } from "./ui/Feedback";
+import TimerControl from "./TimerControl";
+import CommentDrawer from "./CommentDrawer";
 
 // Color labels configuration
 const COLOR_LABELS = {
@@ -46,6 +61,65 @@ const COLOR_LABELS = {
   cyan: "#06B6D4",
 };
 
+/* Ranks used when sorting by a categorical column, so "high" sorts above
+   "low" instead of alphabetically. */
+const PRIORITY_RANK = { urgent: 4, high: 3, medium: 2, low: 1 };
+const STATUS_RANK = { "in-progress": 4, todo: 3, "on-hold": 2, completed: 1, archived: 0 };
+
+function compareBy(key, a, b) {
+  switch (key) {
+    case "title":
+      return String(a.title || "").localeCompare(String(b.title || ""));
+    case "project":
+      return String(a.project || "").localeCompare(String(b.project || ""));
+    case "priority":
+      return (PRIORITY_RANK[a.priority] || 0) - (PRIORITY_RANK[b.priority] || 0);
+    case "status":
+      return (STATUS_RANK[a.status] || 0) - (STATUS_RANK[b.status] || 0);
+    case "time":
+      return (a.timeTracking?.elapsed || 0) - (b.timeTracking?.elapsed || 0);
+    case "dueDate": {
+      /* Undated tasks sort last in both directions rather than pretending to
+         be due in 1970. */
+      const av = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+      const bv = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      if (av === bv) return 0;
+      return av < bv ? -1 : 1;
+    }
+    default:
+      return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+  }
+}
+
+/** A column header that sorts. The arrow only shows on the active column. */
+function SortHeader({ label, sortKey, sort, onSort, className = "" }) {
+  const active = sort.key === sortKey;
+  return (
+    <th className={className}>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className={`group inline-flex items-center gap-1 transition-colors ${
+          active ? "text-[var(--fg)]" : "hover:text-[var(--fg-muted)]"
+        }`}
+        title={`Sort by ${label.toLowerCase()}`}
+      >
+        {label}
+        <ArrowUpIcon
+          sx={{ fontSize: 13 }}
+          className={`transition-all ${
+            active
+              ? sort.dir === "asc"
+                ? "opacity-100"
+                : "rotate-180 opacity-100"
+              : "opacity-0 group-hover:opacity-40"
+          }`}
+        />
+      </button>
+    </th>
+  );
+}
+
 export default function TaskList({
   activePage,
   filter,
@@ -57,10 +131,17 @@ export default function TaskList({
   darkMode,
 }) {
   const dispatch = useDispatch();
+  const { confirm, toast } = useFeedback();
   const { tasks, projects } = useSelector((state) => state.tasks);
   const [selectedTasks, setSelectedTasks] = useState([]);
   const [viewMode, setViewMode] = useState("table"); // 'card' or 'table'
   const [hoveredTask, setHoveredTask] = useState(null);
+  const [sort, setSort] = useState({ key: "createdAt", dir: "desc" });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  const toggleSort = (key) =>
+    setSort((s) => ({ key, dir: s.key === key && s.dir === "asc" ? "desc" : "asc" }));
 
   // Check if task is overdue
   const isOverdue = (task) => {
@@ -122,15 +203,29 @@ export default function TaskList({
       );
     }
 
-    // Sort: pinned first, then by creation date
-    return filteredTasks.sort((a, b) => {
+    /* A copy: `tasks` is the array held in the store, and sorting it in place
+       mutates state that Redux considers frozen. */
+    return [...filteredTasks].sort((a, b) => {
       if (a.pinned && !b.pinned) return -1;
       if (!a.pinned && b.pinned) return 1;
-      return new Date(b.createdAt) - new Date(a.createdAt);
+      const dir = sort.dir === "asc" ? 1 : -1;
+      return compareBy(sort.key, a, b) * dir;
     });
   };
 
   const filteredTasks = getFilteredTasks();
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter?.search, filter?.status, filter?.priority, filter?.project, sort.key, sort.dir, pageSize]);
+
+  /* Pagination applies to the table only; the card grid stays a single scroll. */
+  const totalPages = Math.max(1, Math.ceil(filteredTasks.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedTasks =
+    viewMode === "table" && pageSize !== "all"
+      ? filteredTasks.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+      : filteredTasks;
 
   const handleStatusChange = (taskId, newStatus) => {
     const task = tasks.find((t) => t.id === taskId);
@@ -163,9 +258,17 @@ export default function TaskList({
     }
   };
 
-  const handleDelete = (taskId) => {
-    if (confirm("Are you sure you want to delete this task?")) {
+  const handleDelete = async (taskId) => {
+    const task = tasks.find((t) => t.id === taskId);
+    const ok = await confirm({
+      title: "Delete this task?",
+      description: `“${task?.title ?? "This task"}” will be removed. Undo can bring it back this session; Archive keeps it permanently recoverable.`,
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (ok) {
       dispatch(deleteTask(taskId));
+      toast("Task deleted — Ctrl+Z to undo", "info");
     }
   };
 
@@ -194,7 +297,7 @@ export default function TaskList({
     }
   };
 
-  const handleBulkComplete = () => {
+  const handleBulkComplete = async () => {
     const n = selectedTasks.length;
     if (n === 0) return;
     /* Complete was the only bulk action without a confirmation, and one click
@@ -202,9 +305,13 @@ export default function TaskList({
     const all = n === filteredTasks.length && n > 1;
     if (
       n > 1 &&
-      !confirm(
-        `Mark ${n} task${n === 1 ? "" : "s"} complete${all ? " — every task in this view" : ""}?`,
-      )
+      !(await confirm({
+        title: `Mark ${n} task${n === 1 ? "" : "s"} complete?`,
+        description: all
+          ? "That is every task in this view."
+          : "Each one gets a line in today's work log.",
+        confirmLabel: "Mark complete",
+      }))
     )
       return;
     selectedTasks.forEach((taskId) => {
@@ -223,36 +330,51 @@ export default function TaskList({
     setSelectedTasks([]);
   };
 
-  const handleBulkArchive = () => {
+  const handleBulkArchive = async () => {
+    const n = selectedTasks.length;
+    if (n === 0) return;
     if (
-      confirm(
-        `Move ${selectedTasks.length} task${selectedTasks.length === 1 ? "" : "s"} to Archived? You can restore them later.`,
-      )
+      await confirm({
+        title: `Move ${n} task${n === 1 ? "" : "s"} to Archived?`,
+        description: "Nothing is deleted — you can restore them from the Archived screen.",
+        confirmLabel: "Archive",
+      })
     ) {
       dispatch(bulkArchive(selectedTasks));
       setSelectedTasks([]);
+      toast(`${n} task${n === 1 ? "" : "s"} archived`, "success");
     }
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     const n = selectedTasks.length;
     if (n === 0) return;
     const all = n === filteredTasks.length && n > 1;
     if (
-      confirm(
-        `Permanently delete ${n} task${n === 1 ? "" : "s"}${all ? " — every task in this view" : ""}?\n\n` +
-          `This cannot be undone. To keep them recoverable, use Archive instead.`,
-      )
+      await confirm({
+        title: `Permanently delete ${n} task${n === 1 ? "" : "s"}?`,
+        description: `${all ? "That is every task in this view. " : ""}This cannot be undone — use Archive instead to keep them recoverable.`,
+        confirmLabel: "Delete forever",
+        danger: true,
+      })
     ) {
       dispatch(bulkDelete(selectedTasks));
       setSelectedTasks([]);
+      toast(`${n} task${n === 1 ? "" : "s"} deleted`, "error");
     }
   };
 
-  const handleBulkPriorityChange = (priority) => {
+  const handleBulkPriorityChange = async (priority) => {
     const n = selectedTasks.length;
     if (n === 0) return;
-    if (n > 1 && !confirm(`Set ${n} tasks to ${priority} priority?`)) return;
+    if (
+      n > 1 &&
+      !(await confirm({
+        title: `Set ${n} tasks to ${priority} priority?`,
+        confirmLabel: "Set priority",
+      }))
+    )
+      return;
     selectedTasks.forEach((taskId) => {
       const task = tasks.find((t) => t.id === taskId);
       if (task) {
@@ -266,6 +388,12 @@ export default function TaskList({
       }
     });
     setSelectedTasks([]);
+  };
+
+  const [detailTask, setDetailTask] = useState(null);
+
+  const toggleTimer = (task) => {
+    dispatch(task.timeTracking?.isRunning ? stopTimer(task.id) : startTimer(task.id));
   };
 
   const toggleCheckpoint = (taskId, checkpointId) => {
@@ -358,75 +486,106 @@ export default function TaskList({
     );
   }
 
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const summary = {
+    total: filteredTasks.length,
+    overdue: filteredTasks.filter(
+      (t) =>
+        t.dueDate &&
+        t.status !== "completed" &&
+        String(t.dueDate).slice(0, 10) < todayKey,
+    ).length,
+    inProgress: filteredTasks.filter((t) => t.status === "in-progress").length,
+    doneToday: tasks.filter(
+      (t) => t.status === "completed" && String(t.completedAt ?? "").slice(0, 10) === todayKey,
+    ).length,
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Tasks Header with View Toggle */}
-      <div
-        className={`flex justify-between items-center bg-[var(--surface)] rounded-lg p-4 shadow-sm`}
-      >
-        <div>
-          <h2
-            className={`text-xl font-semibold text-[var(--fg)]`}
-          >
-            {activePage === "archived" ? "Archived Tasks" : "Tasks"}
+    <div className="space-y-5">
+      {/* At-a-glance before the raw list */}
+      <div className="rise rise-1">
+        <StatStrip
+          items={[
+            { label: "In view", value: summary.total },
+            {
+              label: "Overdue",
+              value: summary.overdue,
+              tone: summary.overdue ? "var(--danger)" : undefined,
+            },
+            {
+              label: "In progress",
+              value: summary.inProgress,
+              tone: summary.inProgress ? "var(--accent)" : undefined,
+            },
+            {
+              label: "Done today",
+              value: summary.doneToday,
+              tone: summary.doneToday ? "var(--success)" : undefined,
+            },
+          ]}
+        />
+      </div>
+
+      {/* One compact row: count on the left, view controls on the right. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-baseline gap-2">
+          <h2 className="panel-title">
+            {activePage === "archived" ? "Archived" : "Tasks"}
           </h2>
-          <p
-            className={`text-sm text-[var(--fg-muted)] mt-1`}
-          >
-            {filteredTasks.length}{" "}
-            {filteredTasks.length === 1 ? "task" : "tasks"} found
-          </p>
+          <span className="font-mono text-[12px] tabular-nums text-[var(--fg-subtle)]">
+            {filteredTasks.length}
+          </span>
         </div>
 
-        {/* View Toggle Buttons */}
-        <div className="flex items-center gap-3">
-          {/* Select All Button */}
+        <div className="flex items-center gap-1">
           <button
             onClick={handleSelectAll}
-            className={`p-2 rounded-lg transition-colors ${
-              darkMode
-                ? "text-gray-400 hover:text-white hover:bg-gray-700"
-                : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-            }`}
             title={
-              selectedTasks.length === filteredTasks.length
-                ? "Deselect All"
-                : "Select All"
+              selectedTasks.length === filteredTasks.length && filteredTasks.length > 0
+                ? "Deselect all"
+                : "Select all"
             }
+            className="rounded-[var(--radius-sm)] p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
           >
-            {selectedTasks.length === filteredTasks.length &&
-            filteredTasks.length > 0 ? (
+            {selectedTasks.length === filteredTasks.length && filteredTasks.length > 0 ? (
               <DeselectIcon fontSize="small" />
             ) : (
               <SelectAllIcon fontSize="small" />
             )}
           </button>
 
-          <div
-            className={`flex items-center gap-2 bg-[var(--surface-2)] rounded-lg p-1`}
+          {/* Exports what you are actually looking at, filters and all —
+              previously it always dumped every task, and was only reachable
+              from a screen that is no longer mounted. */}
+          <button
+            onClick={() => dispatch(exportToCSV(filteredTasks))}
+            disabled={filteredTasks.length === 0}
+            title={`Export these ${filteredTasks.length} tasks to CSV`}
+            className="rounded-[var(--radius-sm)] p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)] disabled:pointer-events-none disabled:opacity-30"
           >
-            <button
-              onClick={() => setViewMode("card")}
-              className={`p-2 rounded-md transition-all duration-200 ${
-                viewMode === "card"
-                  ? `bg-[var(--surface)] text-[var(--accent)] shadow-sm`
-                  : `text-[var(--fg-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--fg)]`
-              }`}
-              title="Card View"
-            >
-              <CardViewIcon fontSize="small" />
-            </button>
-            <button
-              onClick={() => setViewMode("table")}
-              className={`p-2 rounded-md transition-all duration-200 ${
-                viewMode === "table"
-                  ? `bg-[var(--surface)] text-[var(--accent)] shadow-sm`
-                  : `text-[var(--fg-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--fg)]`
-              }`}
-              title="Table View"
-            >
-              <TableViewIcon fontSize="small" />
-            </button>
+            <DownloadIcon fontSize="small" />
+          </button>
+
+          <div className="ml-1 flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] p-0.5">
+            {[
+              { id: "card", Icon: CardViewIcon, label: "Card view" },
+              { id: "table", Icon: TableViewIcon, label: "Table view" },
+            ].map(({ id, Icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setViewMode(id)}
+                aria-pressed={viewMode === id}
+                title={label}
+                className={`rounded-[4px] p-1.5 transition-colors ${
+                  viewMode === id
+                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                    : "text-[var(--fg-subtle)] hover:text-[var(--fg)]"
+                }`}
+              >
+                <Icon fontSize="small" />
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -539,33 +698,25 @@ export default function TaskList({
 
       {/* Tasks Content */}
       {filteredTasks.length === 0 ? (
-        /* Empty State */
-        <div
-          className={`text-center py-12 bg-[var(--surface)] rounded-lg`}
-        >
-          <TaskIcon
-            className={`mx-auto text-[var(--fg-subtle)] mb-4`}
-            style={{ fontSize: 64 }}
-          />
-          <h3
-            className={`text-lg font-medium text-[var(--fg-muted)] mb-2`}
-          >
-            No tasks found
-          </h3>
-          <p className={`text-[var(--fg-subtle)] mb-6`}>
-            {activePage === "archived"
-              ? "No archived tasks to display"
-              : "Create your first task to get started"}
-          </p>
-          {activePage !== "archived" && (
-            <button
-              onClick={() => (window.location.href = "#create-task")}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Create First Task
-            </button>
-          )}
-        </div>
+        /* Empty state that tells you what to do next, not just that there is
+           nothing here. */
+        <EmptyState
+          icon={TaskIcon}
+          title={
+            activePage === "archived"
+              ? "Nothing archived"
+              : tasks.length === 0
+                ? "No tasks yet"
+                : "No tasks match these filters"
+          }
+          description={
+            activePage === "archived"
+              ? "Tasks you archive will be kept here, with their project, so you can restore them later."
+              : tasks.length === 0
+                ? "Create your first task to start tracking what you are working on."
+                : "Try widening the search, or clear a filter to see more."
+          }
+        />
       ) : viewMode === "card" ? (
         /* Card View */
         <div className="space-y-3">
@@ -702,25 +853,12 @@ export default function TaskList({
 
                     {task.estimatedTime && (
                       <div className="flex items-center gap-1">
-                        <span>⏱️ Est: {task.estimatedTime}h</span>
+                        <span>Est {task.estimatedTime}{/^\d+$/.test(String(task.estimatedTime)) ? "m" : ""}</span>
                       </div>
                     )}
 
-                    {task.timeElapsed > 0 && (
-                      <div className="flex items-center gap-1">
-                        <span>
-                          ⏲️ Elapsed: {Math.round(task.timeElapsed / 60)}m
-                        </span>
-                      </div>
-                    )}
-
-                    {task.timeTracking?.isRunning && (
-                      <div className="flex items-center gap-1">
-                        <span className="inline-flex items-center gap-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span>Running</span>
-                        </span>
-                      </div>
+                    {task.status !== "archived" && (
+                      <TimerControl task={task} compact />
                     )}
 
                     {task.documents && task.documents.length > 0 && (
@@ -906,12 +1044,23 @@ export default function TaskList({
                         onClick={() => onEditTask(task)}
                         className={`p-2 transition-colors rounded-lg ${
                           darkMode
-                            ? "text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
+                            ? "text-[var(--fg-subtle)] hover:text-[var(--accent)] hover:bg-[var(--surface-2)]"
                             : "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         }`}
                         title="Edit Task"
                       >
                         <EditIcon fontSize="small" />
+                      </button>
+
+                      <button
+                        onClick={() => setDetailTask(task)}
+                        className="relative rounded-lg p-2 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--accent)]"
+                        title="Notes & history"
+                      >
+                        <NotesIcon fontSize="small" />
+                        {task.comments?.length > 0 && (
+                          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                        )}
                       </button>
 
                       {task.status !== "completed" && onFocusTask && (
@@ -944,9 +1093,9 @@ export default function TaskList({
                         onClick={() => handleTogglePinned(task.id)}
                         className={`p-2 transition-colors rounded-lg ${
                           task.pinned
-                            ? "text-yellow-500 hover:text-yellow-400"
+                            ? "text-[var(--accent-2)]"
                             : darkMode
-                              ? "text-gray-400 hover:text-yellow-400 hover:bg-yellow-900/20"
+                              ? "text-[var(--fg-subtle)] hover:text-[var(--accent-2)] hover:bg-[var(--surface-2)]"
                               : "text-gray-600 hover:text-yellow-500 hover:bg-yellow-50"
                         }`}
                         title={task.pinned ? "Unpin Task" : "Pin Task"}
@@ -965,7 +1114,7 @@ export default function TaskList({
                           }
                           className={`p-2 transition-colors rounded-lg ${
                             darkMode
-                              ? "text-green-400 hover:text-green-300 hover:bg-green-900/20"
+                              ? "text-[var(--fg-subtle)] hover:text-[var(--success)] hover:bg-[var(--surface-2)]"
                               : "text-green-600 hover:text-green-700 hover:bg-green-50"
                           }`}
                           title="Mark Complete"
@@ -978,7 +1127,7 @@ export default function TaskList({
                         onClick={() => handleArchive(task.id)}
                         className={`p-2 transition-colors rounded-lg ${
                           darkMode
-                            ? "text-orange-400 hover:text-orange-300 hover:bg-orange-900/20"
+                            ? "text-[var(--fg-subtle)] hover:text-[var(--accent-2)] hover:bg-[var(--surface-2)]"
                             : "text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                         }`}
                         title="Archive"
@@ -992,7 +1141,7 @@ export default function TaskList({
                     onClick={() => handleDelete(task.id)}
                     className={`p-2 transition-colors rounded-lg ${
                       darkMode
-                        ? "text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        ? "text-[var(--fg-subtle)] hover:text-[var(--danger)] hover:bg-[var(--danger-soft)]"
                         : "text-red-600 hover:text-red-700 hover:bg-red-50"
                     }`}
                     title="Delete"
@@ -1039,47 +1188,23 @@ export default function TaskList({
                       )}
                     </button>
                   </th>
-                  <th
-                    className="w-64"
-                  >
-                    Task
-                  </th>
-                  <th
-                    className="w-32"
-                  >
-                    Project
-                  </th>
-                  <th
-                    className="w-24"
-                  >
-                    Priority
-                  </th>
-                  <th
-                    className="w-28"
-                  >
-                    Status
-                  </th>
+                  <SortHeader label="Task" sortKey="title" sort={sort} onSort={toggleSort} className="w-64" />
+                  <SortHeader label="Project" sortKey="project" sort={sort} onSort={toggleSort} className="w-32" />
+                  <SortHeader label="Priority" sortKey="priority" sort={sort} onSort={toggleSort} className="w-24" />
+                  <SortHeader label="Status" sortKey="status" sort={sort} onSort={toggleSort} className="w-28" />
+                  <SortHeader label="Time" sortKey="time" sort={sort} onSort={toggleSort} className="w-28" />
                   {/* <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Working For
                   </th> */}
                   {/* <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-32 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Working With
                   </th> */}
-                  <th
-                    className="w-24"
-                  >
-                    Due Date
-                  </th>
+                  <SortHeader label="Due date" sortKey="dueDate" sort={sort} onSort={toggleSort} className="w-28" />
                   {/* <th className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider w-48 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     Checkpoints
                   </th> */}
                   <th
-                    className="w-24"
-                  >
-                    Documents
-                  </th>
-                  <th
-                    className={`text-right px-4 py-3 text-xs font-medium text-[var(--fg-muted)] uppercase tracking-wider w-32`}
+                    className={`text-right px-4 py-3 text-xs font-medium text-[var(--fg-muted)] uppercase tracking-wider w-[132px]`}
                   >
                     Actions
                   </th>
@@ -1088,7 +1213,7 @@ export default function TaskList({
               <tbody
                 className={`bg-[var(--surface)] divide-gray-700 divide-y`}
               >
-                {filteredTasks.map((task) => (
+                {pagedTasks.map((task) => (
                   <tr
                     key={task.id}
                     className={` border-b border-[var(--border)] ${task.colorLabel ? `border-l-4 ${COLOR_LABELS[task.colorLabel]?.split(" ")[0] || ""}` : ""} ${selectedTasks.includes(task.id) ? (darkMode ? "bg-blue-900/20" : "bg-blue-50") : ""}`}
@@ -1129,6 +1254,24 @@ export default function TaskList({
                           >
                             {task.title}
                           </div>
+                          {task.recurrence && (
+                            <span
+                              className="flex flex-shrink-0 items-center gap-0.5 rounded-full bg-[var(--surface-3)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--fg-subtle)]"
+                              title={`Repeats ${task.recurrence}`}
+                            >
+                              <RepeatIcon sx={{ fontSize: 11 }} />
+                              {task.recurrence === "weekdays" ? "weekdays" : task.recurrence}
+                            </span>
+                          )}
+                          {task.documents?.length > 0 && (
+                            <span
+                              className="flex flex-shrink-0 items-center gap-0.5 font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]"
+                              title={`${task.documents.length} attachment${task.documents.length > 1 ? "s" : ""}`}
+                            >
+                              <AttachmentIcon sx={{ fontSize: 13 }} />
+                              {task.documents.length}
+                            </span>
+                          )}
                           {/* Due date alerts */}
                           {task.status !== "completed" &&
                             task.dueDate &&
@@ -1186,20 +1329,19 @@ export default function TaskList({
                     <td
                       className={`px-4 py-4 w-24`}
                     >
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(task.priority)} whitespace-nowrap`}
-                      >
-                        {task.priority || "medium"}
-                      </span>
+                      <PriorityPill priority={task.priority || "medium"} />
                     </td>
                     <td
                       className={`px-4 py-4 w-28`}
                     >
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)} whitespace-nowrap`}
-                      >
-                        {task.status || "todo"}
-                      </span>
+                      <StatusPill status={task.status || "todo"} />
+                    </td>
+                    <td className="px-4 py-4 w-28 whitespace-nowrap">
+                      {task.status === "archived" ? (
+                        <span className="text-[var(--fg-subtle)]">-</span>
+                      ) : (
+                        <TimerControl task={task} compact />
+                      )}
                     </td>
                     {/* <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'} w-32 truncate border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       {task.workingFor || '-'}
@@ -1208,7 +1350,7 @@ export default function TaskList({
                       {task.workingWith || '-'}
                     </td> */}
                     <td
-                      className={`px-4 py-4 text-sm text-[var(--fg)] w-24 whitespace-nowrap`}
+                      className={`px-4 py-4 text-sm text-[var(--fg)] w-28 whitespace-nowrap`}
                     >
                       {task.dueDate ? formatDate(task.dueDate) : "-"}
                     </td>
@@ -1257,121 +1399,79 @@ export default function TaskList({
                         <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>-</span>
                       )}
                     </td> */}
-                    <td
-                      className={`px-4 py-4 w-24 text-center`}
-                    >
-                      {task.documents && task.documents.length > 0 ? (
-                        <div className="flex items-center justify-center gap-1">
-                          <span className="text-lg">📎</span>
-                          <span
-                            className={`text-xs font-medium text-[var(--fg-muted)]`}
-                          >
-                            {task.documents.length}
-                          </span>
-                        </div>
-                      ) : (
-                        <span
-                          className={`text-sm text-[var(--fg-subtle)]`}
-                        >
-                          -
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 text-right w-32">
-                      <div className="flex justify-end gap-1">
+                    <td className="px-4 py-4 text-right w-[132px]">
+                      <div className="flex flex-nowrap items-center justify-end gap-0.5">
                         {task.status !== "archived" && (
                           <>
                             <button
                               onClick={() => onEditTask(task)}
                               className={`p-1 rounded transition-colors ${
                                 darkMode
-                                  ? "text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
+                                  ? "text-[var(--fg-subtle)] hover:text-[var(--accent)] hover:bg-[var(--surface-2)]"
                                   : "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                               }`}
                               title="Edit"
                             >
                               <EditIcon fontSize="small" />
                             </button>
-                            {task.status !== "completed" && onFocusTask && (
-                              <button
-                                onClick={() => onFocusTask(task)}
-                                className={`p-1 rounded transition-colors ${
-                                  darkMode
-                                    ? "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20"
-                                    : "text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50"
-                                }`}
-                                title="Focus Mode"
-                              >
-                                <FocusIcon fontSize="small" />
-                              </button>
-                            )}
                             <button
-                              onClick={() => handleDuplicate(task.id)}
-                              className={`p-1 rounded transition-colors ${
-                                darkMode
-                                  ? "text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
-                                  : "text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                              }`}
-                              title="Duplicate"
+                              onClick={() => setDetailTask(task)}
+                              className="relative rounded p-1 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--accent)]"
+                              title="Notes & history"
                             >
-                              <DuplicateIcon fontSize="small" />
-                            </button>
-                            <button
-                              onClick={() => handleTogglePinned(task.id)}
-                              className={`p-1 rounded transition-colors ${
-                                task.pinned
-                                  ? "text-yellow-500 hover:text-yellow-400"
-                                  : darkMode
-                                    ? "text-gray-400 hover:text-yellow-400 hover:bg-yellow-900/20"
-                                    : "text-gray-600 hover:text-yellow-500 hover:bg-yellow-50"
-                              }`}
-                              title={task.pinned ? "Unpin" : "Pin"}
-                            >
-                              {task.pinned ? (
-                                <StarIcon fontSize="small" />
-                              ) : (
-                                <StarBorderIcon fontSize="small" />
+                              <NotesIcon fontSize="small" />
+                              {task.comments?.length > 0 && (
+                                <span className="absolute right-0 top-0 h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
                               )}
                             </button>
                             {task.status !== "completed" && (
                               <button
-                                onClick={() =>
-                                  handleStatusChange(task.id, "completed")
-                                }
-                                className={`p-1 rounded transition-colors ${
-                                  darkMode
-                                    ? "text-green-400 hover:text-green-300 hover:bg-green-900/20"
-                                    : "text-green-600 hover:text-green-700 hover:bg-green-50"
-                                }`}
-                                title="Complete"
+                                onClick={() => handleStatusChange(task.id, "completed")}
+                                className="rounded p-1 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--success-soft)] hover:text-[var(--success)]"
+                                title="Mark complete"
                               >
-                                ✓
+                                <CompleteIcon fontSize="small" />
                               </button>
                             )}
-                            <button
-                              onClick={() => handleArchive(task.id)}
-                              className={`p-1 rounded transition-colors ${
-                                darkMode
-                                  ? "text-orange-400 hover:text-orange-300 hover:bg-orange-900/20"
-                                  : "text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                              }`}
-                              title="Archive"
-                            >
-                              <ArchiveIcon fontSize="small" />
-                            </button>
                           </>
                         )}
-                        <button
-                          onClick={() => handleDelete(task.id)}
-                          className={`p-1 rounded transition-colors ${
-                            darkMode
-                              ? "text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                              : "text-red-600 hover:text-red-700 hover:bg-red-50"
-                          }`}
-                          title="Delete"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </button>
+
+                        {/* Everything past the three primary actions lives in the
+                            menu, where it is labelled instead of guessed at. */}
+                        <OverflowMenu
+                          items={[
+                            {
+                              label: task.pinned ? "Unpin" : "Pin to top",
+                              icon: task.pinned ? StarIcon : StarBorderIcon,
+                              onClick: () => handleTogglePinned(task.id),
+                              hidden: task.status === "archived",
+                            },
+                            {
+                              label: "Focus mode",
+                              icon: FocusIcon,
+                              onClick: () => onFocusTask?.(task),
+                              hidden: task.status === "archived" || task.status === "completed" || !onFocusTask,
+                            },
+                            {
+                              label: "Duplicate",
+                              icon: DuplicateIcon,
+                              onClick: () => handleDuplicate(task.id),
+                              hidden: task.status === "archived",
+                            },
+                            {
+                              label: "Archive",
+                              icon: ArchiveIcon,
+                              onClick: () => handleArchive(task.id),
+                              hidden: task.status === "archived",
+                            },
+                            {
+                              label: "Delete",
+                              icon: DeleteIcon,
+                              onClick: () => handleDelete(task.id),
+                              danger: true,
+                            },
+                          ]}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -1379,8 +1479,66 @@ export default function TaskList({
               </tbody>
             </table>
           </div>
+
+          {/* Pager — only when there is more than one page to walk. */}
+          {pageSize !== "all" && filteredTasks.length > pageSize && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] px-4 py-2.5">
+              <span className="font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]">
+                {(currentPage - 1) * pageSize + 1}–
+                {Math.min(currentPage * pageSize, filteredTasks.length)} of{" "}
+                {filteredTasks.length}
+              </span>
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(e.target.value === "all" ? "all" : Number(e.target.value));
+                    setPage(1);
+                  }}
+                  aria-label="Rows per page"
+                  className="h-7 rounded-[var(--radius-sm)] border border-[var(--border-strong)] bg-[var(--surface-2)] px-2 text-[12px] text-[var(--fg-muted)] focus:border-[var(--accent)] focus:outline-none"
+                >
+                  {[25, 50, 100].map((n) => (
+                    <option key={n} value={n}>
+                      {n} per page
+                    </option>
+                  ))}
+                  <option value="all">Show all</option>
+                </select>
+
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage <= 1}
+                    aria-label="Previous page"
+                    className="rounded-[var(--radius-sm)] p-1 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)] disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <ChevronLeftIcon sx={{ fontSize: 18 }} />
+                  </button>
+                  <span className="px-1.5 font-mono text-[11px] tabular-nums text-[var(--fg-muted)]">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage >= totalPages}
+                    aria-label="Next page"
+                    className="rounded-[var(--radius-sm)] p-1 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)] disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <ChevronRightIcon sx={{ fontSize: 18 }} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      <CommentDrawer
+        open={!!detailTask}
+        task={detailTask ? tasks.find((t) => t.id === detailTask.id) || detailTask : null}
+        onClose={() => setDetailTask(null)}
+      />
     </div>
   );
 }

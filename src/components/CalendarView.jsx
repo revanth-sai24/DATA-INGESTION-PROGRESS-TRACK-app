@@ -11,6 +11,7 @@ import {
   PlayArrow as PlayIcon,
   DragIndicator as DragIcon,
 } from "@mui/icons-material";
+import { PageHeader } from "./ui/Primitives";
 
 const CalendarView = ({ darkMode, onEditTask }) => {
   const dispatch = useDispatch();
@@ -29,7 +30,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
   const calendarDays = useMemo(() => {
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
-    const firstDayOfWeek = firstDayOfMonth.getDay();
+    const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7;
     const daysInMonth = lastDayOfMonth.getDate();
 
     const days = [];
@@ -123,6 +124,14 @@ const CalendarView = ({ darkMode, onEditTask }) => {
     }
   };
 
+  /* "42 tasks scheduled" counted every dated task in the app, including ones
+     months away — a number that never changed as you paged through. */
+  const tasksThisMonth = tasks.filter((t) => {
+    if (!t.dueDate) return false;
+    const d = new Date(t.dueDate);
+    return d.getFullYear() === year && d.getMonth() === month;
+  }).length;
+
   const monthNames = [
     "January",
     "February",
@@ -138,7 +147,8 @@ const CalendarView = ({ darkMode, onEditTask }) => {
     "December",
   ];
 
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  /* Monday-first, matching the timeline and the weekly report. */
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const today = new Date();
   const isToday = (date) => {
     return date.toDateString() === today.toDateString();
@@ -147,88 +157,54 @@ const CalendarView = ({ darkMode, onEditTask }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div
-        className={`bg-[var(--surface)] rounded-xl border border-[var(--border)] p-4 sm:p-5`}
-      >
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h1
-            className={`text-lg font-semibold tracking-[-0.01em] sm:text-xl text-[var(--fg)]`}
-          >
-            Calendar View
-          </h1>
-          <button
-            onClick={goToToday}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              darkMode
-                ? "bg-blue-600 hover:bg-blue-700 text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
-          >
-            <TodayIcon fontSize="small" />
-            Today
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button
-              onClick={goToPreviousMonth}
-              className={`p-2 rounded-lg transition-colors ${
-                darkMode
-                  ? "text-gray-300 hover:text-white hover:bg-gray-700"
-                  : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-              }`}
-            >
-              <ChevronLeftIcon />
-            </button>
-
-            <h2
-              className={`min-w-[9ch] text-center text-base font-semibold sm:text-lg text-[var(--fg)]`}
-            >
-              {monthNames[month]} {year}
-            </h2>
-
-            <button
-              onClick={goToNextMonth}
-              className={`p-2 rounded-lg transition-colors ${
-                darkMode
-                  ? "text-gray-300 hover:text-white hover:bg-gray-700"
-                  : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-              }`}
-            >
-              <ChevronRightIcon />
-            </button>
+      <PageHeader
+        title="Calendar"
+        description="Tasks by due date. Drag one to a different day to reschedule it."
+        meta={
+          <>
+            <span>{monthNames[month]} {year}</span>
+            <span>{tasksThisMonth} due this month</span>
+            <span>{tasks.filter((t) => t.dueDate).length} dated overall</span>
+          </>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <div className="flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] p-0.5">
+              <button
+                onClick={goToPreviousMonth}
+                aria-label="Previous month"
+                className="rounded-[4px] p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+              >
+                <ChevronLeftIcon sx={{ fontSize: 18 }} />
+              </button>
+              <button
+                onClick={goToToday}
+                aria-label="Back to today"
+                title="Back to today"
+                className="rounded-[4px] p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+              >
+                <TodayIcon sx={{ fontSize: 16 }} />
+              </button>
+              <button
+                onClick={goToNextMonth}
+                aria-label="Next month"
+                className="rounded-[4px] p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+              >
+                <ChevronRightIcon sx={{ fontSize: 18 }} />
+              </button>
+            </div>
           </div>
-
-          <div
-            className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-[var(--fg-muted)]`}
-          >
-            <span>
-              {tasks.filter((task) => task.dueDate).length} tasks scheduled
-            </span>
-            <span
-              className={`hidden items-center gap-1 text-xs lg:flex text-[var(--fg-subtle)]`}
-            >
-              <DragIcon style={{ fontSize: 14 }} />
-              Drag tasks to reschedule
-            </span>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Calendar Grid */}
-      <div
-        className={`bg-[var(--surface)] rounded-lg p-6 shadow-sm`}
-      >
+      <div className="rounded-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface)] p-3 sm:p-4">
         {/* Week header */}
-        <div className="mb-2 grid grid-cols-7 gap-1 sm:mb-4 sm:gap-3">
+        <div className="mb-1.5 grid grid-cols-7 gap-1">
           {weekDays.map((day) => (
             <div
               key={day}
-              className={`text-center py-2 text-sm font-medium ${
-                darkMode ? "text-gray-400" : "text-gray-500"
-              }`}
+              className="py-1.5 text-center text-[11px] font-medium uppercase tracking-wider text-[var(--fg-subtle)]" 
             >
               {day}
             </div>
@@ -236,7 +212,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
         </div>
 
         {/* Calendar days */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-3">
+        <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((day, index) => {
             const dayTasks = getTasksForDate(day.fullDate);
             const isSelected =
@@ -246,15 +222,13 @@ const CalendarView = ({ darkMode, onEditTask }) => {
             return (
               <div
                 key={index}
-                className={`min-h-[120px] p-3 rounded-lg border cursor-pointer transition-all ${
+                className={`min-h-[78px] cursor-pointer rounded-[var(--radius-sm)] border p-2 transition-colors ${
                   day.isCurrentMonth
-                    ? darkMode
-                      ? `bg-gray-700 border-gray-600 hover:bg-gray-600 ${isSelected ? "ring-2 ring-blue-500" : ""}`
-                      : `bg-white border-gray-200 hover:bg-gray-50 ${isSelected ? "ring-2 ring-blue-500" : ""}`
-                    : darkMode
-                      ? "bg-gray-800 border-gray-700 opacity-50"
-                      : "bg-gray-50 border-gray-100 opacity-50"
-                } ${isToday(day.fullDate) ? "ring-2 ring-blue-400" : ""}`}
+                    ? "border-[var(--hairline)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)]"
+                    : "border-transparent bg-transparent opacity-40"
+                } ${isSelected ? "ring-1 ring-[var(--accent)]" : ""} ${
+                  isToday(day.fullDate) ? "ring-1 ring-[var(--accent)]" : ""
+                }`}
                 onClick={() => setSelectedDate(day.fullDate)}
               >
                 <div className={`flex items-center justify-between mb-2`}>
@@ -288,7 +262,7 @@ const CalendarView = ({ darkMode, onEditTask }) => {
 
                 {/* Tasks preview - Draggable */}
                 <div
-                  className={`space-y-1 min-h-[40px] ${
+                  className={`space-y-1 min-h-[20px] ${
                     dragOverDate === day.fullDate.toDateString()
                       ? darkMode
                         ? "bg-blue-900/30 border-2 border-dashed border-blue-500 rounded"

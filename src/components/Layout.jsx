@@ -4,8 +4,12 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   loadTasksFromCSV,
   loadProjectsFromCSV,
-  undo,
-  redo,
+  undoLast,
+  redoLast,
+  selectCanUndo,
+  selectCanRedo,
+  selectNextUndo,
+  selectNextRedo,
   duplicateTask,
   togglePinned,
   updateTask,
@@ -47,6 +51,10 @@ import Confetti, { useConfetti } from "./Confetti";
 import FocusMode from "./FocusMode";
 import ThemeSelector from "./ThemeSelector";
 import DashboardWidgets from "./DashboardWidgets";
+import WeeklyReport from "./WeeklyReport";
+import CommandPalette from "./CommandPalette";
+import { useFeedback } from "./ui/Feedback";
+import ErrorReporter from "./ErrorReporter";
 import {
   useKeyboardShortcuts,
   KeyboardShortcutsModal,
@@ -57,8 +65,19 @@ export default function Layout({ children }) {
   const [activePage, setActivePage] = useState("today");
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const { confirm } = useFeedback();
   const [darkMode, setDarkMode] = useState(true);
+
+  /* The theme class also goes on <html>, not just this container. Without it
+     `body` keeps the light --app-bg, and any page shorter than the viewport
+     paints a pale band under the app. */
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("dark", darkMode);
+    return () => root.classList.remove("dark");
+  }, [darkMode]);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
   const [showPDFExport, setShowPDFExport] = useState(false);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
   const [showFocusMode, setShowFocusMode] = useState(false);
@@ -89,8 +108,10 @@ export default function Layout({ children }) {
   const archivedTasks = useSelector((state) => state.tasks.archivedTasks || []);
   const projects = useSelector((state) => state.tasks.projects || []);
   const filter = useSelector((state) => state.tasks.filter || {});
-  const historyIndex = useSelector((state) => state.tasks.historyIndex);
-  const history = useSelector((state) => state.tasks.history);
+  const canUndo = useSelector(selectCanUndo);
+  const canRedo = useSelector(selectCanRedo);
+  const nextUndo = useSelector(selectNextUndo);
+  const nextRedo = useSelector(selectNextRedo);
 
   // Keyboard shortcuts handlers
   const shortcutHandlers = useCallback(
@@ -100,8 +121,8 @@ export default function Layout({ children }) {
         if (editingTask) setShowTaskForm(true);
       },
       search: () => searchRef.current?.focus(),
-      undo: () => dispatch(undo()),
-      redo: () => dispatch(redo()),
+      undo: () => dispatch(undoLast()),
+      redo: () => dispatch(redoLast()),
       today: () => setActivePage("today"),
       dashboard: () => setActivePage("dashboard"),
       tasks: () => setActivePage("tasks"),
@@ -117,13 +138,36 @@ export default function Layout({ children }) {
           position: { x: 0, y: 0 },
         });
         setShowShortcutsHelp(false);
+        setShowPalette(false);
       },
       showHelp: () => setShowShortcutsHelp(true),
+      palette: () => setShowPalette((v) => !v),
     }),
     [dispatch, editingTask],
   );
 
   useKeyboardShortcuts(shortcutHandlers());
+
+  /* Screens live in the URL hash, so every view is linkable, survives a reload,
+     and the browser back button works. Previously the active screen was state
+     only — a refresh always dumped you back on Today. */
+  useEffect(() => {
+    const fromHash = () => {
+      const id = window.location.hash.replace(/^#\/?/, "").trim();
+      if (id && NAV_INDEX[id]) setActivePage(id);
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    return () => window.removeEventListener("hashchange", fromHash);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    const want = `#/${activePage}`;
+    if (window.location.hash !== want) {
+      window.history.replaceState(null, "", want);
+    }
+  }, [activePage, isClient]);
 
   // Initial load, then revalidate whenever the tab regains focus so a change
   // made in another tab (or by a background job) shows up without a reload.
@@ -201,8 +245,15 @@ export default function Layout({ children }) {
     closeContextMenu();
   };
 
-  const handleDeleteTask = (task) => {
-    if (confirm("Are you sure you want to delete this task?")) {
+  const handleDeleteTask = async (task) => {
+    if (
+      await confirm({
+        title: "Delete this task?",
+        description: "Undo can bring it back this session; Archive keeps it permanently recoverable.",
+        confirmLabel: "Delete",
+        danger: true,
+      })
+    ) {
       dispatch(deleteTask(task.id));
     }
     closeContextMenu();
@@ -321,19 +372,19 @@ export default function Layout({ children }) {
           <div className="flex items-center gap-0.5">
             {/* Undo/redo are desktop-only — they need a pointer to be useful */}
             <button
-              onClick={() => dispatch(undo())}
-              disabled={historyIndex <= 0}
+              onClick={() => dispatch(undoLast())}
+              disabled={!canUndo}
               className={`${iconBtn} hidden sm:inline-flex`}
-              title="Undo (Ctrl+Z)"
+              title={nextUndo ? `Undo — ${nextUndo} (Ctrl+Z)` : "Nothing to undo"}
               aria-label="Undo"
             >
               <UndoIcon fontSize="small" />
             </button>
             <button
-              onClick={() => dispatch(redo())}
-              disabled={historyIndex >= history.length - 1}
+              onClick={() => dispatch(redoLast())}
+              disabled={!canRedo}
               className={`${iconBtn} hidden sm:inline-flex`}
-              title="Redo (Ctrl+Y)"
+              title={nextRedo ? `Redo — ${nextRedo} (Ctrl+Y)` : "Nothing to redo"}
               aria-label="Redo"
             >
               <RedoIcon fontSize="small" />
@@ -405,6 +456,21 @@ export default function Layout({ children }) {
             <AdvancedAnalytics darkMode={darkMode} />
           </div>
         )}
+
+        <ErrorReporter />
+
+        {activePage === "report" && <WeeklyReport />}
+
+        <CommandPalette
+          open={showPalette}
+          onClose={() => setShowPalette(false)}
+          screens={Object.values(NAV_INDEX)}
+          onGoto={(id) => setActivePage(id)}
+          onOpenTask={(task) => {
+            setEditingTask(task);
+            setShowTaskForm(true);
+          }}
+        />
 
         {activePage === "tasks" && (
           <>

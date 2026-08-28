@@ -1,438 +1,354 @@
 "use client";
-import React, { useState, useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { updateTask } from '../redux/slices/taskSlice';
+import React, { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import {
-  Timeline as TimelineIcon,
-  Circle as CircleIcon,
-  CheckCircle as CheckCircleIcon,
-  PlayArrow as PlayIcon,
-  Pause as PauseIcon,
-  Schedule as ScheduleIcon,
-  Event as EventIcon,
-  Flag as FlagIcon,
-  Person as PersonIcon,
-  Group as GroupIcon,
-  Edit as EditIcon
-} from '@mui/icons-material';
-import { format, isToday, isYesterday, isTomorrow, addDays, startOfDay, endOfDay } from 'date-fns';
+  ChevronLeft as PrevIcon,
+  ChevronRight as NextIcon,
+  Today as TodayIcon,
+} from "@mui/icons-material";
+import { PageHeader, EmptyState, StatusPill } from "./ui/Primitives";
+import { Select } from "./ui/Components";
 
-const TimelineView = ({ darkMode, onEditTask }) => {
-  const dispatch = useDispatch();
-  const { tasks } = useSelector((state) => state.tasks);
-  
-  const [selectedFilter, setSelectedFilter] = useState('all'); // all, overdue, today, upcoming
-  const [selectedProject, setSelectedProject] = useState('all');
+/**
+ * Timeline — work laid out across dates, one row per project.
+ *
+ * This screen used to be a reverse-chronological list: one task per screenful,
+ * full descriptions inlined, no sense of what overlaps or when a project is
+ * busy. A timeline's whole job is to answer "what lands when, and where does
+ * it collide" — so it is now a grid: weeks across the top, projects down the
+ * side, each task a bar sitting on its due date.
+ */
 
-  // Get unique projects
-  const projects = useMemo(() => {
-    const uniqueProjects = [...new Set(tasks.map(task => task.project).filter(Boolean))];
-    return uniqueProjects.sort();
-  }, [tasks]);
+const DAY = 86400000;
 
-  // Filter and group tasks by timeline
-  const timelineData = useMemo(() => {
-    let filteredTasks = [...tasks];
-    
-    // Filter by project
-    if (selectedProject !== 'all') {
-      filteredTasks = filteredTasks.filter(task => task.project === selectedProject);
-    }
+const startOfDay = (d) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+};
 
-    // Filter by timeline
-    const now = new Date();
-    switch (selectedFilter) {
-      case 'overdue':
-        filteredTasks = filteredTasks.filter(task => 
-          task.dueDate && new Date(task.dueDate) < startOfDay(now) && task.status !== 'completed'
-        );
-        break;
-      case 'today':
-        filteredTasks = filteredTasks.filter(task => 
-          task.dueDate && isToday(new Date(task.dueDate))
-        );
-        break;
-      case 'upcoming':
-        filteredTasks = filteredTasks.filter(task => 
-          task.dueDate && new Date(task.dueDate) > endOfDay(now)
-        );
-        break;
-      default:
-        // Show all tasks
-        break;
-    }
+/** Monday of the week containing `d`. */
+const weekStart = (d) => {
+  const x = startOfDay(d);
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+};
 
-    // Group tasks by date and sort
-    const grouped = {};
-    
-    filteredTasks.forEach(task => {
-      let groupKey;
-      let sortDate;
-      
-      if (task.dueDate) {
-        const dueDate = new Date(task.dueDate);
-        sortDate = dueDate.getTime();
-        
-        if (isToday(dueDate)) {
-          groupKey = 'Today';
-        } else if (isYesterday(dueDate)) {
-          groupKey = 'Yesterday';
-        } else if (isTomorrow(dueDate)) {
-          groupKey = 'Tomorrow';
-        } else if (dueDate < startOfDay(now) && task.status !== 'completed') {
-          groupKey = 'Overdue';
-        } else if (dueDate < startOfDay(now) && task.status === 'completed') {
-          groupKey = format(dueDate, 'MMMM d, yyyy');
-        } else {
-          groupKey = format(dueDate, 'MMMM d, yyyy');
-        }
-      } else {
-        groupKey = 'No Due Date';
-        sortDate = task.createdAt ? new Date(task.createdAt).getTime() : 0;
-      }
-      
-      if (!grouped[groupKey]) {
-        grouped[groupKey] = { tasks: [], sortDate };
-      }
-      grouped[groupKey].tasks.push(task);
+const key = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const RANGES = [
+  { id: "6w", label: "6 weeks", weeks: 6 },
+  { id: "12w", label: "12 weeks", weeks: 12 },
+  { id: "26w", label: "6 months", weeks: 26 },
+];
+
+const TONE = {
+  completed: "var(--success)",
+  "in-progress": "var(--accent)",
+  "on-hold": "var(--accent-2)",
+  todo: "var(--fg-subtle)",
+  archived: "var(--fg-subtle)",
+};
+
+export default function TimelineView({ onEditTask }) {
+  const { tasks, projects } = useSelector((state) => state.tasks);
+  const [rangeId, setRangeId] = useState("12w");
+  const [projectFilter, setProjectFilter] = useState("");
+  const [offset, setOffset] = useState(0); // weeks scrolled from today
+  const [hover, setHover] = useState(null);
+
+  const range = RANGES.find((r) => r.id === rangeId) ?? RANGES[1];
+
+  /* The grid starts one week before today so anything just missed stays in
+     view, then runs forward for the chosen span. */
+  const weeks = useMemo(() => {
+    const first = weekStart(new Date(Date.now() + (offset - 1) * 7 * DAY));
+    return Array.from({ length: range.weeks }, (_, i) => {
+      const s = new Date(first.getTime() + i * 7 * DAY);
+      return { start: s, end: new Date(s.getTime() + 6 * DAY), key: key(s) };
     });
+  }, [range.weeks, offset]);
 
-    // Sort tasks within each group and sort groups
-    Object.keys(grouped).forEach(key => {
-      grouped[key].tasks.sort((a, b) => {
-        // Sort by priority first, then by created date
-        const priorityOrder = { high: 3, medium: 2, low: 1 };
-        const aPriority = priorityOrder[a.priority?.toLowerCase()] || 0;
-        const bPriority = priorityOrder[b.priority?.toLowerCase()] || 0;
-        
-        if (aPriority !== bPriority) {
-          return bPriority - aPriority;
-        }
-        
-        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-      });
-    });
+  const from = weeks[0].start;
+  const to = weeks[weeks.length - 1].end;
 
-    // Sort groups by date - Future dates first, then today, then past dates
-    const sortedGroups = Object.entries(grouped).sort(([keyA, valueA], [keyB, valueB]) => {
-      if (keyA === 'Overdue') return 1; // Move overdue to bottom
-      if (keyB === 'Overdue') return -1;
-      if (keyA === 'Today') return keyB === 'Overdue' ? -1 : 0;
-      if (keyB === 'Today') return keyA === 'Overdue' ? 1 : 0;
-      if (keyA === 'Tomorrow') return -1; // Tomorrow at top
-      if (keyB === 'Tomorrow') return 1;
-      if (keyA === 'No Due Date') return 1; // No due date at bottom
-      if (keyB === 'No Due Date') return -1;
-      
-      // For regular dates, show future dates first (descending by date for future, ascending for past)
-      const now = new Date();
-      const isAFuture = valueA.sortDate > now.getTime();
-      const isBFuture = valueB.sortDate > now.getTime();
-      
-      if (isAFuture && isBFuture) {
-        return valueA.sortDate - valueB.sortDate; // Future: nearest first
-      } else if (!isAFuture && !isBFuture) {
-        return valueB.sortDate - valueA.sortDate; // Past: most recent first
-      } else {
-        return isAFuture ? -1 : 1; // Future dates come before past dates
-      }
-    });
+  /* Only dated, unarchived work can sit on a timeline. */
+  const dated = useMemo(
+    () =>
+      tasks.filter((t) => {
+        if (t.status === "archived" || !t.dueDate) return false;
+        if (projectFilter && (t.project || "") !== projectFilter) return false;
+        const d = startOfDay(t.dueDate);
+        return d >= from && d <= to;
+      }),
+    [tasks, projectFilter, from, to],
+  );
 
-    return sortedGroups;
-  }, [tasks, selectedFilter, selectedProject]);
+  /* Work due before the window would simply vanish off the left edge. It is
+     the most urgent work there is, so it gets a pinned column instead. */
+  const overdue = useMemo(
+    () =>
+      tasks.filter((t) => {
+        if (t.status === "archived" || t.status === "completed" || !t.dueDate) return false;
+        if (projectFilter && (t.project || "") !== projectFilter) return false;
+        return startOfDay(t.dueDate) < from;
+      }),
+    [tasks, projectFilter, from],
+  );
 
-  // Task status update
-  const handleStatusChange = (taskId, newStatus) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      dispatch(updateTask({ ...task, status: newStatus, updatedAt: new Date().toISOString() }));
-    }
-  };
+  const undated = useMemo(
+    () =>
+      tasks.filter(
+        (t) =>
+          t.status !== "archived" &&
+          !t.dueDate &&
+          (!projectFilter || (t.project || "") === projectFilter),
+      ),
+    [tasks, projectFilter],
+  );
 
-  // Get status icon
-  const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'completed':
-        return <CheckCircleIcon className="text-green-500" />;
-      case 'in-progress':
-        return <PlayIcon className="text-blue-500" />;
-      case 'on-hold':
-        return <PauseIcon className="text-orange-500" />;
-      default:
-        return <CircleIcon className="text-gray-500" />;
-    }
-  };
+  /* One row per project that actually has work in the window. */
+  const rows = useMemo(() => {
+    const byProject = new Map();
+    const add = (t) => {
+      const name = t.project || "No project";
+      if (!byProject.has(name)) byProject.set(name, { dated: [], late: [] });
+      return byProject.get(name);
+    };
+    for (const t of dated) add(t).dated.push(t);
+    for (const t of overdue) add(t).late.push(t);
 
-  // Get priority color
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'high': return darkMode ? 'text-red-400 border-red-400' : 'text-red-600 border-red-600';
-      case 'medium': return darkMode ? 'text-yellow-400 border-yellow-400' : 'text-yellow-600 border-yellow-600';
-      case 'low': return darkMode ? 'text-green-400 border-green-400' : 'text-green-600 border-green-600';
-      default: return darkMode ? 'text-gray-400 border-gray-400' : 'text-gray-600 border-gray-600';
-    }
-  };
+    return [...byProject.entries()]
+      .map(([name, { dated: list, late }]) => ({
+        name,
+        color: projects.find((p) => p.name === name)?.color || "var(--border-strong)",
+        late: late.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)),
+        weeks: weeks.map((w) =>
+          list
+            .filter((t) => {
+              const d = startOfDay(t.dueDate);
+              return d >= w.start && d <= new Date(w.end.getTime() + DAY - 1);
+            })
+            .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)),
+        ),
+      }))
+      .sort((a, b) => (a.name === "No project" ? 1 : b.name === "No project" ? -1 : a.name.localeCompare(b.name)));
+  }, [dated, overdue, weeks, projects]);
 
-  // Get group header color
-  const getGroupColor = (groupName) => {
-    switch (groupName) {
-      case 'Overdue':
-        return 'text-red-600 bg-red-50 border-red-200';
-      case 'Today':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'Tomorrow':
-        return 'text-green-600 bg-green-50 border-green-200';
-      default:
-        return darkMode ? 'text-gray-300 bg-gray-700 border-gray-600' : 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
+  const todayKey = key(weekStart(new Date()));
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 shadow-sm`}>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <TimelineIcon className={`text-2xl ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              Timeline View
-            </h1>
-          </div>
-          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            {timelineData.reduce((total, [_, group]) => total + group.tasks.length, 0)} tasks
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4">
-          {/* Timeline Filter */}
-          <div className="flex items-center gap-2">
-            <label className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Timeline:
-            </label>
-            <select
-              value={selectedFilter}
-              onChange={(e) => setSelectedFilter(e.target.value)}
-              className={`px-3 py-2 rounded-lg border text-sm ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+    <div className="space-y-4">
+      <PageHeader
+        title="Timeline"
+        description="Where work lands across the weeks, by project. Overlaps and quiet stretches are the point."
+        meta={
+          <>
+            <span>
+              {from.toLocaleDateString(undefined, { day: "numeric", month: "short" })} —{" "}
+              {to.toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+            </span>
+            <span>{dated.length} in window</span>
+            {overdue.length > 0 && (
+              <span className="text-[var(--danger)]">{overdue.length} overdue</span>
+            )}
+            {undated.length > 0 && <span>{undated.length} with no date</span>}
+          </>
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              aria-label="Filter by project"
+              className="!w-auto min-w-[132px]"
             >
-              <option value="all">All Tasks</option>
-              <option value="overdue">Overdue</option>
-              <option value="today">Today</option>
-              <option value="upcoming">Upcoming</option>
-            </select>
-          </div>
-
-          {/* Project Filter */}
-          <div className="flex items-center gap-2">
-            <label className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Project:
-            </label>
-            <select
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className={`px-3 py-2 rounded-lg border text-sm ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
-            >
-              <option value="all">All Projects</option>
-              {projects.map(project => (
-                <option key={project} value={project}>{project}</option>
+              <option value="">All projects</option>
+              {projects.map((p) => (
+                <option key={p.name} value={p.name}>
+                  {p.name}
+                </option>
               ))}
-            </select>
-          </div>
-        </div>
-      </div>
+            </Select>
 
-      {/* Timeline Content */}
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm overflow-hidden`}>
-        {timelineData.length === 0 ? (
-          <div className="p-12 text-center">
-            <ScheduleIcon className={`text-6xl ${darkMode ? 'text-gray-600' : 'text-gray-400'} mb-4`} />
-            <h3 className={`text-lg font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
-              No tasks found
-            </h3>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No tasks match your current filter criteria.
-            </p>
-          </div>
-        ) : (
-          <div className="relative">
-            {/* Timeline line */}
-            <div className={`absolute left-8 top-0 bottom-0 w-0.5 ${
-              darkMode ? 'bg-gray-600' : 'bg-gray-300'
-            }`} />
+            <Select
+              value={rangeId}
+              onChange={(e) => setRangeId(e.target.value)}
+              aria-label="Time range"
+              className="!w-auto min-w-[110px]"
+            >
+              {RANGES.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.label}
+                </option>
+              ))}
+            </Select>
 
-            {timelineData.map(([groupName, group], groupIndex) => (
-              <div key={groupName} className="relative">
-                {/* Group Header */}
-                <div className={`sticky top-0 z-10 px-6 py-4 border-b ${getGroupColor(groupName)} ${
-                  darkMode && groupName !== 'Overdue' && groupName !== 'Today' && groupName !== 'Tomorrow' 
-                    ? 'text-gray-300 bg-gray-700 border-gray-600' 
-                    : ''
-                }`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${getPriorityColor('medium')} bg-current`} />
-                    <h3 className="font-semibold text-lg">{groupName}</h3>
-                    <span className="text-sm opacity-75">({group.tasks.length})</span>
+            <div className="flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] p-0.5">
+              <button
+                onClick={() => setOffset((o) => o - 2)}
+                aria-label="Earlier"
+                className="rounded-[4px] p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+              >
+                <PrevIcon sx={{ fontSize: 18 }} />
+              </button>
+              <button
+                onClick={() => setOffset(0)}
+                aria-label="Back to today"
+                title="Back to today"
+                className={`rounded-[4px] p-1.5 transition-colors hover:bg-[var(--surface-2)] ${
+                  offset === 0 ? "text-[var(--accent)]" : "text-[var(--fg-subtle)]"
+                }`}
+              >
+                <TodayIcon sx={{ fontSize: 16 }} />
+              </button>
+              <button
+                onClick={() => setOffset((o) => o + 2)}
+                aria-label="Later"
+                className="rounded-[4px] p-1.5 text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+              >
+                <NextIcon sx={{ fontSize: 18 }} />
+              </button>
+            </div>
+          </div>
+        }
+      />
+
+      {rows.length === 0 ? (
+        <EmptyState
+          title="Nothing scheduled in this window"
+          description="Give a task a due date, or step the range forward, and it will appear here."
+        />
+      ) : (
+        <div className="overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface)]">
+          <div style={{ minWidth: `${180 + (overdue.length ? 150 : 0) + range.weeks * 92}px` }}>
+            {/* Week headers */}
+            <div
+              className="sticky top-0 z-raised grid border-b border-[var(--border)] bg-[var(--surface)]"
+              style={{
+                gridTemplateColumns: `180px ${overdue.length ? "150px " : ""}repeat(${range.weeks}, 1fr)`,
+              }}
+            >
+              <div className="px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-[var(--fg-subtle)]">
+                Project
+              </div>
+              {overdue.length > 0 && (
+                <div className="border-l border-[var(--hairline)] bg-[var(--danger-soft)] px-2 py-2 text-center text-[11px] font-medium uppercase tracking-wider text-[var(--danger)]">
+                  Overdue
+                </div>
+              )}
+              {weeks.map((w) => (
+                <div
+                  key={w.key}
+                  className={`border-l border-[var(--hairline)] px-2 py-2 text-center ${
+                    w.key === todayKey ? "bg-[var(--accent-soft)]" : ""
+                  }`}
+                >
+                  <div
+                    className={`font-mono text-[11px] tabular-nums ${
+                      w.key === todayKey ? "text-[var(--accent)]" : "text-[var(--fg-muted)]"
+                    }`}
+                  >
+                    {w.start.toLocaleDateString(undefined, { day: "numeric", month: "short" })}
                   </div>
                 </div>
+              ))}
+            </div>
 
-                {/* Tasks in Group */}
-                <div className="pb-6">
-                  {group.tasks.map((task, taskIndex) => (
-                    <div key={task.id} className="relative">
-                      {/* Timeline dot */}
-                      <div className={`absolute left-6 w-4 h-4 rounded-full border-2 z-10 ${
-                        task.status === 'completed' 
-                          ? 'bg-green-500 border-green-500' 
-                          : darkMode 
-                            ? 'bg-gray-800 border-gray-400' 
-                            : 'bg-white border-gray-400'
-                      }`}>
-                        {task.status === 'completed' && (
-                          <CheckCircleIcon className="w-3 h-3 text-white absolute inset-0.5" />
-                        )}
-                      </div>
-
-                      {/* Task Content */}
-                      <div className="ml-16 mr-6 py-4">
-                        <div className={`p-4 rounded-lg border ${
-                          darkMode 
-                            ? 'bg-gray-700 border-gray-600' 
-                            : 'bg-gray-50 border-gray-200'
-                        } hover:shadow-md transition-shadow`}>
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              {/* Task header */}
-                              <div className="flex items-start gap-3 mb-2">
-                                <div className="flex-1">
-                                  <h4 className={`font-semibold ${
-                                    task.status === 'completed' ? 'line-through opacity-60' : ''
-                                  } ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                                    {task.title}
-                                  </h4>
-                                  {task.description && (
-                                    <p className={`text-sm mt-1 ${
-                                      darkMode ? 'text-gray-400' : 'text-gray-600'
-                                    }`}>
-                                      {task.description}
-                                    </p>
-                                  )}
-                                </div>
-                                
-                                {/* Priority badge */}
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                                  getPriorityColor(task.priority)
-                                } bg-opacity-20`}>
-                                  {task.priority || 'medium'}
-                                </span>
-                              </div>
-
-                              {/* Task metadata */}
-                              <div className={`flex flex-wrap items-center gap-4 text-xs ${
-                                darkMode ? 'text-gray-400' : 'text-gray-500'
-                              }`}>
-                                <div className="flex items-center gap-1">
-                                  {getStatusIcon(task.status)}
-                                  <span className="capitalize">{task.status || 'todo'}</span>
-                                </div>
-                                
-                                <div className="flex items-center gap-1">
-                                  <EventIcon fontSize="small" />
-                                  <span>{task.project || 'No Project'}</span>
-                                </div>
-                                
-                                {task.workingFor && (
-                                  <div className="flex items-center gap-1">
-                                    <PersonIcon fontSize="small" />
-                                    <span>For: {task.workingFor}</span>
-                                  </div>
-                                )}
-                                
-                                {task.workingWith && (
-                                  <div className="flex items-center gap-1">
-                                    <GroupIcon fontSize="small" />
-                                    <span>With: {task.workingWith}</span>
-                                  </div>
-                                )}
-                                
-                                {task.dueDate && (
-                                  <div className="flex items-center gap-1">
-                                    <ScheduleIcon fontSize="small" />
-                                    <span>Due: {format(new Date(task.dueDate), 'MMM d, yyyy')}</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Progress indicator for checkpoints */}
-                              {task.checkpoints && task.checkpoints.length > 0 && (
-                                <div className="mt-3">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs font-medium">Progress:</span>
-                                    <span className="text-xs">
-                                      {task.checkpoints.filter(cp => cp.completed).length}/{task.checkpoints.length} checkpoints
-                                    </span>
-                                  </div>
-                                  <div className={`h-1.5 rounded-full overflow-hidden ${
-                                    darkMode ? 'bg-gray-600' : 'bg-gray-200'
-                                  }`}>
-                                    <div 
-                                      className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300"
-                                      style={{ 
-                                        width: `${(task.checkpoints.filter(cp => cp.completed).length / task.checkpoints.length) * 100}%` 
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => onEditTask && onEditTask(task)}
-                                className={`p-2 rounded-lg transition-colors ${
-                                  darkMode 
-                                    ? 'text-blue-400 hover:text-blue-300 hover:bg-blue-900/20' 
-                                    : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                                }`}
-                                title="Edit Task"
-                              >
-                                <EditIcon fontSize="small" />
-                              </button>
-                              
-                              {task.status !== 'completed' && (
-                                <button
-                                  onClick={() => handleStatusChange(task.id, 'completed')}
-                                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                                    darkMode 
-                                      ? 'bg-green-600 hover:bg-green-700 text-white' 
-                                      : 'bg-green-600 hover:bg-green-700 text-white'
-                                  }`}
-                                >
-                                  Complete
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            {/* One row per project */}
+            {rows.map((row) => (
+              <div
+                key={row.name}
+                className="grid border-b border-[var(--hairline)] last:border-b-0"
+                style={{
+                  gridTemplateColumns: `180px ${overdue.length ? "150px " : ""}repeat(${range.weeks}, 1fr)`,
+                }}
+              >
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <span
+                    className="h-2 w-2 flex-shrink-0 rounded-full"
+                    style={{ background: row.color }}
+                  />
+                  <span className="truncate text-[12px] font-medium text-[var(--fg-muted)]">
+                    {row.name}
+                  </span>
                 </div>
+
+                {overdue.length > 0 && (
+                  <div className="space-y-1 border-l border-[var(--hairline)] bg-[var(--danger-soft)]/30 px-1.5 py-1.5">
+                    {row.late.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => onEditTask?.(t)}
+                        title={`${t.title} — was due ${new Date(t.dueDate).toLocaleDateString()}`}
+                        className="block w-full truncate rounded-[var(--radius-sm)] border-l-2 border-l-[var(--danger)] bg-[var(--surface-2)] px-1.5 py-1 text-left text-[11px] leading-tight text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-3)] hover:text-[var(--fg)]"
+                      >
+                        {t.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {row.weeks.map((cell, i) => (
+                  <div
+                    key={i}
+                    className={`space-y-1 border-l border-[var(--hairline)] px-1.5 py-1.5 ${
+                      weeks[i].key === todayKey ? "bg-[var(--accent-soft)]/40" : ""
+                    }`}
+                  >
+                    {cell.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => onEditTask?.(t)}
+                        onMouseEnter={() => setHover(t.id)}
+                        onMouseLeave={() => setHover(null)}
+                        title={`${t.title} — due ${new Date(t.dueDate).toLocaleDateString()}`}
+                        className="block w-full truncate rounded-[var(--radius-sm)] border-l-2 bg-[var(--surface-2)] px-1.5 py-1 text-left text-[11px] leading-tight text-[var(--fg-muted)] transition-all duration-150 hover:bg-[var(--surface-3)] hover:text-[var(--fg)]"
+                        style={{
+                          borderLeftColor: TONE[t.status] || "var(--fg-subtle)",
+                          textDecoration: t.status === "completed" ? "line-through" : "none",
+                          opacity: hover && hover !== t.id ? 0.55 : 1,
+                        }}
+                      >
+                        {t.title}
+                      </button>
+                    ))}
+                  </div>
+                ))}
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Undated work has no place on a timeline, but hiding it silently is
+          how it gets forgotten. */}
+      {undated.length > 0 && (
+        <section className="premium-card p-4">
+          <div className="mb-2.5 flex items-baseline gap-2 border-b border-[var(--border)] pb-2">
+            <h2 className="text-[13px] font-semibold text-[var(--fg)]">No due date</h2>
+            <span className="font-mono text-[12px] tabular-nums text-[var(--fg-subtle)]">
+              {undated.length}
+            </span>
+            <span className="ml-auto text-[11px] text-[var(--fg-subtle)]">
+              Not on the timeline until they have a date
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {undated.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => onEditTask?.(t)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] bg-[var(--surface-2)] py-1 pl-2.5 pr-2 text-[12px] text-[var(--fg-muted)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--fg)]"
+              >
+                <span className="max-w-[220px] truncate">{t.title}</span>
+                <StatusPill status={t.status} />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
-};
-
-export default TimelineView;
+}

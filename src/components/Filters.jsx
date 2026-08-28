@@ -1,137 +1,198 @@
 "use client";
-import React from 'react';
-import { 
-  FilterList as FilterListIcon, 
-  Clear as ClearIcon,
-  Search as SearchIcon 
-} from '@mui/icons-material';
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Close as ClearIcon,
+  BookmarkBorder as SaveViewIcon,
+  DeleteOutline as RemoveIcon,
+} from "@mui/icons-material";
+import { SearchInput, Select, OverflowMenu } from "./ui/Components";
 
-export default function Filters({ filter, setFilter, projects, clearFilters, darkMode }) {
-  const handleClearFilters = () => {
-    setFilter({ status: '', priority: '', project: '', search: '' });
+/**
+ * Filter toolbar.
+ *
+ * This was a 280px card titled "Smart Filters" with a gradient icon tile and
+ * the subtitle "Refine your task view with intelligent filtering" — marketing
+ * copy occupying the space where the data should be. Together with the stat
+ * strip and the list header it pushed the first task row below the fold.
+ *
+ * It is now a single toolbar row: search on the left, the three filters and a
+ * clear action on the right. Same controls, ~48px instead of ~280px.
+ */
+export default function Filters({ filter = {}, setFilter, projects = [] }) {
+  const active = [filter.status, filter.priority, filter.project, filter.search].filter(
+    Boolean,
+  ).length;
+
+  const set = (patch) => setFilter({ ...filter, ...patch });
+
+  /* Saved views: a named filter you can come back to, kept in app_settings so
+     it survives a reload and is the same on every device hitting this app. */
+  const [views, setViews] = useState([]);
+
+  const load = useCallback(() => {
+    fetch("/api/views")
+      .then((r) => r.json())
+      .then((d) => setViews(d.views || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(load, [load]);
+
+  const saveCurrent = async () => {
+    const name = window.prompt("Name this view", "")?.trim();
+    if (!name) return;
+    const res = await fetch("/api/views", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, filter }),
+    });
+    const d = await res.json();
+    if (d.error) window.alert(d.error);
+    else setViews(d.views || []);
   };
 
+  const removeView = async (name) => {
+    const d = await fetch(`/api/views?name=${encodeURIComponent(name)}`, {
+      method: "DELETE",
+    }).then((r) => r.json());
+    setViews(d.views || []);
+  };
+
+  const isCurrent = (v) =>
+    (v.filter.search || "") === (filter.search || "") &&
+    (v.filter.status || "") === (filter.status || "") &&
+    (v.filter.priority || "") === (filter.priority || "") &&
+    (v.filter.project || "") === (filter.project || "");
+
   return (
-    <div className="premium-card mb-8 animate-fade-in-up">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
-          <FilterListIcon className="text-white text-sm" />
-        </div>
-        <div>
-          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Smart Filters</h3>
-          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Refine your task view with intelligent filtering</p>
-        </div>
-      </div>
+    <>
+    <div className="mb-2 flex flex-wrap items-center gap-2 rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--surface)] px-2.5 py-2">
+      <SearchInput
+        value={filter.search || ""}
+        onChange={(e) => set({ search: e.target.value })}
+        placeholder="Search tasks…"
+        className="min-w-[220px] flex-1"
+        aria-label="Search tasks"
+      />
 
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative">
-          <SearchIcon className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} fontSize="small" />
-          <input
-            type="text"
-            placeholder="Search tasks by title, description, or tags..."
-            className={`w-full ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-100 text-gray-800 placeholder-gray-500'} pl-12 pr-4 py-3 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-            value={filter.search || ''}
-            onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-          />
-        </div>
-      </div>
+      <Select
+        value={filter.status || ""}
+        onChange={(e) => set({ status: e.target.value })}
+        aria-label="Filter by status"
+        className="!w-auto min-w-[128px]"
+      >
+        <option value="">All status</option>
+        <option value="todo">To do</option>
+        <option value="in-progress">In progress</option>
+        <option value="on-hold">On hold</option>
+        <option value="completed">Completed</option>
+      </Select>
 
-      {/* Filter Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {/* Status Filter */}
-        <div className="space-y-2">
-          <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Status</label>
-          <select
-            className={`w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'} border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-            value={filter.status || ''}
-            onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-          >
-            <option value="" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>All Status</option>
-            <option value="todo" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>📋 To Do</option>
-            <option value="in-progress" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>⚡ In Progress</option>
-            <option value="completed" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>✅ Completed</option>
-            <option value="on-hold" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>⏸️ On Hold</option>
-          </select>
-        </div>
+      <Select
+        value={filter.priority || ""}
+        onChange={(e) => set({ priority: e.target.value })}
+        aria-label="Filter by priority"
+        className="!w-auto min-w-[124px]"
+      >
+        <option value="">All priorities</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </Select>
 
-        {/* Priority Filter */}
-        <div className="space-y-2">
-          <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Priority</label>
-          <select
-            className={`w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'} border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-            value={filter.priority || ''}
-            onChange={(e) => setFilter({ ...filter, priority: e.target.value })}
-          >
-            <option value="" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>All Priorities</option>
-            <option value="high" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>🔴 High Priority</option>
-            <option value="medium" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>🟡 Medium Priority</option>
-            <option value="low" className={darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}>🟢 Low Priority</option>
-          </select>
-        </div>
+      <Select
+        value={filter.project || ""}
+        onChange={(e) => set({ project: e.target.value })}
+        aria-label="Filter by project"
+        className="!w-auto min-w-[132px]"
+      >
+        <option value="">All projects</option>
+        {projects.map((p) => {
+          const name = p.name || p;
+          return (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          );
+        })}
+      </Select>
 
-        {/* Project Filter */}
-        <div className="space-y-2">
-          <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Project</label>
-          <select
-            className={`w-full ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'} border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-            value={filter.project || ''}
-            onChange={(e) => setFilter({ ...filter, project: e.target.value })}
-          >
-            <option value="" className="bg-white text-gray-800">All Projects</option>
-            {projects.map((project) => {
-              const projectName = project.name || project;
-              return (
-                <option key={projectName} value={projectName} className="bg-white text-gray-800">
-                  📁 {projectName}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+      {/* Only offered when there is something worth naming. */}
+      {active > 0 && (
+        <button
+          onClick={saveCurrent}
+          title="Save this filter as a view"
+          className="inline-flex h-8 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[12px] font-medium text-[var(--fg-subtle)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+        >
+          <SaveViewIcon sx={{ fontSize: 15 }} />
+          Save view
+        </button>
+      )}
 
-        {/* Clear Filters Button */}
-        <div className="space-y-2">
-          <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Actions</label>
-          <button
-            onClick={handleClearFilters}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-4 py-2.5 font-medium text-[var(--fg)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface)] active:translate-y-px"
-          >
-            <ClearIcon fontSize="small" />
-            Clear All
-          </button>
-        </div>
-      </div>
-
-      {/* Active Filters Display */}
-      {(filter.status || filter.priority || filter.project || filter.search) && (
-        <div className={`mt-6 pt-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-t`}>
-          <div className="flex flex-wrap gap-2">
-            <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Active filters:</span>
-            {filter.status && (
-              <span className="bg-blue-100 border border-blue-200 px-3 py-1 rounded-full text-xs text-blue-800">
-                Status: {filter.status}
-              </span>
-            )}
-            {filter.priority && (
-              <span className="bg-orange-100 border border-orange-200 px-3 py-1 rounded-full text-xs text-orange-800">
-                Priority: {filter.priority}
-              </span>
-            )}
-            {filter.project && (
-              <span className="bg-green-100 border border-green-200 px-3 py-1 rounded-full text-xs text-green-800">
-                Project: {filter.project}
-              </span>
-            )}
-            {filter.search && (
-              <span className="bg-purple-100 border border-purple-200 px-3 py-1 rounded-full text-xs text-purple-800">
-                Search: "{filter.search}"
-              </span>
-            )}
-          </div>
-        </div>
+      {/* Only offered when there is something to clear. */}
+      {active > 0 && (
+        <button
+          onClick={() => set({ status: "", priority: "", project: "", search: "" })}
+          className="inline-flex h-8 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-[12px] font-medium text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+        >
+          <ClearIcon sx={{ fontSize: 15 }} />
+          Clear
+          <span className="font-mono tabular-nums text-[var(--fg-subtle)]">{active}</span>
+        </button>
       )}
     </div>
+
+    <SavedViews
+      views={views}
+      filter={filter}
+      isCurrent={isCurrent}
+      onApply={(v) => setFilter({ ...filter, ...v.filter })}
+      onRemove={removeView}
+    />
+    </>
   );
+}
+
+function SavedViews({ views, filter, isCurrent, onApply, onRemove }) {
+  if (views.length === 0) return null;
+  return (
+    <div className="-mt-2 mb-4 flex flex-wrap items-center gap-1.5">
+      <span className="eyebrow mr-0.5">Views</span>
+      {views.map((v) => (
+        <span
+          key={v.name}
+          className={`group inline-flex items-center rounded-full border transition-colors ${
+            isCurrent(v)
+              ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
+              : "border-[var(--hairline)] bg-[var(--surface-2)] text-[var(--fg-muted)] hover:border-[var(--border-strong)]"
+          }`}
+        >
+          <button
+            onClick={() => onApply(v)}
+            className="py-1 pl-2.5 pr-1 text-[12px] font-medium"
+            title={describeView(v)}
+          >
+            {v.name}
+          </button>
+          <button
+            onClick={() => onRemove(v.name)}
+            aria-label={`Delete view ${v.name}`}
+            className="py-1 pl-0.5 pr-2 text-[var(--fg-subtle)] opacity-0 transition-opacity hover:text-[var(--danger)] group-hover:opacity-100"
+          >
+            <RemoveIcon sx={{ fontSize: 13 }} />
+          </button>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** The tooltip: what this view actually filters to. */
+function describeView(v) {
+  const parts = [];
+  if (v.filter.search) parts.push(`matching “${v.filter.search}”`);
+  if (v.filter.status) parts.push(v.filter.status.replace("-", " "));
+  if (v.filter.priority) parts.push(`${v.filter.priority} priority`);
+  if (v.filter.project) parts.push(v.filter.project);
+  return parts.length ? `Tasks ${parts.join(", ")}` : "All tasks";
 }

@@ -12,8 +12,22 @@ import {
   CheckCircle as CompletedIcon
 } from '@mui/icons-material';
 
-const COLORS = ['#3b6fe0', '#5b9bd5', '#7c8698', '#c2703f'];
-const PRIORITY_COLORS = ['#ff6b6b', '#feca57', '#48dbfb'];
+/* Charts reuse the app's semantic colours so a "done" slice is the same green
+   as a Done pill, and a high-priority slice the same red as its badge. Charts
+   inventing their own palette is why they read as a separate product. */
+const STATUS_COLORS = {
+  Todo: '#7c8698',
+  'To Do': '#7c8698',
+  'In Progress': '#3b6fe0',
+  Completed: '#15803d',
+  Done: '#15803d',
+  'On Hold': '#b45309',
+};
+const PRIORITY_TONES = { High: '#b91c1c', Medium: '#b45309', Low: '#5b7186' };
+const COLORS = ['#3b6fe0', '#15803d', '#b45309', '#7c8698'];
+const PRIORITY_COLORS = ['#b91c1c', '#b45309', '#5b7186'];
+const chartColor = (map, name, i, fallback) =>
+  map[name] ?? fallback[i % fallback.length];
 
 export default function AnalyticsDashboard({ darkMode }) {
   const tasks = useSelector(state => state.tasks.tasks);
@@ -48,86 +62,13 @@ export default function AnalyticsDashboard({ darkMode }) {
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>Task Analytics Dashboard</h1>
-        <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-lg`}>Comprehensive overview of your productivity metrics</p>
-      </div>
-
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="metric-card group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <TaskIcon className="text-white" />
-            </div>
-            <div className="text-right">
-              <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{totalTasks}</div>
-              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Total Tasks</div>
-            </div>
-          </div>
-          <div className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
-            <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-1000" 
-                 style={{ width: totalTasks > 0 ? '100%' : '0%' }}></div>
-          </div>
-        </div>
-
-        <div className="metric-card group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <ProjectIcon className="text-white" />
-            </div>
-            <div className="text-right">
-              <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{projects.length}</div>
-              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Projects</div>
-            </div>
-          </div>
-          <div className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
-            <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000" 
-                 style={{ width: projects.length > 0 ? '100%' : '0%' }}></div>
-          </div>
-        </div>
-
-        <div className="metric-card group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-              <CompletedIcon className="text-white" />
-            </div>
-            <div className="text-right">
-              <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{completedTasks}</div>
-              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Completed</div>
-            </div>
-          </div>
-          <div className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
-            <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-1000" 
-                 style={{ width: `${completionRate}%` }}></div>
-          </div>
-        </div>
-
-        <div className="metric-card group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-              <TrendingUpIcon className="text-white" />
-            </div>
-            <div className="text-right">
-              <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{completionRate}%</div>
-              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Completion Rate</div>
-            </div>
-          </div>
-          <div className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
-            <div className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-1000" 
-                 style={{ width: `${completionRate}%` }}></div>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-5">
       {/* Chart Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Status Distribution */}
-        <div className="premium-card">
+        <div className="premium-card rise rise-3">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[var(--surface-2)] text-[var(--fg-subtle)]">
               <span className="text-white text-lg">📊</span>
             </div>
             <div>
@@ -140,6 +81,8 @@ export default function AnalyticsDashboard({ darkMode }) {
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
+                  animationDuration={900}
+                  animationBegin={120}
                   data={statusData}
                   cx="50%"
                   cy="50%"
@@ -150,7 +93,7 @@ export default function AnalyticsDashboard({ darkMode }) {
                   dataKey="value"
                 >
                   {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={chartColor(STATUS_COLORS, entry.name, index, COLORS)} />
                   ))}
                 </Pie>
                 <Tooltip 
@@ -174,9 +117,9 @@ export default function AnalyticsDashboard({ darkMode }) {
         </div>
 
         {/* Priority Distribution */}
-        <div className="premium-card">
+        <div className="premium-card rise rise-3">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[var(--surface-2)] text-[var(--fg-subtle)]">
               <span className="text-white text-lg">🎯</span>
             </div>
             <div>
@@ -189,6 +132,8 @@ export default function AnalyticsDashboard({ darkMode }) {
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
+                  animationDuration={900}
+                  animationBegin={120}
                   data={priorityData}
                   cx="50%"
                   cy="50%"
@@ -199,7 +144,7 @@ export default function AnalyticsDashboard({ darkMode }) {
                   dataKey="value"
                 >
                   {priorityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[index % PRIORITY_COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={chartColor(PRIORITY_TONES, entry.name, index, PRIORITY_COLORS)} />
                   ))}
                 </Pie>
                 <Tooltip 
@@ -225,9 +170,9 @@ export default function AnalyticsDashboard({ darkMode }) {
 
       {/* Project Analytics */}
       {projectData.length > 0 && (
-        <div className="premium-card">
+        <div className="premium-card rise rise-3">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-cyan-600 flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[var(--surface-2)] text-[var(--fg-subtle)]">
               <span className="text-white text-lg">📁</span>
             </div>
             <div>
@@ -257,8 +202,8 @@ export default function AnalyticsDashboard({ darkMode }) {
                 }} 
               />
               <Legend wrapperStyle={{ color: darkMode ? '#D1D5DB' : '#374151' }} />
-              <Bar dataKey="tasks" fill="#3b6fe0" name="Total Tasks" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="completed" fill="#48dbfb" name="Completed" radius={[4, 4, 0, 0]} />
+              <Bar animationDuration={900} dataKey="tasks" fill="#3b6fe0" name="Total Tasks" radius={[4, 4, 0, 0]} />
+              <Bar animationDuration={900} dataKey="completed" fill="#48dbfb" name="Completed" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

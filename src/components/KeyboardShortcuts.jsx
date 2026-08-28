@@ -15,6 +15,7 @@ const SHORTCUTS = {
     modifiers: ["ctrl"],
   },
   f: { description: "Focus search", action: "search", modifiers: ["ctrl"] },
+  k: { description: "Command palette", action: "palette", modifiers: ["ctrl"] },
   z: { description: "Undo", action: "undo", modifiers: ["ctrl"] },
   y: { description: "Redo", action: "redo", modifiers: ["ctrl"] },
   1: {
@@ -37,14 +38,20 @@ export function useKeyboardShortcuts(handlers = {}) {
   const handleKeyDown = useCallback(
     (event) => {
       // Don't trigger shortcuts when typing in inputs
-      const tagName = event.target.tagName.toLowerCase();
+      /* `target` is not always an element — a key event dispatched on window
+         has none, and reading tagName off it threw, killing every shortcut. */
+      const tagName = String(event.target?.tagName ?? "").toLowerCase();
       const isEditing =
         tagName === "input" ||
         tagName === "textarea" ||
         event.target.isContentEditable;
 
-      // Allow Escape even when editing
-      if (isEditing && event.key !== "Escape") return;
+      // Escape and the command palette stay live while typing — a palette you
+      // cannot reach from a search box is not much of a palette.
+      const alwaysOn =
+        event.key === "Escape" ||
+        (event.key.toLowerCase() === "k" && (event.ctrlKey || event.metaKey));
+      if (isEditing && !alwaysOn) return;
 
       const key = event.key.toLowerCase();
       const shortcut = SHORTCUTS[key] || SHORTCUTS[event.key];

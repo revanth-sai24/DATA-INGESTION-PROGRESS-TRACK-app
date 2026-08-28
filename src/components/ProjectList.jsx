@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { addProject, updateProject, deleteProject } from '../redux/slices/taskSlice';
+import { useFeedback } from './ui/Feedback';
 import { 
   Folder as ProjectIcon, 
   Add as AddIcon, 
@@ -10,15 +11,33 @@ import {
   Assignment as TaskIcon,
   Schedule as CalendarIcon,
   ViewModule as CardViewIcon,
-  ViewList as TableViewIcon
+  ViewList as TableViewIcon,
+  ChevronRight as ChevronRightIcon
 } from '@mui/icons-material';
 
 export default function ProjectList({ setActivePage, setFilter, darkMode }) {
   const dispatch = useDispatch();
+  const { confirm, toast } = useFeedback();
   const { tasks, projects } = useSelector((state) => state.tasks);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+  const [archivedCount, setArchivedCount] = useState(0);
+
+  /* Archived projects are deliberately absent from the store so no other
+     screen has to filter them out; the count is read straight from the API. */
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/projects?includeArchived=1")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled) {
+          setArchivedCount((d.projects || []).filter((p) => p.status === "archived").length);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [projects.length]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -69,25 +88,44 @@ export default function ProjectList({ setActivePage, setFilter, darkMode }) {
     setShowForm(true);
   };
 
-  const handleDelete = (projectName) => {
+  const handleDelete = async (projectName) => {
     const open = tasks.filter(
       (t) => t.project === projectName && t.status !== "archived",
     ).length;
-    const detail = open
-      ? `\n\n${open} task${open === 1 ? "" : "s"} will move to Archived with it. Nothing is deleted \u2014 you can restore it later.`
-      : "\n\nNothing is deleted \u2014 you can restore it later.";
-    if (confirm(`Archive the project "${projectName}"?${detail}`)) {
+    const ok = await confirm({
+      title: `Archive “${projectName}”?`,
+      description: open
+        ? `${open} task${open === 1 ? "" : "s"} will move to Archived with it. Nothing is deleted — you can restore it later.`
+        : "Nothing is deleted — you can restore it from the Archived screen.",
+      confirmLabel: "Archive project",
+    });
+    if (ok) {
       dispatch(deleteProject(projectName));
+      toast(`“${projectName}” archived`, "success");
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
         <div className="min-w-0">
-          <h1 className={`text-xl font-semibold tracking-[-0.01em] ${darkMode ? 'text-white' : 'text-gray-800'}`}>Projects</h1>
-          <p className={`mt-0.5 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Manage your project collections</p>
+          <h1 className="text-xl font-semibold tracking-[-0.015em] text-[var(--fg)]">Projects</h1>
+          <p className="mt-1 max-w-[60ch] text-[13px] text-[var(--fg-muted)]">
+            Clients and workstreams. Archiving a project moves its tasks to Archived; nothing is deleted.
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] tabular-nums text-[var(--fg-subtle)]">
+            <span>{projects.length} active</span>
+            {/* Archiving a project used to hide it with no way back to it from
+                this screen — the archive was only reachable from the sidebar. */}
+            <a
+              href="#/archived"
+              className="inline-flex items-center gap-1 text-[var(--fg-subtle)] underline decoration-dotted underline-offset-2 transition-colors hover:text-[var(--accent)]"
+            >
+              {archivedCount > 0 ? `${archivedCount} archived` : "Archived"}
+              <ChevronRightIcon sx={{ fontSize: 13 }} />
+            </a>
+          </div>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
           {/* View Toggle */}

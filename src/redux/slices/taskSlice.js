@@ -51,20 +51,75 @@ const localDay = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-export const updateTask = createAsyncThunk("tasks/update", async (task) => {
-  const { tasks } = await jsonFetch("/api/tasks", {
-    method: "PATCH",
-    body: JSON.stringify({ ...task, logDate: localDay() }),
-  });
-  return tasks;
-});
+/* Fields an undo can meaningfully put back. Timestamps and derived data are
+   the server's business and are deliberately excluded. */
+const UNDOABLE_FIELDS = [
+  "title", "description", "status", "priority", "project", "dueDate",
+  "estimatedTime", "workingFor", "workingWith", "pinned", "colorLabel", "tags",
+];
 
-export const deleteTask = createAsyncThunk("tasks/delete", async (id) => {
-  const { tasks } = await jsonFetch(`/api/tasks?id=${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  });
-  return tasks;
-});
+const same = (a, b) =>
+  Array.isArray(a) || Array.isArray(b)
+    ? JSON.stringify(a ?? []) === JSON.stringify(b ?? [])
+    : (a ?? "") === (b ?? "");
+
+export const updateTask = createAsyncThunk(
+  "tasks/update",
+  async (task, { getState, dispatch }) => {
+    /* Capture the inverse before the write: undo has to reach the database,
+       not just the store, or it silently un-does nothing. */
+    const prev = getState().tasks.tasks.find((t) => t.id === task.id);
+    if (prev) {
+      const before = {};
+      const after = {};
+      for (const f of UNDOABLE_FIELDS) {
+        if (f in task && !same(prev[f], task[f])) {
+          before[f] = prev[f] ?? null;
+          after[f] = task[f];
+        }
+      }
+      if (Object.keys(before).length > 0) {
+        dispatch(
+          pushHistory({
+            kind: "update",
+            id: task.id,
+            label: describeChange(before, after, prev.title),
+            before,
+            after,
+          }),
+        );
+      }
+    }
+
+    const { tasks } = await jsonFetch("/api/tasks", {
+      method: "PATCH",
+      body: JSON.stringify({ ...task, logDate: localDay() }),
+    });
+    return tasks;
+  },
+);
+
+export const deleteTask = createAsyncThunk(
+  "tasks/delete",
+  async (id, { getState, dispatch }) => {
+    const doomed = getState().tasks.tasks.find((t) => t.id === id);
+    if (doomed) {
+      dispatch(pushHistory({ kind: "delete", id, label: `Delete "${doomed.title}"`, task: doomed }));
+    }
+    const { tasks } = await jsonFetch(`/api/tasks?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    return tasks;
+  },
+);
+
+/** A short human label for the history entry, e.g. 'Status of "DQ check"'. */
+function describeChange(before, after, title) {
+  const keys = Object.keys(before);
+  const name = keys.length === 1 ? keys[0] : `${keys.length} fields`;
+  const pretty = { dueDate: "due date", colorLabel: "colour", estimatedTime: "estimate" }[name] || name;
+  return `${pretty.charAt(0).toUpperCase()}${pretty.slice(1)} of "${title}"`;
+}
 
 export const reorderTasks = createAsyncThunk("tasks/reorder", async (ordered) => {
   const { tasks } = await jsonFetch("/api/tasks", {
@@ -161,6 +216,95 @@ export const bulkDelete = createAsyncThunk("tasks/bulkDelete", async (ids) => {
   return tasks;
 });
 
+/* ── time tracking ──────────────────────────────────────────────────────── */
+
+export const startTimer = createAsyncThunk("time/start", async (taskId) => {
+  const { tasks } = await jsonFetch("/api/time-entries", {
+    method: "POST",
+    body: JSON.stringify({ task_id: taskId }),
+  });
+  return tasks;
+});
+
+export const stopTimer = createAsyncThunk("time/stop", async (taskId) => {
+  const { tasks } = await jsonFetch("/api/time-entries", {
+    method: "PATCH",
+    body: JSON.stringify({ task_id: taskId }),
+  });
+  return tasks;
+});
+
+/* ── comments ───────────────────────────────────────────────────────────── */
+
+export const addComment = createAsyncThunk("comments/add", async ({ taskId, body, author }) => {
+  const { tasks } = await jsonFetch("/api/comments", {
+    method: "POST",
+    body: JSON.stringify({ task_id: taskId, body, author }),
+  });
+  return tasks;
+});
+
+export const deleteComment = createAsyncThunk("comments/delete", async (id) => {
+  const { tasks } = await jsonFetch(`/api/comments?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+  return tasks;
+});
+
+/* ── undo / redo ────────────────────────────────────────────────────────── */
+
+/** Replay one history entry in the given direction, against the database. */
+async function replay(entry, direction, getState) {
+  if (entry.kind === "update") {
+    const current = getState().tasks.tasks.find((t) => t.id === entry.id);
+    const patch = direction === "undo" ? entry.before : entry.after;
+    const { tasks } = await jsonFetch("/api/tasks", {
+      method: "PATCH",
+      body: JSON.stringify({ ...current, id: entry.id, ...patch, logDate: localDay() }),
+    });
+    return tasks;
+  }
+
+  if (entry.kind === "delete") {
+    if (direction === "undo") {
+      /* Recreated with its original id, so a redo can find it again. */
+      const { tasks } = await jsonFetch("/api/tasks", {
+        method: "POST",
+        body: JSON.stringify(entry.task),
+      });
+      return tasks;
+    }
+    const { tasks } = await jsonFetch(`/api/tasks?id=${encodeURIComponent(entry.id)}`, {
+      method: "DELETE",
+    });
+    return tasks;
+  }
+
+  throw new Error(`Cannot ${direction} a ${entry.kind}`);
+}
+
+export const undoLast = createAsyncThunk(
+  "tasks/undoLast",
+  async (_, { getState, dispatch }) => {
+    const entry = getState().tasks.undoStack.at(-1);
+    if (!entry) return getState().tasks.tasks;
+    const tasks = await replay(entry, "undo", getState);
+    dispatch(popUndo());
+    return tasks;
+  },
+);
+
+export const redoLast = createAsyncThunk(
+  "tasks/redoLast",
+  async (_, { getState, dispatch }) => {
+    const entry = getState().tasks.redoStack.at(-1);
+    if (!entry) return getState().tasks.tasks;
+    const tasks = await replay(entry, "redo", getState);
+    dispatch(popRedo());
+    return tasks;
+  },
+);
+
 /* ── project mutations ──────────────────────────────────────────────────── */
 
 export const addProject = createAsyncThunk("projects/add", async (project) => {
@@ -189,8 +333,15 @@ export const deleteProject = createAsyncThunk("projects/delete", async (idOrName
 
 /* ── export / import ────────────────────────────────────────────────────── */
 
-export const exportToCSV = createAsyncThunk("tasks/exportToCSV", async (_, { getState }) => {
-  const { tasks } = getState().tasks;
+/**
+ * Export to CSV.
+ *
+ * Pass the rows you are looking at to export exactly those; with no argument
+ * it falls back to everything. The export was previously all-or-nothing and
+ * only reachable from a screen that is no longer mounted.
+ */
+export const exportToCSV = createAsyncThunk("tasks/exportToCSV", async (rows, { getState }) => {
+  const tasks = Array.isArray(rows) && rows.length ? rows : getState().tasks.tasks;
   const csv = Papa.unparse(
     tasks.map((task) => ({
       title: task.title,
@@ -218,7 +369,7 @@ export const exportToCSV = createAsyncThunk("tasks/exportToCSV", async (_, { get
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(link.href);
-  return "Exported";
+  return `Exported ${tasks.length} task${tasks.length === 1 ? "" : "s"}`;
 });
 
 export const importFromCSV = createAsyncThunk("tasks/importFromCSV", async (file) => {
@@ -266,8 +417,11 @@ const initialState = {
   selectedTasks: [],
   viewMode: "card",
   selectedTask: null,
-  history: [],
-  historyIndex: -1,
+  /* Inverse operations, newest last. Snapshots of the task array were kept
+     here before; they could not survive a reload because the database never
+     saw them. */
+  undoStack: [],
+  redoStack: [],
 };
 
 const taskSlice = createSlice({
@@ -282,39 +436,30 @@ const taskSlice = createSlice({
     setSelectedTask: (s, a) => void (s.selectedTask = a.payload),
     clearError: (s) => void (s.error = null),
 
-    /* Kept so existing call sites keep working. History is local to the
-       session; the database is authoritative and re-syncs on the next write. */
-    saveState: (s) => {
-      s.history.push([...s.tasks]);
-      s.historyIndex = s.history.length - 1;
+    /* A new action invalidates anything that was undone. 50 is plenty for a
+       session and keeps the store small. */
+    pushHistory: (s, a) => {
+      s.undoStack.push(a.payload);
+      if (s.undoStack.length > 50) s.undoStack.shift();
+      s.redoStack = [];
     },
-    undo: (s) => {
-      if (s.historyIndex > 0) {
-        s.historyIndex -= 1;
-        s.tasks = [...s.history[s.historyIndex]];
-      }
+    popUndo: (s) => {
+      const entry = s.undoStack.pop();
+      if (entry) s.redoStack.push(entry);
     },
-    redo: (s) => {
-      if (s.historyIndex < s.history.length - 1) {
-        s.historyIndex += 1;
-        s.tasks = [...s.history[s.historyIndex]];
-      }
+    popRedo: (s) => {
+      const entry = s.redoStack.pop();
+      if (entry) s.undoStack.push(entry);
     },
 
-    /* Timer toggle stays local; time_entries writes land in a later pass. */
-    toggleTimeTracking: (s, a) => {
-      const t = s.tasks.find((x) => x.id === a.payload);
-      if (!t) return;
-      t.timeTracking ??= { elapsed: 0, isRunning: false, startTime: null };
-      if (t.timeTracking.isRunning) {
-        t.timeTracking.elapsed += Date.now() - t.timeTracking.startTime;
-        t.timeTracking.isRunning = false;
-        t.timeTracking.startTime = null;
-      } else {
-        t.timeTracking.isRunning = true;
-        t.timeTracking.startTime = Date.now();
-      }
-    },
+    /* Call sites still dispatch this; the inverse is now recorded by the
+       thunks themselves, at the point the change is actually known. */
+    saveState: () => {},
+
+    /* Kept for call sites that dispatch it directly; the real work now happens
+       in startTimer/stopTimer against time_entries so a running timer survives
+       a reload. */
+    toggleTimeTracking: () => {},
   },
 
   extraReducers: (builder) => {
@@ -354,6 +499,8 @@ const taskSlice = createSlice({
       loadTasksFromCSV, addTask, updateTask, deleteTask, reorderTasks,
       archiveTask, restoreTask, togglePinned, setColorLabel, duplicateTask,
       bulkArchive, bulkDelete, importFromCSV,
+      startTimer, stopTimer, addComment, deleteComment,
+      undoLast, redoLast,
     ];
     const projectThunks = [loadProjectsFromCSV, addProject, updateProject, deleteProject];
 
@@ -378,7 +525,8 @@ const taskSlice = createSlice({
 
 export const {
   setSearchQuery, setFilter, setSortConfig, setSelectedTasks, setViewMode,
-  setSelectedTask, clearError, saveState, undo, redo, toggleTimeTracking,
+  setSelectedTask, clearError, saveState, pushHistory, popUndo, popRedo,
+  toggleTimeTracking,
 } = taskSlice.actions;
 
 /* ── selectors ──────────────────────────────────────────────────────────── */
@@ -394,8 +542,10 @@ export const selectFilter = (s) => s.tasks.filter;
 export const selectSortConfig = (s) => s.tasks.sortConfig;
 export const selectSelectedTasks = (s) => s.tasks.selectedTasks;
 export const selectViewMode = (s) => s.tasks.viewMode;
-export const selectHistory = (s) => s.tasks.history;
-export const selectHistoryIndex = (s) => s.tasks.historyIndex;
+export const selectCanUndo = (s) => s.tasks.undoStack.length > 0;
+export const selectCanRedo = (s) => s.tasks.redoStack.length > 0;
+export const selectNextUndo = (s) => s.tasks.undoStack.at(-1)?.label ?? null;
+export const selectNextRedo = (s) => s.tasks.redoStack.at(-1)?.label ?? null;
 export const selectSelectedTask = (s) => s.tasks.selectedTask;
 export const selectPinnedTasks = (s) =>
   s.tasks.tasks.filter((t) => t.pinned && t.status !== "archived");

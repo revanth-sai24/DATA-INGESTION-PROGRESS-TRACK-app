@@ -106,16 +106,22 @@ export function EmptyState({ icon: Icon, title, description, action }) {
 
 export function StatStrip({ items = [] }) {
   return (
-    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--border)] sm:grid-cols-4">
-      {items.map(({ label, value, tone }) => (
-        <div key={label} className="bg-[var(--surface)] px-4 py-3">
+    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--border)] sm:grid-cols-4">
+      {items.map(({ label, value, tone, note }) => (
+        <div
+          key={label}
+          className="group relative bg-[var(--surface)] px-4 py-3.5 transition-colors hover:bg-[var(--surface-2)]"
+        >
           <div className="kpi-label">{label}</div>
           <div
-            className="mt-1 font-mono text-xl font-medium tabular-nums leading-none"
+            className="mt-1.5 font-mono text-[2rem] font-medium leading-none tracking-[-0.035em] tabular-nums"
             style={{ color: tone || "var(--fg)" }}
           >
             {value}
           </div>
+          {note && (
+            <div className="mt-1 text-[11px] text-[var(--fg-subtle)]">{note}</div>
+          )}
         </div>
       ))}
     </div>

@@ -8,6 +8,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers';
 import { Add as AddIcon, Edit as EditIcon, Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import DocumentManager from './DocumentManager';
+import { uploadPendingDocuments } from '../lib/uploadPending.mjs';
 
 export default function AddTaskDrawer({
   open,
@@ -319,6 +320,7 @@ export default function AddTaskDrawer({
               </Typography>
               
               <DocumentManager
+                taskId={editingTask?.id || null}
                 documents={formData.documents || []}
                 onDocumentsChange={handleDocumentsChange}
                 darkMode={false}

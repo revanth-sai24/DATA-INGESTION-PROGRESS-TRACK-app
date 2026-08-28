@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadTasksFromCSV, loadProjectsFromCSV } from '../redux/slices/taskSlice';
+import { useFeedback } from './ui/Feedback';
 import { 
   Archive as ArchiveIcon,
   Unarchive as RestoreIcon,
@@ -19,6 +20,7 @@ import { updateTask, deleteTask } from '../redux/slices/taskSlice';
 
 export default function ArchivedTasks() {
   const dispatch = useDispatch();
+  const { confirm, toast } = useFeedback();
   const { tasks, projects } = useSelector((state) => state.tasks);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterProject, setFilterProject] = useState('');
@@ -58,10 +60,18 @@ export default function ArchivedTasks() {
     dispatch(updateTask(restoredTask));
   };
 
-  const handlePermanentDelete = (taskId) => {
-    if (confirm('Permanently delete this task? This cannot be undone.')) {
+  const handlePermanentDelete = async (taskId) => {
+    const task = tasks.find((t) => t.id === taskId);
+    const ok = await confirm({
+      title: 'Delete permanently?',
+      description: `“${task?.title ?? 'This task'}” cannot be recovered. Restore puts it back instead.`,
+      confirmLabel: 'Delete forever',
+      danger: true,
+    });
+    if (ok) {
       dispatch(deleteTask(taskId));
       setSelected((ids) => ids.filter((id) => id !== taskId));
+      toast('Task deleted permanently', 'error');
     }
   };
 
@@ -85,18 +95,20 @@ export default function ArchivedTasks() {
     setSelected([]);
   };
 
-  const bulkDeleteForever = () => {
+  const bulkDeleteForever = async () => {
     const n = selected.length;
     if (n === 0) return;
     const all = n === sortedTasks.length && n > 1;
-    if (
-      confirm(
-        `Permanently delete ${n} task${n === 1 ? '' : 's'}${all ? ' \u2014 everything shown here' : ''}?\n\n` +
-          'This cannot be undone. Restore puts them back instead.',
-      )
-    ) {
+    const ok = await confirm({
+      title: `Permanently delete ${n} task${n === 1 ? '' : 's'}?`,
+      description: `${all ? 'That is everything shown here. ' : ''}This cannot be undone — Restore puts them back instead.`,
+      confirmLabel: 'Delete forever',
+      danger: true,
+    });
+    if (ok) {
       for (const id of selected) dispatch(deleteTask(id));
       setSelected([]);
+      toast(`${n} task${n === 1 ? '' : 's'} deleted permanently`, 'error');
     }
   };
 
@@ -146,13 +158,13 @@ export default function ArchivedTasks() {
   useEffect(() => { loadArchivedProjects(); }, [loadArchivedProjects, tasks.length]);
 
   const purgeProject = async (project) => {
-    if (
-      !confirm(
-        `Delete the project "${project.name}" permanently?\n\n` +
-          'It has no tasks left, so there is nothing to restore.',
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: `Delete “${project.name}” permanently?`,
+      description: 'It has no tasks left, so there is nothing to restore.',
+      confirmLabel: 'Delete forever',
+      danger: true,
+    });
+    if (!ok) return;
     setBusyProject(project.id);
     try {
       const res = await fetch(
@@ -164,7 +176,7 @@ export default function ArchivedTasks() {
       dispatch(loadProjectsFromCSV());
     } catch (err) {
       console.error('Could not delete the project:', err);
-      alert(`Could not delete "${project.name}": ${err.message}`);
+      toast(`Could not delete “${project.name}”: ${err.message}`, 'error');
     } finally {
       setBusyProject(null);
     }
@@ -184,7 +196,7 @@ export default function ArchivedTasks() {
       dispatch(loadTasksFromCSV());
     } catch (err) {
       console.error('Could not restore the project:', err);
-      alert(`Could not restore "${project.name}": ${err.message}`);
+      toast(`Could not restore “${project.name}”: ${err.message}`, 'error');
     } finally {
       setBusyProject(null);
     }
